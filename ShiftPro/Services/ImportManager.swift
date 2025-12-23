@@ -1,0 +1,321 @@
+import Foundation
+import SwiftData
+
+/// Handles importing data from various formats
+@MainActor
+final class ImportManager {
+    enum ImportFormat {
+        case csv
+        case json
+        case ics
+    }
+
+    enum ImportError: LocalizedError {
+        case invalidFormat
+        case parsingFailed(String)
+        case validationFailed(String)
+        case importFailed(String)
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidFormat:
+                return "Invalid file format"
+            case .parsingFailed(let reason):
+                return "Failed to parse data: \(reason)"
+            case .validationFailed(let reason):
+                return "Data validation failed: \(reason)"
+            case .importFailed(let reason):
+                return "Import failed: \(reason)"
+            }
+        }
+    }
+
+    private let context: ModelContext
+
+    init(context: ModelContext) {
+        self.context = context
+    }
+
+    // MARK: - Import Methods
+
+    func importData(from url: URL, format: ImportFormat, profile: UserProfile?) throws -> ImportResult {
+        let data = try Data(contentsOf: url)
+
+        switch format {
+        case .csv:
+            return try importCSV(data: data, profile: profile)
+        case .json:
+            return try importJSON(data: data)
+        case .ics:
+            return try importICS(data: data, profile: profile)
+        }
+    }
+
+    // MARK: - CSV Import
+
+    private func importCSV(data: Data, profile: UserProfile?) throws -> ImportResult {
+        guard let csvString = String(data: data, encoding: .utf8) else {
+            throw ImportError.parsingFailed("Unable to decode CSV")
+        }
+
+        let lines = csvString.components(separatedBy: .newlines).filter { !$0.isEmpty }
+        guard lines.count > 1 else {
+            throw ImportError.validationFailed("No data rows found")
+        }
+
+        // Parse header
+        let header = lines[0].components(separatedBy: ",")
+        guard header.contains("Date") && header.contains("Start Time") else {
+            throw ImportError.validationFailed("Required columns missing")
+        }
+
+        var importedShifts: [Shift] = []
+        var errors: [String] = []
+
+        // Parse data rows
+        for (index, line) in lines.dropFirst().enumerated() {
+            do {
+                if let shift = try parseCSVLine(line, profile: profile) {
+                    importedShifts.append(shift)
+                    context.insert(shift)
+                }
+            } catch {
+                errors.append("Row \(index + 2): \(error.localizedDescription)")
+            }
+        }
+
+        try context.save()
+
+        return ImportResult(
+            importedShifts: importedShifts.count,
+            importedPatterns: 0,
+            errors: errors
+        )
+    }
+
+    // MARK: - JSON Import
+
+    private func importJSON(data: Data) throws -> ImportResult {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        do {
+            let backup = try decoder.decode(FullBackupData.self, from: data)
+
+            // Import profiles
+            for profileData in backup.profiles {
+                let profile = UserProfile(
+                    name: profileData.name,
+                    baseRateCents: profileData.baseRateCents,
+                    regularHoursPerPay: profileData.regularHoursPerPay,
+                    targetWeeklyHours: profileData.targetWeeklyHours
+                )
+                context.insert(profile)
+            }
+
+            // Import patterns
+            for patternData in backup.patterns {
+                let pattern = ShiftPattern(
+                    title: patternData.title,
+                    scheduleType: patternData.scheduleType == "weekly" ? .weekly : .cycling,
+                    defaultStartTime: patternData.defaultStartTime,
+                    defaultEndTime: patternData.defaultEndTime,
+                    defaultBreakMinutes: patternData.defaultBreakMinutes
+                )
+                context.insert(pattern)
+            }
+
+            // Import shifts
+            var importedShifts = 0
+            for shiftData in backup.shifts {
+                let shift = Shift(
+                    scheduledStart: shiftData.scheduledStart,
+                    scheduledEnd: shiftData.scheduledEnd,
+                    actualStart: shiftData.actualStart,
+                    actualEnd: shiftData.actualEnd,
+                    breakMinutes: shiftData.breakMinutes,
+                    isAdditionalShift: shiftData.isAdditionalShift,
+                    notes: shiftData.notes,
+                    rateMultiplier: shiftData.rateMultiplier,
+                    rateLabel: shiftData.rateLabel
+                )
+                context.insert(shift)
+                importedShifts += 1
+            }
+
+            try context.save()
+
+            return ImportResult(
+                importedShifts: importedShifts,
+                importedPatterns: backup.patterns.count,
+                errors: []
+            )
+        } catch {
+            throw ImportError.parsingFailed(error.localizedDescription)
+        }
+    }
+
+    // MARK: - ICS Import
+
+    private func importICS(data: Data, profile: UserProfile?) throws -> ImportResult {
+        guard let icsString = String(data: data, encoding: .utf8) else {
+            throw ImportError.parsingFailed("Unable to decode ICS")
+        }
+
+        let events = try parseICSEvents(icsString)
+        var importedShifts = 0
+
+        for event in events {
+            let shift = Shift(
+                scheduledStart: event.startDate,
+                scheduledEnd: event.endDate,
+                notes: event.summary
+            )
+            context.insert(shift)
+            importedShifts += 1
+        }
+
+        try context.save()
+
+        return ImportResult(
+            importedShifts: importedShifts,
+            importedPatterns: 0,
+            errors: []
+        )
+    }
+
+    // MARK: - Helper Methods
+
+    private func parseCSVLine(_ line: String, profile: UserProfile?) throws -> Shift? {
+        let components = line.components(separatedBy: ",")
+        guard components.count >= 3 else { return nil }
+
+        // Parse date and times
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HH:mm"
+
+        guard let date = dateFormatter.date(from: components[0].trimmingCharacters(in: .whitespaces)) else {
+            throw ImportError.parsingFailed("Invalid date format")
+        }
+
+        let startTimeStr = components[1].trimmingCharacters(in: .whitespaces)
+        let endTimeStr = components[2].trimmingCharacters(in: .whitespaces)
+
+        guard let startTime = timeFormatter.date(from: startTimeStr),
+              let endTime = timeFormatter.date(from: endTimeStr) else {
+            throw ImportError.parsingFailed("Invalid time format")
+        }
+
+        // Combine date with times
+        let calendar = Calendar.current
+        var startComponents = calendar.dateComponents([.hour, .minute], from: startTime)
+        let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
+        startComponents.year = dateComponents.year
+        startComponents.month = dateComponents.month
+        startComponents.day = dateComponents.day
+
+        guard let scheduledStart = calendar.date(from: startComponents) else {
+            throw ImportError.parsingFailed("Failed to construct start date")
+        }
+
+        var endComponents = calendar.dateComponents([.hour, .minute], from: endTime)
+        endComponents.year = dateComponents.year
+        endComponents.month = dateComponents.month
+        endComponents.day = dateComponents.day
+
+        guard var scheduledEnd = calendar.date(from: endComponents) else {
+            throw ImportError.parsingFailed("Failed to construct end date")
+        }
+
+        // Handle overnight shifts
+        if scheduledEnd <= scheduledStart {
+            scheduledEnd = calendar.date(byAdding: .day, value: 1, to: scheduledEnd) ?? scheduledEnd
+        }
+
+        let shift = Shift(
+            scheduledStart: scheduledStart,
+            scheduledEnd: scheduledEnd,
+            owner: profile
+        )
+
+        return shift
+    }
+
+    private func parseICSEvents(_ icsString: String) throws -> [ICSEvent] {
+        var events: [ICSEvent] = []
+        var currentEvent: ICSEvent?
+
+        let lines = icsString.components(separatedBy: .newlines)
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            if trimmed.hasPrefix("BEGIN:VEVENT") {
+                currentEvent = ICSEvent()
+            } else if trimmed.hasPrefix("END:VEVENT"), let event = currentEvent {
+                events.append(event)
+                currentEvent = nil
+            } else if let event = currentEvent {
+                if trimmed.hasPrefix("DTSTART") {
+                    if let date = parseICSDate(trimmed) {
+                        currentEvent?.startDate = date
+                    }
+                } else if trimmed.hasPrefix("DTEND") {
+                    if let date = parseICSDate(trimmed) {
+                        currentEvent?.endDate = date
+                    }
+                } else if trimmed.hasPrefix("SUMMARY:") {
+                    currentEvent?.summary = String(trimmed.dropFirst(8))
+                }
+            }
+        }
+
+        return events
+    }
+
+    private func parseICSDate(_ line: String) -> Date? {
+        // Parse ICS date format: DTSTART:20231201T090000Z
+        let components = line.components(separatedBy: ":")
+        guard components.count == 2 else { return nil }
+
+        let dateString = components[1].replacingOccurrences(of: "Z", with: "")
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd'T'HHmmss"
+        formatter.timeZone = TimeZone(identifier: "UTC")
+
+        return formatter.date(from: dateString)
+    }
+}
+
+// MARK: - Supporting Types
+
+struct ImportResult {
+    let importedShifts: Int
+    let importedPatterns: Int
+    let errors: [String]
+
+    var isSuccess: Bool {
+        errors.isEmpty
+    }
+
+    var summary: String {
+        var message = "Imported \(importedShifts) shifts"
+        if importedPatterns > 0 {
+            message += " and \(importedPatterns) patterns"
+        }
+        if !errors.isEmpty {
+            message += " with \(errors.count) errors"
+        }
+        return message
+    }
+}
+
+struct ICSEvent {
+    var startDate: Date?
+    var endDate: Date?
+    var summary: String?
+}
