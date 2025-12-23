@@ -10,7 +10,11 @@ struct SettingsView: View {
 
             Section("Preferences") {
                 settingRow(icon: "calendar", title: "Default Pattern", detail: "4-on / 2-off")
-                settingRow(icon: "bell", title: "Notifications", detail: "Enabled")
+                NavigationLink {
+                    NotificationSettingsView()
+                } label: {
+                    settingRow(icon: "bell", title: "Notifications", detail: "Schedule & alerts")
+                }
             }
 
             Section("Account") {

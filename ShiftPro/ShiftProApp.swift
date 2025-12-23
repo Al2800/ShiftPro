@@ -11,6 +11,11 @@ struct ShiftProApp: App {
         }
     }()
 
+    init() {
+        BackgroundTaskManager.shared.register()
+        BackgroundTaskManager.shared.scheduleAppRefresh()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
