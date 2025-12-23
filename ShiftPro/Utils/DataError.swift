@@ -3,7 +3,7 @@ import Foundation
 enum DataError: LocalizedError {
     case notFound
     case invalidState(String)
-    case saveFailed(String)
+    case saveFailed
     case cloudUnavailable
     case permissionDenied
     case underlying(Error)
@@ -14,8 +14,8 @@ enum DataError: LocalizedError {
             return "Requested item not found."
         case .invalidState(let message):
             return message
-        case .saveFailed(let message):
-            return message
+        case .saveFailed:
+            return "Unable to save changes."
         case .cloudUnavailable:
             return "iCloud is unavailable."
         case .permissionDenied:

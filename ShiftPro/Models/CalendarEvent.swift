@@ -72,6 +72,11 @@ extension CalendarEvent {
         syncState == .failed
     }
 
+    /// Whether a conflict was detected
+    var hasConflict: Bool {
+        syncState == .conflictDetected
+    }
+
     /// Time since last sync
     var timeSinceLastSync: TimeInterval {
         Date().timeIntervalSince(lastSyncDate)
@@ -88,6 +93,8 @@ extension CalendarEvent {
             return "Pending sync"
         case .failed:
             return "Sync failed"
+        case .conflictDetected:
+            return "Conflict detected"
         }
     }
 
@@ -119,6 +126,12 @@ extension CalendarEvent {
     /// Marks the sync as failed
     func markFailed() {
         syncState = .failed
+        lastSyncDate = Date()
+    }
+
+    /// Marks a conflict for manual resolution
+    func markConflict() {
+        syncState = .conflictDetected
         lastSyncDate = Date()
     }
 

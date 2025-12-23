@@ -1,22 +1,46 @@
 import Foundation
 
-struct HoursCalculator {
-    static func paidMinutes(totalMinutes: Int, breakMinutes: Int) -> Int {
-        max(0, totalMinutes - max(0, breakMinutes))
+final class HoursCalculator {
+    struct PeriodSummary {
+        let totalPaidMinutes: Int
+        let premiumMinutes: Int
+        let regularMinutes: Int
+        let estimatedPayCents: Int64?
+
+        var totalHours: Double { Double(totalPaidMinutes) / 60.0 }
+        var regularHours: Double { Double(regularMinutes) / 60.0 }
+        var premiumHours: Double { Double(premiumMinutes) / 60.0 }
     }
 
-    static func paidMinutes(start: Date, end: Date, breakMinutes: Int) -> Int {
-        let minutes = max(0, Int(end.timeIntervalSince(start) / 60))
-        return paidMinutes(totalMinutes: minutes, breakMinutes: breakMinutes)
-    }
-
-    static func premiumMinutes(paidMinutes: Int, rateMultiplier: Double) -> Int {
-        rateMultiplier > 1.0 ? paidMinutes : 0
-    }
-
-    static func apply(to shift: Shift) {
+    func updateCalculatedFields(for shift: Shift) {
         let totalMinutes = shift.effectiveDurationMinutes
-        shift.paidMinutes = paidMinutes(totalMinutes: totalMinutes, breakMinutes: shift.breakMinutes)
-        shift.premiumMinutes = premiumMinutes(paidMinutes: shift.paidMinutes, rateMultiplier: shift.rateMultiplier)
+        shift.paidMinutes = max(0, totalMinutes - max(0, shift.breakMinutes))
+        shift.premiumMinutes = shift.rateMultiplier > 1.0 ? shift.paidMinutes : 0
+    }
+
+    func updatePayPeriod(_ payPeriod: PayPeriod, baseRateCents: Int64?) {
+        payPeriod.recalculateHours()
+        if let baseRateCents {
+            payPeriod.estimatePay(baseRateCents: baseRateCents)
+        }
+    }
+
+    func calculateSummary(for shifts: [Shift], baseRateCents: Int64?) -> PeriodSummary {
+        let paidMinutes = shifts.reduce(0) { $0 + $1.paidMinutes }
+        let premiumMinutes = shifts.reduce(0) { $0 + $1.premiumMinutes }
+        let regularMinutes = max(0, paidMinutes - premiumMinutes)
+
+        var estimatedPay: Int64?
+        if let baseRateCents {
+            let hours = Double(paidMinutes) / 60.0
+            estimatedPay = Int64(Double(baseRateCents) * hours)
+        }
+
+        return PeriodSummary(
+            totalPaidMinutes: paidMinutes,
+            premiumMinutes: premiumMinutes,
+            regularMinutes: regularMinutes,
+            estimatedPayCents: estimatedPay
+        )
     }
 }

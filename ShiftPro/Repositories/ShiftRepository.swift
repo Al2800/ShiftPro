@@ -3,10 +3,19 @@ import SwiftData
 
 @MainActor
 final class ShiftRepository: AbstractRepository {
+    typealias Model = Shift
     let modelContext: ModelContext
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
+    }
+
+    convenience init(context: ModelContext) {
+        self.init(modelContext: context)
+    }
+
+    convenience init(context: ModelContext) {
+        self.init(modelContext: context)
     }
 
     func fetchShifts(
@@ -45,6 +54,16 @@ final class ShiftRepository: AbstractRepository {
 
     func fetchRange(from startDate: Date, to endDate: Date) throws -> [Shift] {
         try fetchShifts(in: DateInterval(start: startDate, end: endDate))
+    }
+
+    func fetch(id: UUID) throws -> Shift? {
+        let targetID = id
+        let predicate = #Predicate<Shift> { shift in
+            shift.id == targetID
+        }
+        var descriptor = FetchDescriptor<Shift>(predicate: predicate)
+        descriptor.fetchLimit = 1
+        return try fetch(descriptor).first
     }
 
     func add(_ shift: Shift) throws {

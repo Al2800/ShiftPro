@@ -113,6 +113,7 @@ enum CalendarSyncState: Int16, CaseIterable, Codable, Sendable {
     case synced = 1       // In sync with calendar
     case needsUpdate = 2  // Local changes pending sync
     case failed = 3       // Sync attempted but failed
+    case conflictDetected = 4 // Local and calendar changes diverged
 
     var displayName: String {
         switch self {
@@ -120,6 +121,7 @@ enum CalendarSyncState: Int16, CaseIterable, Codable, Sendable {
         case .synced: return "Synced"
         case .needsUpdate: return "Needs Update"
         case .failed: return "Sync Failed"
+        case .conflictDetected: return "Conflict"
         }
     }
 }

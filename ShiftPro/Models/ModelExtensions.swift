@@ -198,6 +198,7 @@ extension CalendarSyncState {
         case .synced: return .green
         case .needsUpdate: return .orange
         case .failed: return .red
+        case .conflictDetected: return .pink
         }
     }
 
@@ -208,6 +209,7 @@ extension CalendarSyncState {
         case .synced: return "checkmark.icloud.fill"
         case .needsUpdate: return "arrow.triangle.2.circlepath.icloud"
         case .failed: return "exclamationmark.icloud.fill"
+        case .conflictDetected: return "exclamationmark.triangle.fill"
         }
     }
 }

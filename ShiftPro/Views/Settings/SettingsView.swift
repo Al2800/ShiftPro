@@ -17,6 +17,14 @@ struct SettingsView: View {
                 settingRow(icon: "icloud", title: "iCloud Sync", detail: "Not connected")
                 settingRow(icon: "lock.shield", title: "Privacy", detail: "Face ID")
             }
+
+            Section("Integrations") {
+                NavigationLink {
+                    CalendarSettingsView()
+                } label: {
+                    settingRow(icon: "calendar.badge.clock", title: "Calendar Settings", detail: "Sync & permissions")
+                }
+            }
         }
         .listStyle(.insetGrouped)
         .navigationTitle("Settings")
