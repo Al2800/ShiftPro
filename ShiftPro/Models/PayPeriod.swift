@@ -229,6 +229,30 @@ extension PayPeriod {
     func contains(date: Date) -> Bool {
         date >= startDate && date <= endDate
     }
+
+    /// Adds a shift to this pay period
+    func addShift(_ shift: Shift) {
+        if !shifts.contains(where: { $0.id == shift.id }) {
+            shifts.append(shift)
+            shift.payPeriod = self
+        }
+    }
+
+    /// Removes a shift from this pay period
+    func removeShift(_ shift: Shift) {
+        shifts.removeAll { $0.id == shift.id }
+        shift.payPeriod = nil
+    }
+
+    /// Recalculates aggregated values from shifts
+    func recalculateFromShifts() {
+        recalculateHours()
+    }
+
+    /// Finalizes/closes this pay period
+    func finalize() {
+        markComplete()
+    }
 }
 
 // MARK: - Factory Methods
@@ -265,5 +289,17 @@ extension PayPeriod {
         let endOfMonth = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: startOfMonth)!
 
         return PayPeriod(startDate: startOfMonth, endDate: endOfMonth)
+    }
+
+    /// Creates a pay period for the current period based on type
+    static func current(type: PayPeriodType) -> PayPeriod {
+        switch type {
+        case .weekly:
+            return currentWeek()
+        case .biweekly:
+            return currentBiweekly()
+        case .monthly:
+            return currentMonth()
+        }
     }
 }
