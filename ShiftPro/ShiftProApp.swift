@@ -3,15 +3,20 @@ import SwiftData
 
 @main
 struct ShiftProApp: App {
-    private let sharedModelContainer: ModelContainer = {
+    let sharedModelContainer: ModelContainer
+    @StateObject private var notificationManager: NotificationManager
+
+    init() {
         do {
-            return try ModelContainerFactory.makeContainer()
+            let container = try ModelContainerFactory.makeContainer()
+            sharedModelContainer = container
+            _notificationManager = StateObject(
+                wrappedValue: NotificationManager(context: container.mainContext)
+            )
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
-    }()
 
-    init() {
         BackgroundTaskManager.shared.register()
         BackgroundTaskManager.shared.scheduleAppRefresh()
     }
@@ -19,6 +24,9 @@ struct ShiftProApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .task {
+                    try? await notificationManager.rescheduleUpcomingShifts()
+                }
         }
         .modelContainer(sharedModelContainer)
     }

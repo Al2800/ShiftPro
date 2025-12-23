@@ -1,385 +1,274 @@
 import SwiftUI
 import SwiftData
 
-/// Comprehensive hours tracking dashboard with pay period management
 struct HoursDashboard: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query(sort: \PayPeriod.startDate, order: .reverse) private var allPeriods: [PayPeriod]
-    @Query private var profiles: [UserProfile]
+    @Query(filter: #Predicate<Shift> { $0.deletedAt == nil }, sort: [SortDescriptor(\Shift.scheduledStart, order: .forward)])
+    private var shifts: [Shift]
 
-    @State private var selectedPeriod: PayPeriod?
-    @State private var showPeriodDetail = false
-    @State private var calculator = PayPeriodCalculator()
-    @State private var predictor = OvertimePredictor()
+    @Query(filter: #Predicate<PayPeriod> { $0.deletedAt == nil }, sort: [SortDescriptor(\PayPeriod.startDate, order: .reverse)])
+    private var payPeriods: [PayPeriod]
 
-    private var profile: UserProfile? {
-        profiles.first
-    }
+    @Query(sort: [SortDescriptor(\UserProfile.createdAt, order: .forward)])
+    private var profiles: [UserProfile]
 
-    private var currentPeriod: PayPeriod? {
-        allPeriods.first { $0.isCurrent && $0.deletedAt == nil }
-    }
+    @State private var rateChartStyle: RateBreakdownChart.ChartStyle = .pie
 
-    private var recentPeriods: [PayPeriod] {
-        allPeriods
-            .filter { $0.deletedAt == nil }
-            .prefix(6)
-            .map { $0 }
-    }
+    private let calculator = PayPeriodCalculator()
+    private let overtimePredictor = OvertimePredictor()
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ShiftProSpacing.l) {
-                if let period = currentPeriod {
-                    currentPeriodSection(period)
-                    overtimeWarningSection(period)
-                    rateBreakdownSection(period)
-                    trendSection
-                } else {
-                    emptyStateView
+                heroCard
+
+                NavigationLink {
+                    PayPeriodDetailView(
+                        period: currentPeriod,
+                        shifts: periodShifts,
+                        baseRateCents: profile?.baseRateCents
+                    )
+                } label: {
+                    summaryCard
                 }
+                .buttonStyle(.plain)
+
+                chartCard
+
+                rateBreakdownCard
+
+                overtimeCard
+
+                recentPeriodsCard
             }
             .padding(.horizontal, ShiftProSpacing.m)
             .padding(.vertical, ShiftProSpacing.l)
         }
         .background(ShiftProColors.background.ignoresSafeArea())
-        .navigationTitle("Hours Dashboard")
-        .navigationBarTitleDisplayMode(.large)
-        .sheet(item: $selectedPeriod) { period in
-            NavigationStack {
-                PayPeriodDetailView(period: period)
+        .navigationTitle("Hours")
+        .toolbar {
+            NavigationLink("Rates") {
+                RateMultiplierView()
             }
         }
     }
 
-    // MARK: - Current Period Section
+    private var profile: UserProfile? {
+        profiles.first
+    }
 
-    @ViewBuilder
-    private func currentPeriodSection(_ period: PayPeriod) -> some View {
-        let analysis = calculator.analyze(
-            period: period,
-            targetHours: profile?.regularHoursPerPay ?? 80,
-            baseRateCents: profile?.baseRateCents
+    private var currentPeriod: PayPeriod {
+        if let stored = payPeriods.first(where: { $0.isCurrent }) {
+            return stored
+        }
+        return calculator.period(for: Date(), type: profile?.payPeriodType ?? .biweekly, referenceDate: profile?.startDate)
+    }
+
+    private var periodShifts: [Shift] {
+        calculator.shifts(in: currentPeriod, from: shifts)
+    }
+
+    private var summary: HoursCalculator.PeriodSummary {
+        calculator.summary(for: periodShifts, baseRateCents: profile?.baseRateCents)
+    }
+
+    private var rateData: [RateBreakdownChart.RateData] {
+        let buckets = calculator.rateBreakdown(for: periodShifts)
+        return buckets.map { RateBreakdownChart.RateData(label: $0.label, hours: $0.hours, multiplier: $0.multiplier) }
+    }
+
+    private var dailyTotals: [(date: Date, hours: Double)] {
+        calculator.dailyTotals(for: periodShifts, within: currentPeriod).map { ($0.date, $0.hours) }
+    }
+
+    private var overtimeForecast: OvertimeForecast {
+        let threshold = Double(profile?.regularHoursPerPay ?? 80)
+        return overtimePredictor.forecast(for: periodShifts, within: currentPeriod, thresholdHours: threshold)
+    }
+
+    private var heroCard: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+            Text("Current Pay Period")
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(ShiftProColors.inkSubtle)
+
+            Text(currentPeriod.dateRangeFormatted)
+                .font(ShiftProTypography.title)
+                .foregroundStyle(ShiftProColors.ink)
+
+            ProgressView(value: currentPeriod.progress)
+                .tint(ShiftProColors.accent)
+
+            HStack(spacing: ShiftProSpacing.m) {
+                metricView(title: "Total", value: String(format: "%.1f", summary.totalHours))
+                metricView(title: "Regular", value: String(format: "%.1f", summary.regularHours))
+                metricView(title: "Premium", value: String(format: "%.1f", summary.premiumHours))
+            }
+        }
+        .padding(ShiftProSpacing.m)
+        .background(ShiftProColors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(ShiftProColors.accentMuted, lineWidth: 1)
         )
+    }
 
-        VStack(alignment: .leading, spacing: ShiftProSpacing.m) {
-            // Header
+    private var summaryCard: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Current Pay Period")
-                        .font(ShiftProTypography.headline)
-                        .foregroundStyle(ShiftProColors.inkSubtle)
+                Text("Pay Period Summary")
+                    .font(ShiftProTypography.headline)
+                    .foregroundStyle(ShiftProColors.ink)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+            }
 
-                    Text(period.dateRangeFormatted)
-                        .font(ShiftProTypography.title)
+            Text("Total paid minutes: \(summary.totalPaidMinutes.minutesToHoursFormatted)")
+                .font(ShiftProTypography.body)
+                .foregroundStyle(ShiftProColors.inkSubtle)
+
+            if let estimated = summary.estimatedPayCents {
+                Text("Estimated pay: \(estimated.centsFormatted)")
+                    .font(ShiftProTypography.subheadline)
+                    .foregroundStyle(ShiftProColors.ink)
+            }
+        }
+        .padding(ShiftProSpacing.m)
+        .background(ShiftProColors.surfaceElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private var chartCard: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+            Text("Hours Trend")
+                .font(ShiftProTypography.headline)
+                .foregroundStyle(ShiftProColors.ink)
+
+            HoursChart(dataPoints: dailyTotals, targetHours: profile?.regularHoursPerPay)
+        }
+        .padding(ShiftProSpacing.m)
+        .background(ShiftProColors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private var rateBreakdownCard: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+            HStack {
+                Text("Rate Breakdown")
+                    .font(ShiftProTypography.headline)
+                    .foregroundStyle(ShiftProColors.ink)
+                Spacer()
+                Picker("Style", selection: $rateChartStyle) {
+                    Text("Pie").tag(RateBreakdownChart.ChartStyle.pie)
+                    Text("Bar").tag(RateBreakdownChart.ChartStyle.bar)
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 140)
+            }
+
+            if rateData.isEmpty {
+                Text("No paid hours recorded yet.")
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+                    .frame(maxWidth: .infinity, minHeight: 120)
+            } else {
+                RateBreakdownChart(rateData: rateData, style: rateChartStyle)
+            }
+        }
+        .padding(ShiftProSpacing.m)
+        .background(ShiftProColors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private var overtimeCard: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+            Text("Overtime Forecast")
+                .font(ShiftProTypography.headline)
+                .foregroundStyle(ShiftProColors.ink)
+
+            HStack {
+                VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+                    Text("Projected")
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                    Text(String(format: "%.1f hrs", overtimeForecast.projectedHours))
+                        .font(ShiftProTypography.subheadline)
                         .foregroundStyle(ShiftProColors.ink)
                 }
-
                 Spacer()
-
-                Button {
-                    selectedPeriod = period
-                } label: {
-                    Image(systemName: "arrow.right.circle.fill")
-                        .font(.title3)
-                        .foregroundStyle(ShiftProColors.accent)
+                VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+                    Text("Threshold")
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                    Text(String(format: "%.0f hrs", overtimeForecast.thresholdHours))
+                        .font(ShiftProTypography.subheadline)
+                        .foregroundStyle(ShiftProColors.ink)
                 }
             }
 
-            // Progress Bar
-            VStack(alignment: .leading, spacing: 8) {
+            Text(overtimeForecast.message)
+                .font(ShiftProTypography.body)
+                .foregroundStyle(color(for: overtimeForecast.status))
+        }
+        .padding(ShiftProSpacing.m)
+        .background(ShiftProColors.surfaceElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private var recentPeriodsCard: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+            Text("Recent Periods")
+                .font(ShiftProTypography.headline)
+                .foregroundStyle(ShiftProColors.ink)
+
+            ForEach(payPeriods.prefix(4), id: \.id) { period in
                 HStack {
-                    Text(String(format: "%.1f", analysis.totalHours))
-                        .font(.system(.largeTitle, design: .rounded).weight(.bold))
-                        .foregroundStyle(ShiftProColors.ink)
-                    Text("/ \(analysis.targetHours) hours")
-                        .font(ShiftProTypography.headline)
-                        .foregroundStyle(ShiftProColors.inkSubtle)
-                }
-
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(ShiftProColors.surfaceMuted)
-                            .frame(height: 12)
-
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(progressColor(analysis.progressPercentage))
-                            .frame(
-                                width: min(geometry.size.width, geometry.size.width * (analysis.progressPercentage / 100.0)),
-                                height: 12
-                            )
-                    }
-                }
-                .frame(height: 12)
-
-                HStack {
-                    Text("\(Int(analysis.progressPercentage))% complete")
-                        .font(ShiftProTypography.caption)
-                        .foregroundStyle(ShiftProColors.inkSubtle)
-
-                    Spacer()
-
-                    if let projected = analysis.projectedTotalHours {
-                        Text("Projected: \(String(format: "%.1f", projected))h")
+                    VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+                        Text(period.dateRangeFormatted)
+                            .font(ShiftProTypography.body)
+                            .foregroundStyle(ShiftProColors.ink)
+                        Text("\(period.paidMinutes.minutesToHoursFormatted) • \(period.shiftCount) shifts")
                             .font(ShiftProTypography.caption)
                             .foregroundStyle(ShiftProColors.inkSubtle)
                     }
+                    Spacer()
+                    if period.isComplete {
+                        Image(systemName: "checkmark.seal.fill")
+                            .foregroundStyle(ShiftProColors.success)
+                    }
                 }
-            }
+                .padding(.vertical, ShiftProSpacing.xxs)
 
-            // Quick Stats
-            HStack(spacing: ShiftProSpacing.m) {
-                statCard(
-                    label: "Regular",
-                    value: String(format: "%.1f", analysis.regularHours),
-                    icon: "clock.fill",
-                    color: ShiftProColors.success
-                )
-
-                statCard(
-                    label: "Premium",
-                    value: String(format: "%.1f", analysis.premiumHours),
-                    icon: "star.fill",
-                    color: ShiftProColors.warning
-                )
-
-                if let estimatedPay = period.estimatedPayFormatted {
-                    statCard(
-                        label: "Est. Pay",
-                        value: estimatedPay,
-                        icon: "dollarsign.circle.fill",
-                        color: ShiftProColors.accent
-                    )
+                if period.id != payPeriods.prefix(4).last?.id {
+                    Divider()
                 }
             }
         }
         .padding(ShiftProSpacing.m)
         .background(ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: Color.black.opacity(0.05), radius: 10, y: 4)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
-    // MARK: - Overtime Warning Section
-
-    @ViewBuilder
-    private func overtimeWarningSection(_ period: PayPeriod) -> some View {
-        let prediction = predictor.predict(
-            for: period,
-            targetHours: profile?.regularHoursPerPay ?? 80
-        )
-
-        if prediction.warningLevel != .none {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
-                HStack {
-                    Image(systemName: prediction.warningLevel.iconName)
-                        .foregroundStyle(warningColor(prediction.warningLevel))
-                    Text(prediction.warningLevel.displayName)
-                        .font(ShiftProTypography.headline)
-                        .foregroundStyle(ShiftProColors.ink)
-                }
-
-                Text(prediction.message)
-                    .font(ShiftProTypography.body)
-                    .foregroundStyle(ShiftProColors.inkSubtle)
-
-                if let recommended = prediction.recommendedDailyHours, prediction.daysRemaining > 0 {
-                    HStack {
-                        Image(systemName: "lightbulb.fill")
-                            .foregroundStyle(ShiftProColors.accent)
-                        Text("Average \(String(format: "%.1f", recommended)) hours/day to hit target")
-                            .font(ShiftProTypography.caption)
-                            .foregroundStyle(ShiftProColors.inkSubtle)
-                    }
-                    .padding(.top, 4)
-                }
-            }
-            .padding(ShiftProSpacing.m)
-            .background(warningColor(prediction.warningLevel).opacity(0.1))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(warningColor(prediction.warningLevel).opacity(0.3), lineWidth: 1)
-            )
-        }
-    }
-
-    // MARK: - Rate Breakdown Section
-
-    @ViewBuilder
-    private func rateBreakdownSection(_ period: PayPeriod) -> some View {
-        let breakdown = calculator.calculateRateBreakdown(
-            for: period,
-            baseRateCents: profile?.baseRateCents
-        )
-
-        if !breakdown.isEmpty {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.m) {
-                Text("Rate Breakdown")
-                    .font(ShiftProTypography.headline)
-                    .foregroundStyle(ShiftProColors.ink)
-
-                let chartData = breakdown.map {
-                    RateBreakdownChart.RateData(
-                        label: $0.label,
-                        hours: $0.hours,
-                        multiplier: $0.multiplier
-                    )
-                }
-
-                RateBreakdownChart(rateData: chartData, style: .pie)
-
-                // Detail rows
-                ForEach(breakdown) { rate in
-                    rateDetailRow(rate)
-                }
-            }
-            .padding(ShiftProSpacing.m)
-            .background(ShiftProColors.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .shadow(color: Color.black.opacity(0.05), radius: 10, y: 4)
-        }
-    }
-
-    // MARK: - Trend Section
-
-    @ViewBuilder
-    private var trendSection: some View {
-        if recentPeriods.count >= 2 {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.m) {
-                Text("Trend")
-                    .font(ShiftProTypography.headline)
-                    .foregroundStyle(ShiftProColors.ink)
-
-                let trendData = calculator.calculateTrend(periods: recentPeriods)
-
-                HoursChart(
-                    dataPoints: trendData,
-                    targetHours: profile?.regularHoursPerPay
-                )
-
-                // Period comparison
-                if let current = currentPeriod,
-                   let previous = recentPeriods.dropFirst().first {
-                    let comparison = calculator.compareToPrevious(current: current, previous: previous)
-
-                    HStack {
-                        Image(systemName: comparison.hoursDelta >= 0 ? "arrow.up.right" : "arrow.down.right")
-                            .foregroundStyle(comparison.hoursDelta >= 0 ? ShiftProColors.success : ShiftProColors.warning)
-
-                        Text(String(format: "%.1f hours %@ last period", abs(comparison.hoursDelta), comparison.hoursDelta >= 0 ? "more than" : "less than"))
-                            .font(ShiftProTypography.body)
-                            .foregroundStyle(ShiftProColors.inkSubtle)
-
-                        Spacer()
-
-                        Text(String(format: "%+.1f%%", comparison.percentageChange))
-                            .font(ShiftProTypography.mono)
-                            .foregroundStyle(ShiftProColors.inkSubtle)
-                    }
-                    .padding(.top, 8)
-                }
-            }
-            .padding(ShiftProSpacing.m)
-            .background(ShiftProColors.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .shadow(color: Color.black.opacity(0.05), radius: 10, y: 4)
-        }
-    }
-
-    // MARK: - Empty State
-
-    private var emptyStateView: some View {
-        VStack(spacing: ShiftProSpacing.m) {
-            Image(systemName: "chart.bar.xaxis")
-                .font(.system(size: 60))
+    private func metricView(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+            Text(title)
+                .font(ShiftProTypography.caption)
                 .foregroundStyle(ShiftProColors.inkSubtle)
-
-            Text("No Active Pay Period")
-                .font(ShiftProTypography.headline)
+            Text("\(value)h")
+                .font(ShiftProTypography.subheadline)
                 .foregroundStyle(ShiftProColors.ink)
-
-            Text("Start adding shifts to see your hours dashboard")
-                .font(ShiftProTypography.body)
-                .foregroundStyle(ShiftProColors.inkSubtle)
-                .multilineTextAlignment(.center)
-        }
-        .padding(ShiftProSpacing.xl)
-    }
-
-    // MARK: - Helper Views
-
-    @ViewBuilder
-    private func statCard(label: String, value: String, icon: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.caption)
-                Text(label)
-                    .font(ShiftProTypography.caption)
-            }
-            .foregroundStyle(ShiftProColors.inkSubtle)
-
-            Text(value)
-                .font(ShiftProTypography.headline)
-                .foregroundStyle(color)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(ShiftProSpacing.s)
-        .background(ShiftProColors.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    @ViewBuilder
-    private func rateDetailRow(_ rate: PayPeriodCalculator.RateBreakdown) -> some View {
-        HStack {
-            RateBadge(multiplier: rate.multiplier)
-
-            Text(rate.label)
-                .font(ShiftProTypography.body)
-                .foregroundStyle(ShiftProColors.ink)
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(String(format: "%.1f hrs", rate.hours))
-                    .font(ShiftProTypography.mono)
-                    .foregroundStyle(ShiftProColors.ink)
-
-                if let estimatedPay = rate.estimatedPayCents {
-                    let dollars = Double(estimatedPay) / 100.0
-                    Text(String(format: "$%.2f", dollars))
-                        .font(ShiftProTypography.caption)
-                        .foregroundStyle(ShiftProColors.inkSubtle)
-                }
-            }
-        }
-        .padding(.vertical, 4)
-    }
-
-    // MARK: - Helper Methods
-
-    private func progressColor(_ percentage: Double) -> Color {
-        if percentage >= 100 {
-            return ShiftProColors.success
-        } else if percentage >= 80 {
-            return ShiftProColors.accent
-        } else if percentage >= 50 {
-            return ShiftProColors.warning
-        } else {
-            return ShiftProColors.inkSubtle
-        }
-    }
-
-    private func warningColor(_ level: OvertimePredictor.WarningLevel) -> Color {
-        switch level {
-        case .none:
+    private func color(for status: OvertimeForecast.Status) -> Color {
+        switch status {
+        case .safe:
             return ShiftProColors.success
         case .approaching:
-            return ShiftProColors.accent
-        case .warning:
             return ShiftProColors.warning
-        case .critical, .exceeded:
+        case .exceeded:
             return ShiftProColors.danger
         }
     }
@@ -388,6 +277,6 @@ struct HoursDashboard: View {
 #Preview {
     NavigationStack {
         HoursDashboard()
-            .modelContainer(for: [PayPeriod.self, Shift.self, UserProfile.self], inMemory: true)
     }
+    .modelContainer(try! ModelContainerFactory.previewContainer())
 }

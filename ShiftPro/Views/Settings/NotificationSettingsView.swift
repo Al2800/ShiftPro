@@ -45,7 +45,7 @@ struct NotificationSettingsView: View {
 
 private struct NotificationSettingsForm: View {
     @Bindable var settings: NotificationSettings
-    let permissionManager: PermissionManager
+    @ObservedObject var permissionManager: PermissionManager
     let shifts: [Shift]
     @Binding var isScheduling: Bool
 

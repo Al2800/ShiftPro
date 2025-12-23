@@ -14,6 +14,7 @@ final class ShiftManager {
     private let periodEngine: PayPeriodEngine
     private let shiftRepository: ShiftRepository
     private let profileRepository: UserProfileRepository
+    private let notificationManager: NotificationManager
 
     // MARK: - Observable State
 
@@ -25,13 +26,14 @@ final class ShiftManager {
 
     // MARK: - Initialization
 
-    init(context: ModelContext) {
+    init(context: ModelContext, notificationManager: NotificationManager? = nil) {
         self.context = context
         self.validator = ShiftValidator(context: context)
         self.calculator = HoursCalculator()
         self.periodEngine = PayPeriodEngine(context: context, calculator: calculator)
         self.shiftRepository = ShiftRepository(context: context)
         self.profileRepository = UserProfileRepository(context: context)
+        self.notificationManager = notificationManager ?? NotificationManager(context: context)
     }
 
     // MARK: - Refresh
@@ -100,6 +102,7 @@ final class ShiftManager {
 
         // Refresh state
         await refresh()
+        try? await notificationManager.scheduleNotifications(for: shift)
 
         return shift
     }
@@ -135,6 +138,7 @@ final class ShiftManager {
 
         // Refresh state
         await refresh()
+        try? await notificationManager.scheduleNotifications(for: shift)
 
         return shift
     }
@@ -171,11 +175,13 @@ final class ShiftManager {
 
         // Refresh state
         await refresh()
+        try? await notificationManager.scheduleNotifications(for: shift)
     }
 
     /// Deletes a shift (soft delete)
     func deleteShift(_ shift: Shift) async throws {
         try shiftRepository.softDelete(shift)
+        notificationManager.cancelNotifications(for: shift)
         await refresh()
     }
 
@@ -191,6 +197,7 @@ final class ShiftManager {
 
         shift.clockIn(at: time)
         try shiftRepository.update(shift)
+        notificationManager.cancelNotifications(for: shift)
 
         // Update state
         currentShift = shift
@@ -216,6 +223,7 @@ final class ShiftManager {
         shift.clockOut(at: time)
         calculator.updateCalculatedFields(for: shift)
         try shiftRepository.update(shift)
+        notificationManager.cancelNotifications(for: shift)
 
         // Update pay period
         if let period = shift.payPeriod, let owner = shift.owner {

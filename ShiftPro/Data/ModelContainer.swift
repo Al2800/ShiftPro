@@ -25,6 +25,7 @@ enum ModelContainerFactory {
                 PayPeriod.self,
                 PayRuleset.self,
                 CalendarEvent.self,
+                NotificationSettings.self,
                 configurations: configuration
             )
         } catch {
@@ -38,6 +39,7 @@ enum ModelContainerFactory {
                     PayPeriod.self,
                     PayRuleset.self,
                     CalendarEvent.self,
+                    NotificationSettings.self,
                     configurations: fallback
                 )
             }
@@ -66,6 +68,9 @@ enum ModelContainerFactory {
         let today = Date()
         let shift = Shift.fromPattern(pattern, on: today, owner: profile)
         context.insert(shift)
+
+        let notificationSettings = NotificationSettings(owner: profile)
+        context.insert(notificationSettings)
 
         return container
     }

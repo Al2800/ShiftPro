@@ -18,6 +18,7 @@ enum NotificationActionIdentifier {
 struct NotificationScheduler {
     static let identifierPrefix = "shiftpro."
     static let weeklySummaryIdentifier = "shiftpro.weekly.summary"
+    static let overtimeWarningIdentifier = "shiftpro.overtime.warning"
 
     static func shiftStartIdentifier(_ id: UUID) -> String {
         "\(identifierPrefix)shift.start.\(id.uuidString)"
@@ -67,8 +68,14 @@ struct NotificationScheduler {
             intentIdentifiers: [],
             options: []
         )
+        let overtimeCategory = UNNotificationCategory(
+            identifier: NotificationCategory.overtimeWarning.rawValue,
+            actions: [viewSummary],
+            intentIdentifiers: [],
+            options: []
+        )
 
-        center.setNotificationCategories([startCategory, endCategory, summaryCategory])
+        center.setNotificationCategories([startCategory, endCategory, summaryCategory, overtimeCategory])
     }
 
     func requests(

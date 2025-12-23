@@ -1,136 +1,101 @@
 import SwiftUI
 import SwiftData
 
-/// Rate multiplier management and configuration view
 struct RateMultiplierView: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var modelContext
+    @Environment(\.modelContext) private var context
 
-    @State private var selectedMultiplier: RateMultiplier = .regular
-    @State private var customMultiplier: Double = 1.0
-    @State private var customLabel: String = ""
-    @State private var showCustom: Bool = false
+    @Query(sort: [SortDescriptor(\UserProfile.createdAt, order: .forward)])
+    private var profiles: [UserProfile]
 
-    var onSelect: ((Double, String) -> Void)?
+    @Query(sort: [SortDescriptor(\PayRuleset.createdAt, order: .forward)])
+    private var rulesets: [PayRuleset]
+
+    @State private var rateConfigs: [PayRules.RateMultiplierConfig] = []
+    @State private var activeRuleset: PayRuleset?
 
     var body: some View {
-        NavigationStack {
-            List {
-                Section {
-                    ForEach(RateMultiplier.allCases, id: \.rawValue) { rate in
-                        rateOption(rate: rate)
-                    }
-                } header: {
-                    Text("Standard Rates")
-                } footer: {
-                    Text("Select the appropriate rate multiplier for this shift. Premium rates apply to overtime, night shifts, and holidays.")
-                }
-
-                Section {
-                    Toggle("Use Custom Rate", isOn: $showCustom)
-
-                    if showCustom {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Multiplier: \(String(format: "%.1fx", customMultiplier))")
-                                .font(ShiftProTypography.caption)
-                                .foregroundStyle(ShiftProColors.inkSubtle)
-
-                            Slider(value: $customMultiplier, in: 1.0...3.0, step: 0.1)
-                                .tint(ShiftProColors.accent)
-
-                            TextField("Label (optional)", text: $customLabel)
-                                .textFieldStyle(.roundedBorder)
-                        }
-                        .padding(.vertical, 8)
-                    }
-                } header: {
-                    Text("Custom Rate")
-                } footer: {
-                    if showCustom {
-                        Text("Custom rates allow you to define specific multipliers for unique situations (e.g., hazard pay, special duty).")
-                    }
-                }
+        Form {
+            Section("Active Ruleset") {
+                Text(activeRuleset?.name ?? "Default Rules")
+                    .font(ShiftProTypography.body)
             }
-            .navigationTitle("Rate Multiplier")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
 
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Apply") {
-                        applyRate()
-                    }
-                    .fontWeight(.semibold)
-                }
-            }
-        }
-    }
-
-    // MARK: - Rate Option
-
-    @ViewBuilder
-    private func rateOption(rate: RateMultiplier) -> some View {
-        Button {
-            selectedMultiplier = rate
-            showCustom = false
-        } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(rate.displayName)
+            Section("Rate Multipliers") {
+                ForEach(rateConfigs.indices, id: \.self) { index in
+                    HStack {
+                        TextField("Label", text: Binding(
+                            get: { rateConfigs[index].label },
+                            set: { newValue in
+                                rateConfigs[index] = .init(id: rateConfigs[index].id, label: newValue, multiplier: rateConfigs[index].multiplier)
+                                persistChanges()
+                            }
+                        ))
                         .font(ShiftProTypography.body)
-                        .foregroundStyle(ShiftProColors.ink)
 
-                    Text(rateDescription(for: rate))
-                        .font(ShiftProTypography.caption)
-                        .foregroundStyle(ShiftProColors.inkSubtle)
-                }
+                        Spacer()
 
-                Spacer()
-
-                RateBadge(multiplier: rate.rawValue)
-
-                if selectedMultiplier == rate && !showCustom {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(ShiftProColors.success)
+                        Stepper(value: Binding(
+                            get: { rateConfigs[index].multiplier },
+                            set: { newValue in
+                                rateConfigs[index] = .init(id: rateConfigs[index].id, label: rateConfigs[index].label, multiplier: newValue)
+                                persistChanges()
+                            }
+                        ), in: 1.0...3.0, step: 0.1) {
+                            Text(String(format: "%.1fx", rateConfigs[index].multiplier))
+                                .font(ShiftProTypography.caption)
+                        }
+                    }
                 }
             }
+
+            Section(footer: Text("Rate changes apply to new or edited shifts only.")) {
+                Button("Reset to Defaults") {
+                    rateConfigs = PayRules.defaultMultipliers
+                    persistChanges()
+                }
+                .foregroundStyle(ShiftProColors.accent)
+            }
+        }
+        .navigationTitle("Rate Multipliers")
+        .task {
+            await ensureRuleset()
         }
     }
 
-    // MARK: - Actions
-
-    private func applyRate() {
-        if showCustom {
-            let label = customLabel.isEmpty ? String(format: "%.1fx", customMultiplier) : customLabel
-            onSelect?(customMultiplier, label)
-        } else {
-            onSelect?(selectedMultiplier.rawValue, selectedMultiplier.displayName)
+    @MainActor
+    private func ensureRuleset() async {
+        if let existing = rulesets.first {
+            activeRuleset = existing
+            rateConfigs = existing.rateMultipliers
+            return
         }
-        dismiss()
+
+        let owner = profiles.first
+        let ruleset = PayRuleset(name: "Standard", owner: owner)
+        context.insert(ruleset)
+        owner?.activePayRuleset = ruleset
+        activeRuleset = ruleset
+        rateConfigs = ruleset.rateMultipliers
     }
 
-    // MARK: - Helpers
-
-    private func rateDescription(for rate: RateMultiplier) -> String {
-        switch rate {
-        case .regular:
-            return "Standard hourly rate"
-        case .overtimeBracket:
-            return "Time and a third (1.3x)"
-        case .extra:
-            return "Time and a half (1.5x)"
-        case .bankHoliday:
-            return "Double time (2.0x)"
-        }
+    private func persistChanges() {
+        guard let activeRuleset else { return }
+        let currentRules = activeRuleset.rules ?? PayRules.defaults
+        let payPeriodType = PayPeriodType(rawValue: currentRules.payPeriodTypeRaw) ?? .biweekly
+        let updatedRules = PayRules(
+            schemaVersion: currentRules.schemaVersion,
+            unpaidBreakMinutes: currentRules.unpaidBreakMinutes,
+            rateMultipliers: rateConfigs,
+            payPeriodType: payPeriodType
+        )
+        activeRuleset.rules = updatedRules
+        activeRuleset.markUpdated()
     }
 }
 
 #Preview {
-    RateMultiplierView { multiplier, label in
-        print("Selected: \(multiplier)x - \(label)")
+    NavigationStack {
+        RateMultiplierView()
     }
+    .modelContainer(try! ModelContainerFactory.previewContainer())
 }

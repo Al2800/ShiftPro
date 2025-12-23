@@ -1,170 +1,116 @@
 import Foundation
-import SwiftData
 
-/// Advanced pay period calculations with rate breakdown and projections
-@MainActor
-final class PayPeriodCalculator {
-
-    // MARK: - Rate Breakdown Structure
-
-    struct RateBreakdown: Identifiable {
+struct PayPeriodCalculator {
+    struct RateBucket: Identifiable {
         let id = UUID()
-        let multiplier: Double
         let label: String
+        let multiplier: Double
         let minutes: Int
-        let estimatedPayCents: Int64?
 
         var hours: Double {
             Double(minutes) / 60.0
         }
+    }
 
-        var percentage: Double {
-            guard minutes > 0 else { return 0 }
-            return 0 // Will be calculated relative to total
+    struct DailyTotal: Identifiable {
+        let id = UUID()
+        let date: Date
+        let minutes: Int
+
+        var hours: Double {
+            Double(minutes) / 60.0
         }
     }
 
-    struct PeriodAnalysis {
-        let period: PayPeriod
-        let rateBreakdown: [RateBreakdown]
-        let totalHours: Double
-        let regularHours: Double
-        let premiumHours: Double
-        let estimatedPayCents: Int64?
-        let projectedTotalHours: Double?
-        let targetHours: Int
-        let progressPercentage: Double
-        let averageHoursPerDay: Double
-        let daysRemaining: Int
+    func period(for date: Date, type: PayPeriodType, referenceDate: Date?) -> PayPeriod {
+        let calendar = Calendar.current
+        switch type {
+        case .weekly:
+            let start = calendar.startOfWeek(for: date)
+            let end = calendar.date(byAdding: .day, value: 6, to: start) ?? date
+            return PayPeriod(startDate: start, endDate: end)
+        case .biweekly:
+            let reference = referenceDate ?? date
+            let daysSinceReference = calendar.dateComponents([.day], from: reference, to: date).day ?? 0
+            let periodIndex = daysSinceReference / 14
+            let startDate = calendar.date(byAdding: .day, value: periodIndex * 14, to: reference) ?? date
+            let endDate = calendar.date(byAdding: .day, value: 13, to: startDate) ?? date
+            return PayPeriod(startDate: startDate, endDate: endDate)
+        case .monthly:
+            let start = calendar.startOfMonth(for: date)
+            let end = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: start) ?? date
+            return PayPeriod(startDate: start, endDate: end)
+        }
     }
 
-    // MARK: - Analysis Methods
+    func shifts(in period: PayPeriod, from shifts: [Shift]) -> [Shift] {
+        shifts.filter { shift in
+            shift.deletedAt == nil &&
+            shift.scheduledStart >= period.startDate &&
+            shift.scheduledStart <= period.endDate
+        }
+    }
 
-    /// Performs comprehensive analysis of a pay period
-    func analyze(
-        period: PayPeriod,
-        targetHours: Int = 80,
-        baseRateCents: Int64?
-    ) -> PeriodAnalysis {
-        let breakdown = calculateRateBreakdown(for: period, baseRateCents: baseRateCents)
-        let totalHours = period.paidHours
-        let daysElapsed = max(1, Calendar.current.dateComponents([.day], from: period.startDate, to: Date()).day ?? 1)
-        let daysTotal = period.durationDays
-        let daysRemaining = max(0, daysTotal - daysElapsed)
+    func summary(for shifts: [Shift], baseRateCents: Int64?) -> HoursCalculator.PeriodSummary {
+        let paidMinutes = shifts.reduce(0) { total, shift in
+            total + max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
+        }
 
-        let averagePerDay = totalHours / Double(daysElapsed)
-        let projectedTotal = period.isCurrent ? totalHours + (averagePerDay * Double(daysRemaining)) : nil
+        let premiumMinutes = shifts.reduce(0) { total, shift in
+            guard shift.rateMultiplier > 1.0 else { return total }
+            return total + max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
+        }
 
-        let progressPercentage = min(100.0, (totalHours / Double(targetHours)) * 100.0)
+        let regularMinutes = max(0, paidMinutes - premiumMinutes)
+        let estimatedPayCents: Int64? = baseRateCents.map { baseRate in
+            let hours = Double(paidMinutes) / 60.0
+            return Int64(Double(baseRate) * hours)
+        }
 
-        return PeriodAnalysis(
-            period: period,
-            rateBreakdown: breakdown,
-            totalHours: totalHours,
-            regularHours: period.regularHours,
-            premiumHours: period.premiumHours,
-            estimatedPayCents: period.estimatedPayCents,
-            projectedTotalHours: projectedTotal,
-            targetHours: targetHours,
-            progressPercentage: progressPercentage,
-            averageHoursPerDay: averagePerDay,
-            daysRemaining: daysRemaining
+        return HoursCalculator.PeriodSummary(
+            totalPaidMinutes: paidMinutes,
+            premiumMinutes: premiumMinutes,
+            regularMinutes: regularMinutes,
+            estimatedPayCents: estimatedPayCents
         )
     }
 
-    /// Calculates detailed breakdown by rate multiplier
-    func calculateRateBreakdown(
-        for period: PayPeriod,
-        baseRateCents: Int64?
-    ) -> [RateBreakdown] {
-        var rateMap: [Double: (label: String, minutes: Int)] = [:]
+    func dailyTotals(for shifts: [Shift], within period: PayPeriod) -> [DailyTotal] {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: period.startDate)
+        let end = calendar.startOfDay(for: period.endDate)
+        var results: [DailyTotal] = []
 
-        for shift in period.completedShifts {
-            let multiplier = shift.rateMultiplier
-            let label = shift.rateLabel ?? rateDisplayLabel(for: multiplier)
-
-            if var existing = rateMap[multiplier] {
-                existing.minutes += shift.paidMinutes
-                rateMap[multiplier] = existing
-            } else {
-                rateMap[multiplier] = (label, shift.paidMinutes)
+        var date = start
+        while date <= end {
+            let dayStart = calendar.startOfDay(for: date)
+            let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
+            let minutes = shifts.reduce(0) { total, shift in
+                guard shift.scheduledStart >= dayStart && shift.scheduledStart < dayEnd else { return total }
+                let paid = shift.paidMinutes > 0 ? shift.paidMinutes : max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
+                return total + paid
             }
+            results.append(DailyTotal(date: date, minutes: minutes))
+            date = calendar.date(byAdding: .day, value: 1, to: date) ?? date
         }
 
-        return rateMap.map { multiplier, data in
-            var estimatedPay: Int64?
-            if let baseRateCents = baseRateCents {
-                let hours = Double(data.minutes) / 60.0
-                estimatedPay = Int64(Double(baseRateCents) * hours * multiplier)
+        return results
+    }
+
+    func rateBreakdown(for shifts: [Shift]) -> [RateBucket] {
+        let grouped = Dictionary(grouping: shifts) { shift in
+            shift.rateMultiplier
+        }
+
+        let buckets = grouped.map { multiplier, groupedShifts in
+            let minutes = groupedShifts.reduce(0) { total, shift in
+                let paid = shift.paidMinutes > 0 ? shift.paidMinutes : max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
+                return total + paid
             }
-
-            return RateBreakdown(
-                multiplier: multiplier,
-                label: data.label,
-                minutes: data.minutes,
-                estimatedPayCents: estimatedPay
-            )
-        }.sorted { $0.multiplier < $1.multiplier }
-    }
-
-    /// Compares current period to previous period
-    func compareToPrevious(
-        current: PayPeriod,
-        previous: PayPeriod
-    ) -> (hoursDelta: Double, percentageChange: Double) {
-        let currentHours = current.paidHours
-        let previousHours = previous.paidHours
-
-        let delta = currentHours - previousHours
-        let percentageChange = previousHours > 0
-            ? (delta / previousHours) * 100.0
-            : 0.0
-
-        return (delta, percentageChange)
-    }
-
-    /// Calculates trend data for multiple periods
-    func calculateTrend(periods: [PayPeriod]) -> [(date: Date, hours: Double)] {
-        return periods
-            .sorted { $0.startDate < $1.startDate }
-            .map { ($0.startDate, $0.paidHours) }
-    }
-
-    /// Projects remaining hours needed to reach target
-    func projectRemainingHours(
-        for period: PayPeriod,
-        targetHours: Int
-    ) -> (hoursNeeded: Double, averagePerDayNeeded: Double) {
-        let currentHours = period.paidHours
-        let hoursNeeded = max(0, Double(targetHours) - currentHours)
-
-        guard period.isCurrent else {
-            return (hoursNeeded, 0)
+            let label = RateMultiplier(rawValue: multiplier)?.displayName ?? String(format: "%.1fx", multiplier)
+            return RateBucket(label: label, multiplier: multiplier, minutes: minutes)
         }
 
-        let daysElapsed = max(1, Calendar.current.dateComponents([.day], from: period.startDate, to: Date()).day ?? 1)
-        let daysTotal = period.durationDays
-        let daysRemaining = max(1, daysTotal - daysElapsed)
-
-        let averagePerDayNeeded = hoursNeeded / Double(daysRemaining)
-
-        return (hoursNeeded, averagePerDayNeeded)
-    }
-
-    // MARK: - Helper Methods
-
-    private func rateDisplayLabel(for multiplier: Double) -> String {
-        switch multiplier {
-        case 2.0:
-            return "Bank Holiday"
-        case 1.5:
-            return "Extra"
-        case 1.3:
-            return "Overtime"
-        case 1.0:
-            return "Regular"
-        default:
-            return String(format: "%.1fx", multiplier)
-        }
+        return buckets.sorted { $0.multiplier < $1.multiplier }
     }
 }

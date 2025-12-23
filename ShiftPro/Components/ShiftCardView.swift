@@ -4,7 +4,7 @@ struct ShiftCardView: View {
     let title: String
     let timeRange: String
     let location: String
-    let status: ShiftUIStatus
+    let status: StatusIndicator.Status
     let rateMultiplier: Double
     let notes: String?
 

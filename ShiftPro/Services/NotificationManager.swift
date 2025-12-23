@@ -72,6 +72,8 @@ final class NotificationManager: NSObject, ObservableObject {
             try await center.add(summaryRequest)
         }
 
+        await scheduleOvertimeWarningIfNeeded(settings: settings)
+
         lastScheduleDate = Date()
     }
 
@@ -128,6 +130,7 @@ final class NotificationManager: NSObject, ObservableObject {
             } else if let owner = shift.owner {
                 try? periodEngine.assignToPeriod(shift, type: owner.payPeriodType)
             }
+            await scheduleOvertimeWarningIfNeeded(settings: NotificationSettings.load())
         case NotificationActionIdentifier.snooze15:
             let settings = NotificationSettings.load()
             let calendar = Calendar.current
@@ -159,6 +162,38 @@ final class NotificationManager: NSObject, ObservableObject {
         default:
             break
         }
+    }
+
+    private func scheduleOvertimeWarningIfNeeded(settings: NotificationSettings) async {
+        guard settings.isEnabled, settings.overtimeWarningEnabled else { return }
+        guard let profile = try? profileRepository.fetchPrimary() else { return }
+        let regularHours = Double(profile.regularHoursPerPay)
+        guard regularHours > 0 else { return }
+
+        let period = try? periodEngine.currentPeriod(type: profile.payPeriodType)
+        let paidHours = period?.paidHours ?? 0
+
+        if paidHours < regularHours * 0.9 {
+            center.removePendingNotificationRequests(
+                withIdentifiers: [NotificationScheduler.overtimeWarningIdentifier]
+            )
+            return
+        }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Overtime approaching"
+        content.body = String(format: "You have logged %.1f hours this period.", paidHours)
+        content.sound = .default
+        content.categoryIdentifier = NotificationCategory.overtimeWarning.rawValue
+        content.userInfo = ["type": "overtimeWarning"]
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 60, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: NotificationScheduler.overtimeWarningIdentifier,
+            content: content,
+            trigger: trigger
+        )
+        try? await center.add(request)
     }
 }
 

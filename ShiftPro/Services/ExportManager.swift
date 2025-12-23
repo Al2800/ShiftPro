@@ -75,12 +75,14 @@ final class ExportManager {
     private let csvFormatter: CSVFormatter
     private let pdfGenerator: PDFGenerator
     private let reportGenerator: ReportGenerator
+    private let encryptionManager: EncryptionManager
 
-    init(context: ModelContext) {
+    init(context: ModelContext, encryptionManager: EncryptionManager = EncryptionManager()) {
         self.context = context
         self.csvFormatter = CSVFormatter()
         self.pdfGenerator = PDFGenerator()
         self.reportGenerator = ReportGenerator()
+        self.encryptionManager = encryptionManager
     }
 
     // MARK: - Main Export Method
@@ -223,10 +225,7 @@ final class ExportManager {
     }
 
     private func encryptData(_ data: Data, password: String) throws -> Data {
-        // TODO: Implement AES-256 encryption
-        // For now, return data as-is
-        // Will be implemented in Security task
-        return data
+        return try encryptionManager.encrypt(data, password: password)
     }
 }
 
