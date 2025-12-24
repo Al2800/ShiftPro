@@ -139,11 +139,11 @@ enum TestDataBuilder {
 
     static func fourOnFourOffRotation() -> [RotationDay] {
         var days: [RotationDay] = []
-        for i in 0..<4 {
-            days.append(RotationDay(index: i, isWorkDay: true))
+        for index in 0..<4 {
+            days.append(RotationDay(index: index, isWorkDay: true))
         }
-        for i in 4..<8 {
-            days.append(RotationDay(index: i, isWorkDay: false))
+        for index in 4..<8 {
+            days.append(RotationDay(index: index, isWorkDay: false))
         }
         return days
     }
