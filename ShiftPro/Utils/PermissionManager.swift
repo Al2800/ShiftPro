@@ -1,7 +1,7 @@
-import Foundation
 import EventKit
-import UserNotifications
+import Foundation
 import SwiftUI
+import UserNotifications
 
 @MainActor
 final class PermissionManager: ObservableObject {

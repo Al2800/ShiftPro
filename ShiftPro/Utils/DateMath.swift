@@ -2,7 +2,9 @@ import Foundation
 
 enum DateMath {
     static func daysBetween(_ start: Date, _ end: Date, calendar: Calendar = .current) -> Int {
-        calendar.dateComponents([.day], from: calendar.startOfDay(for: start), to: calendar.startOfDay(for: end)).day ?? 0
+        let startDay = calendar.startOfDay(for: start)
+        let endDay = calendar.startOfDay(for: end)
+        return calendar.dateComponents([.day], from: startDay, to: endDay).day ?? 0
     }
 
     static func addDays(_ days: Int, to date: Date, calendar: Calendar = .current) -> Date {

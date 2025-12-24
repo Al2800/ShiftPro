@@ -124,11 +124,11 @@ extension RotationDay {
     /// Creates a 4-on-4-off rotation (8 days total)
     static func fourOnFourOff() -> [RotationDay] {
         var days: [RotationDay] = []
-        for i in 0..<4 {
-            days.append(.workDay(index: i))
+        for index in 0..<4 {
+            days.append(.workDay(index: index))
         }
-        for i in 4..<8 {
-            days.append(.offDay(index: i))
+        for index in 4..<8 {
+            days.append(.offDay(index: index))
         }
         return days
     }

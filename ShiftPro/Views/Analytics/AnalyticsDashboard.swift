@@ -186,22 +186,45 @@ struct AnalyticsDashboard: View {
     
     // MARK: - Computed Properties
     
-    private var currentMetrics: (
-        totalHours: Double, shiftCount: Int, averageShiftDuration: Double,
-        premiumHours: Double, comparedToPrevious: Double
-    )? {
+    private var currentMetrics: MetricsSnapshot? {
         switch selectedPeriod {
         case .week:
-            guard let m = analyticsEngine.weeklyMetrics else { return nil }
-            return (m.totalHours, m.shiftCount, m.averageShiftDuration, m.premiumHours, m.comparedToPrevious)
+            guard let weeklyMetrics = analyticsEngine.weeklyMetrics else { return nil }
+            return MetricsSnapshot(
+                totalHours: weeklyMetrics.totalHours,
+                shiftCount: weeklyMetrics.shiftCount,
+                averageShiftDuration: weeklyMetrics.averageShiftDuration,
+                premiumHours: weeklyMetrics.premiumHours,
+                comparedToPrevious: weeklyMetrics.comparedToPrevious
+            )
         case .month:
-            guard let m = analyticsEngine.monthlyMetrics else { return nil }
-            return (m.totalHours, m.shiftCount, m.averageShiftDuration, m.premiumHours, m.comparedToPrevious)
+            guard let monthlyMetrics = analyticsEngine.monthlyMetrics else { return nil }
+            return MetricsSnapshot(
+                totalHours: monthlyMetrics.totalHours,
+                shiftCount: monthlyMetrics.shiftCount,
+                averageShiftDuration: monthlyMetrics.averageShiftDuration,
+                premiumHours: monthlyMetrics.premiumHours,
+                comparedToPrevious: monthlyMetrics.comparedToPrevious
+            )
         case .year:
-            guard let m = analyticsEngine.yearlyMetrics else { return nil }
-            return (m.totalHours, m.shiftCount, m.averageShiftDuration, m.premiumHours, m.comparedToPrevious)
+            guard let yearlyMetrics = analyticsEngine.yearlyMetrics else { return nil }
+            return MetricsSnapshot(
+                totalHours: yearlyMetrics.totalHours,
+                shiftCount: yearlyMetrics.shiftCount,
+                averageShiftDuration: yearlyMetrics.averageShiftDuration,
+                premiumHours: yearlyMetrics.premiumHours,
+                comparedToPrevious: yearlyMetrics.comparedToPrevious
+            )
         }
     }
+}
+
+private struct MetricsSnapshot {
+    let totalHours: Double
+    let shiftCount: Int
+    let averageShiftDuration: Double
+    let premiumHours: Double
+    let comparedToPrevious: Double
 }
 
 // MARK: - Supporting Views

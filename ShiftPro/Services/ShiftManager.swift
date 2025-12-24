@@ -159,7 +159,7 @@ final class ShiftManager {
         if let breakMin = breakMinutes { shift.breakMinutes = breakMin }
         if let rate = rateMultiplier { shift.rateMultiplier = rate }
         if let label = rateLabel { shift.rateLabel = label }
-        if let n = notes { shift.notes = n }
+        if let noteText = notes { shift.notes = noteText }
 
         // Validate
         let result = await validator.validate(shift)
