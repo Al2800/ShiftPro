@@ -38,6 +38,9 @@ jobs:
             -scheme ShiftPro \
             -destination "platform=iOS Simulator,name=${{ env.SIMULATOR_DEVICE }},OS=${{ env.SIMULATOR_OS }}" \
             -derivedDataPath DerivedData \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
             -quiet
 
       - name: Run Unit Tests
@@ -99,6 +102,9 @@ jobs:
           xcodebuild analyze \
             -scheme ShiftPro \
             -destination "platform=iOS Simulator,name=${{ env.SIMULATOR_DEVICE }},OS=${{ env.SIMULATOR_OS }}" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
             -quiet \
             | tee analyze-output.txt
 
