@@ -1,5 +1,6 @@
-import Foundation
+import CommonCrypto
 import CryptoKit
+import Foundation
 
 /// Manager for encrypting and decrypting sensitive data using AES-256-GCM
 final class EncryptionManager {
@@ -189,5 +190,3 @@ final class EncryptionManager {
     }
 }
 
-// MARK: - CommonCrypto Imports
-import CommonCrypto

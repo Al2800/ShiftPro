@@ -282,5 +282,5 @@ struct HoursDashboard: View {
     NavigationStack {
         HoursDashboard()
     }
-    .modelContainer(try! ModelContainerFactory.previewContainer())
+    .modelContainer(ModelContainerFactory.unsafePreviewContainer())
 }

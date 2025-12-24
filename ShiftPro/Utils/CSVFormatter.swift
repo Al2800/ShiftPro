@@ -15,48 +15,70 @@ struct CSVFormatter {
 
     /// Exports shifts to CSV format
     func exportShifts(_ shifts: [Shift], profile: UserProfile?) -> String {
-        var csv = "Date,Start Time,End Time,Scheduled Hours,Actual Hours,Paid Hours,Break (min),Rate,Rate Label,Status,Notes\n"
+        var csv = shiftsCSVHeader
 
         for shift in shifts.sorted(by: { $0.scheduledStart < $1.scheduledStart }) {
-            let date = formatDate(shift.scheduledStart)
-            let startTime = formatTime(shift.effectiveStart)
-            let endTime = formatTime(shift.effectiveEnd)
-            let scheduledHours = String(format: "%.2f", Double(shift.scheduledDurationMinutes) / 60.0)
-            let actualHours = shift.actualDurationMinutes.map { String(format: "%.2f", Double($0) / 60.0) } ?? ""
-            let paidHours = String(format: "%.2f", shift.paidHours)
-            let breakMinutes = "\(shift.breakMinutes)"
-            let rate = String(format: "%.1f", shift.rateMultiplier)
-            let rateLabel = escapeCSV(shift.rateLabel ?? "")
-            let status = shift.status.displayName
-            let notes = escapeCSV(shift.notes ?? "")
-
-            csv += "\(date),\(startTime),\(endTime),\(scheduledHours),\(actualHours),\(paidHours),\(breakMinutes),\(rate),\(rateLabel),\(status),\(notes)\n"
+            csv += buildShiftRow(shift)
         }
 
         return csv
+    }
+
+    private var shiftsCSVHeader: String {
+        "Date,Start Time,End Time,Scheduled Hours,Actual Hours," +
+        "Paid Hours,Break (min),Rate,Rate Label,Status,Notes\n"
+    }
+
+    private func buildShiftRow(_ shift: Shift) -> String {
+        let date = formatDate(shift.scheduledStart)
+        let startTime = formatTime(shift.effectiveStart)
+        let endTime = formatTime(shift.effectiveEnd)
+        let scheduledHrs = String(format: "%.2f", Double(shift.scheduledDurationMinutes) / 60.0)
+        let actualHrs = shift.actualDurationMinutes.map {
+            String(format: "%.2f", Double($0) / 60.0)
+        } ?? ""
+        let paidHrs = String(format: "%.2f", shift.paidHours)
+        let breakMins = "\(shift.breakMinutes)"
+        let rate = String(format: "%.1f", shift.rateMultiplier)
+        let rateLabel = escapeCSV(shift.rateLabel ?? "")
+        let status = shift.status.displayName
+        let notes = escapeCSV(shift.notes ?? "")
+
+        return [date, startTime, endTime, scheduledHrs, actualHrs, paidHrs,
+                breakMins, rate, rateLabel, status, notes].joined(separator: ",") + "\n"
     }
 
     // MARK: - Pay Period Export
 
     /// Exports pay periods summary to CSV
     func exportPayPeriods(_ periods: [PayPeriod], profile: UserProfile?) -> String {
-        var csv = "Period Start,Period End,Duration (days),Shifts,Total Hours,Regular Hours,Premium Hours,Estimated Pay,Status\n"
+        var csv = payPeriodsCSVHeader
 
         for period in periods.sorted(by: { $0.startDate < $1.startDate }) {
-            let startDate = formatDate(period.startDate)
-            let endDate = formatDate(period.endDate)
-            let duration = "\(period.durationDays)"
-            let shiftCount = "\(period.shiftCount)"
-            let totalHours = String(format: "%.2f", period.paidHours)
-            let regularHours = String(format: "%.2f", period.regularHours)
-            let premiumHours = String(format: "%.2f", period.premiumHours)
-            let estimatedPay = period.estimatedPayFormatted ?? ""
-            let status = period.isComplete ? "Complete" : (period.isCurrent ? "Current" : "Future")
-
-            csv += "\(startDate),\(endDate),\(duration),\(shiftCount),\(totalHours),\(regularHours),\(premiumHours),\(estimatedPay),\(status)\n"
+            csv += buildPayPeriodRow(period)
         }
 
         return csv
+    }
+
+    private var payPeriodsCSVHeader: String {
+        "Period Start,Period End,Duration (days),Shifts,Total Hours," +
+        "Regular Hours,Premium Hours,Estimated Pay,Status\n"
+    }
+
+    private func buildPayPeriodRow(_ period: PayPeriod) -> String {
+        let startDate = formatDate(period.startDate)
+        let endDate = formatDate(period.endDate)
+        let duration = "\(period.durationDays)"
+        let shiftCount = "\(period.shiftCount)"
+        let totalHours = String(format: "%.2f", period.paidHours)
+        let regularHours = String(format: "%.2f", period.regularHours)
+        let premiumHours = String(format: "%.2f", period.premiumHours)
+        let estimatedPay = period.estimatedPayFormatted ?? ""
+        let status = period.isComplete ? "Complete" : (period.isCurrent ? "Current" : "Future")
+
+        return [startDate, endDate, duration, shiftCount, totalHours,
+                regularHours, premiumHours, estimatedPay, status].joined(separator: ",") + "\n"
     }
 
     // MARK: - Hours Summary Export

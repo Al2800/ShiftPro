@@ -144,5 +144,5 @@ private struct NotificationSettingsForm: View {
     NavigationStack {
         NotificationSettingsView()
     }
-    .modelContainer(try! ModelContainerFactory.previewContainer())
+    .modelContainer(ModelContainerFactory.unsafePreviewContainer())
 }

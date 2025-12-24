@@ -5,6 +5,16 @@ import UIKit
 /// PDF report generation for shift data exports
 struct PDFGenerator {
 
+    // MARK: - Constants
+
+    private let pageWidth = 8.5 * 72.0
+    private let pageHeight = 11.0 * 72.0
+    private let leftMargin: CGFloat = 72.0
+
+    private var pageRect: CGRect {
+        CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
+    }
+
     // MARK: - Report Types
 
     enum ReportType {
@@ -21,94 +31,94 @@ struct PDFGenerator {
         profile: UserProfile?,
         title: String = "Shift Report"
     ) -> Data? {
-        let pdfMetaData = [
-            kCGPDFContextCreator: "ShiftPro",
-            kCGPDFContextAuthor: profile?.displayName ?? "User",
-            kCGPDFContextTitle: title
-        ]
+        let renderer = makeRenderer(title: title, author: profile?.displayName)
 
-        let format = UIGraphicsPDFRendererFormat()
-        format.documentInfo = pdfMetaData as [String: Any]
-
-        let pageWidth = 8.5 * 72.0
-        let pageHeight = 11.0 * 72.0
-        let pageRect = CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
-
-        let renderer = UIGraphicsPDFRenderer(bounds: pageRect, format: format)
-
-        let data = renderer.pdfData { context in
+        return renderer.pdfData { context in
             context.beginPage()
+            var yPos = drawReportHeader(title: title, profile: profile, in: context)
+            yPos = drawShiftsTable(shifts: shifts, startingAt: yPos, in: context)
+            drawShiftsSummary(shifts: shifts, at: yPos, in: context)
+        }
+    }
 
-            var yPosition: CGFloat = 72.0
+    private func drawReportHeader(
+        title: String,
+        profile: UserProfile?,
+        in context: UIGraphicsPDFRendererContext
+    ) -> CGFloat {
+        var yPos: CGFloat = leftMargin
 
-            // Title
-            yPosition = drawText(
-                title,
-                fontSize: 24,
-                bold: true,
-                at: CGPoint(x: 72, y: yPosition),
-                in: context
-            )
+        yPos = drawText(title, fontSize: 24, bold: true, at: CGPoint(x: leftMargin, y: yPos), in: context)
 
-            // Profile info
-            if let profile = profile {
-                yPosition += 20
-                if let badge = profile.badgeNumber {
-                    yPosition = drawText(
-                        "Badge: \(badge)",
-                        fontSize: 12,
-                        at: CGPoint(x: 72, y: yPosition),
-                        in: context
-                    )
-                }
-                if let dept = profile.department {
-                    yPosition = drawText(
-                        "Department: \(dept)",
-                        fontSize: 12,
-                        at: CGPoint(x: 72, y: yPosition),
-                        in: context
-                    )
-                }
-            }
-
-            yPosition += 30
-
-            // Table header
-            let headers = ["Date", "Time", "Hours", "Rate", "Status"]
-            yPosition = drawTableHeader(headers, at: yPosition, in: context)
-
-            // Shifts
-            for shift in shifts.sorted(by: { $0.scheduledStart < $1.scheduledStart }) {
-                if yPosition > pageHeight - 100 {
-                    context.beginPage()
-                    yPosition = 72.0
-                    yPosition = drawTableHeader(headers, at: yPosition, in: context)
-                }
-
-                let row = [
-                    formatDate(shift.scheduledStart),
-                    shift.timeRangeFormatted,
-                    String(format: "%.1f", shift.paidHours),
-                    String(format: "%.1fx", shift.rateMultiplier),
-                    shift.status.displayName
-                ]
-
-                yPosition = drawTableRow(row, at: yPosition, in: context)
-            }
-
-            // Summary
-            yPosition += 20
-            let totalHours = shifts.reduce(0.0) { $0 + ($1.isCompleted ? $1.paidHours : 0) }
-            drawText(
-                "Total Hours: \(String(format: "%.1f", totalHours))",
-                fontSize: 14,
-                bold: true,
-                at: CGPoint(x: 72, y: yPosition),
-                in: context
-            )
+        if let profile = profile {
+            yPos += 20
+            yPos = drawProfileInfo(profile, at: yPos, in: context)
         }
 
-        return data
+        return yPos + 30
+    }
+
+    private func drawProfileInfo(
+        _ profile: UserProfile,
+        at yPosition: CGFloat,
+        in context: UIGraphicsPDFRendererContext
+    ) -> CGFloat {
+        var yPos = yPosition
+
+        if let badge = profile.badgeNumber {
+            yPos = drawText("Badge: \(badge)", fontSize: 12, at: CGPoint(x: leftMargin, y: yPos), in: context)
+        }
+        if let dept = profile.department {
+            yPos = drawText("Department: \(dept)", fontSize: 12, at: CGPoint(x: leftMargin, y: yPos), in: context)
+        }
+
+        return yPos
+    }
+
+    private func drawShiftsTable(
+        shifts: [Shift],
+        startingAt yPosition: CGFloat,
+        in context: UIGraphicsPDFRendererContext
+    ) -> CGFloat {
+        let headers = ["Date", "Time", "Hours", "Rate", "Status"]
+        var yPos = drawTableHeader(headers, at: yPosition, in: context)
+
+        for shift in shifts.sorted(by: { $0.scheduledStart < $1.scheduledStart }) {
+            if yPos > pageHeight - 100 {
+                context.beginPage()
+                yPos = leftMargin
+                yPos = drawTableHeader(headers, at: yPos, in: context)
+            }
+            yPos = drawTableRow(buildShiftRow(shift), at: yPos, in: context)
+        }
+
+        return yPos + 20
+    }
+
+    private func buildShiftRow(_ shift: Shift) -> [String] {
+        [
+            formatDate(shift.scheduledStart),
+            shift.timeRangeFormatted,
+            String(format: "%.1f", shift.paidHours),
+            String(format: "%.1fx", shift.rateMultiplier),
+            shift.status.displayName
+        ]
+    }
+
+    @discardableResult
+    private func drawShiftsSummary(
+        shifts: [Shift],
+        at yPosition: CGFloat,
+        in context: UIGraphicsPDFRendererContext
+    ) -> CGFloat {
+        let totalHours = shifts.reduce(0.0) { $0 + ($1.isCompleted ? $1.paidHours : 0) }
+        return drawText(
+            "Total Hours: \(String(format: "%.1f", totalHours))",
+            fontSize: 14,
+            bold: true,
+            at: CGPoint(x: leftMargin, y: yPosition),
+            in: context
+        )
     }
 
     /// Generates a pay period summary PDF
@@ -130,77 +140,59 @@ struct PDFGenerator {
         period: PayPeriod?,
         profile: UserProfile?
     ) -> Data? {
-        let title = period != nil ? "Hours Summary: \(period!.dateRangeFormatted)" : "Hours Summary"
+        let title = period.map { "Hours Summary: \($0.dateRangeFormatted)" } ?? "Hours Summary"
+        let renderer = makeRenderer(title: title, author: profile?.displayName)
 
+        return renderer.pdfData { context in
+            context.beginPage()
+            var yPos: CGFloat = leftMargin
+
+            yPos = drawText(title, fontSize: 24, bold: true, at: CGPoint(x: leftMargin, y: yPos), in: context)
+            yPos += 30
+            yPos = drawRateBreakdown(shifts: shifts, at: yPos, in: context)
+            drawShiftsSummary(shifts: shifts, at: yPos, in: context)
+        }
+    }
+
+    private func drawRateBreakdown(
+        shifts: [Shift],
+        at yPosition: CGFloat,
+        in context: UIGraphicsPDFRendererContext
+    ) -> CGFloat {
+        var yPos = drawText(
+            "Hours by Rate",
+            fontSize: 18,
+            bold: true,
+            at: CGPoint(x: leftMargin, y: yPosition),
+            in: context
+        )
+        yPos += 10
+
+        let calculator = PayPeriodCalculator()
+        let breakdown = calculator.rateBreakdown(for: shifts)
+
+        for bucket in breakdown {
+            yPos += 15
+            let line = "\(bucket.label): \(String(format: "%.1f", bucket.hours)) hours"
+            yPos = drawText(line, fontSize: 12, at: CGPoint(x: leftMargin, y: yPos), in: context)
+        }
+
+        return yPos + 30
+    }
+
+    // MARK: - Renderer Factory
+
+    private func makeRenderer(title: String, author: String?) -> UIGraphicsPDFRenderer {
         let pdfMetaData = [
             kCGPDFContextCreator: "ShiftPro",
-            kCGPDFContextAuthor: profile?.displayName ?? "User",
+            kCGPDFContextAuthor: author ?? "User",
             kCGPDFContextTitle: title
         ]
 
         let format = UIGraphicsPDFRendererFormat()
         format.documentInfo = pdfMetaData as [String: Any]
 
-        let pageWidth = 8.5 * 72.0
-        let pageHeight = 11.0 * 72.0
-        let pageRect = CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
-
-        let renderer = UIGraphicsPDFRenderer(bounds: pageRect, format: format)
-
-        let data = renderer.pdfData { context in
-            context.beginPage()
-
-            var yPosition: CGFloat = 72.0
-
-            yPosition = drawText(
-                title,
-                fontSize: 24,
-                bold: true,
-                at: CGPoint(x: 72, y: yPosition),
-                in: context
-            )
-
-            yPosition += 30
-
-            // Rate breakdown
-            yPosition = drawText(
-                "Hours by Rate",
-                fontSize: 18,
-                bold: true,
-                at: CGPoint(x: 72, y: yPosition),
-                in: context
-            )
-
-            yPosition += 10
-
-            let calculator = PayPeriodCalculator()
-            let breakdown = calculator.rateBreakdown(for: shifts)
-
-            for bucket in breakdown {
-                yPosition += 15
-                let line = "\(bucket.label): \(String(format: "%.1f", bucket.hours)) hours"
-                yPosition = drawText(
-                    line,
-                    fontSize: 12,
-                    at: CGPoint(x: 72, y: yPosition),
-                    in: context
-                )
-            }
-
-            yPosition += 30
-
-            // Total
-            let totalHours = shifts.reduce(0.0) { $0 + ($1.isCompleted ? $1.paidHours : 0) }
-            drawText(
-                "Total Hours: \(String(format: "%.1f", totalHours))",
-                fontSize: 16,
-                bold: true,
-                at: CGPoint(x: 72, y: yPosition),
-                in: context
-            )
-        }
-
-        return data
+        return UIGraphicsPDFRenderer(bounds: pageRect, format: format)
     }
 
     // MARK: - Drawing Helpers

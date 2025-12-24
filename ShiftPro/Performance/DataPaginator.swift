@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import SwiftUI
 
 /// Pagination system for efficiently loading large datasets
 @MainActor
@@ -92,8 +93,6 @@ final class DataPaginator<T: PersistentModel> {
 }
 
 // MARK: - SwiftUI Integration
-
-import SwiftUI
 
 @MainActor
 final class PaginatedList<T: PersistentModel>: ObservableObject {

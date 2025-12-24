@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import UIKit
 
 /// Intelligent caching system for calculated data to improve performance
 @MainActor
@@ -195,5 +196,3 @@ extension PersistentIdentifier {
     }
 }
 
-// MARK: - UIApplication Import
-import UIKit

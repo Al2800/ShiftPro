@@ -1,3 +1,4 @@
+import Darwin.Mach
 import Foundation
 import os.log
 
@@ -203,5 +204,3 @@ final class PerformanceMonitor: ObservableObject {
     }
 }
 
-// MARK: - Mach Imports
-import Darwin.Mach

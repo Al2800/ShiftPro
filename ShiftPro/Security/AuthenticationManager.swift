@@ -1,6 +1,7 @@
+import Combine
 import Foundation
 import LocalAuthentication
-import Combine
+import UIKit
 
 /// Manages biometric and PIN-based authentication for app access
 @MainActor
@@ -232,7 +233,11 @@ final class AuthenticationManager: ObservableObject {
             return
         }
 
-        lockTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(lockTimeout.rawValue), repeats: false) { [weak self] _ in
+        let interval = TimeInterval(lockTimeout.rawValue)
+        lockTimer = Timer.scheduledTimer(
+            withTimeInterval: interval,
+            repeats: false
+        ) { [weak self] _ in
             Task { @MainActor in
                 self?.lock()
             }
@@ -304,5 +309,3 @@ final class AuthenticationManager: ObservableObject {
     }
 }
 
-// MARK: - UIApplication Import
-import UIKit

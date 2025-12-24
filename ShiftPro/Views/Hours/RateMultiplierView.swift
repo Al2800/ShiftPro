@@ -97,5 +97,5 @@ struct RateMultiplierView: View {
     NavigationStack {
         RateMultiplierView()
     }
-    .modelContainer(try! ModelContainerFactory.previewContainer())
+    .modelContainer(ModelContainerFactory.unsafePreviewContainer())
 }

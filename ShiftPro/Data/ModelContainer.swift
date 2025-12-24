@@ -75,6 +75,15 @@ enum ModelContainerFactory {
         return container
     }
 
+    @MainActor
+    static func unsafePreviewContainer() -> ModelContainer {
+        do {
+            return try previewContainer()
+        } catch {
+            fatalError("Failed to create preview container: \(error)")
+        }
+    }
+
     private static func storeLocationURL() throws -> URL {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         let storeURL = appSupport.appendingPathComponent("ShiftPro.store")
