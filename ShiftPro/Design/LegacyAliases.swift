@@ -13,8 +13,5 @@ enum ShiftProColor {
     static let danger = ShiftProColors.danger
 }
 
-extension ShiftProSpacing {
-    static let small = s
-    static let xSmall = xs
-    static let medium = m
-}
+// Note: ShiftProSpacing already defines small, medium, etc. in Typography.swift
+// Short aliases (s, xs, m) can be added there if needed for legacy compatibility.

@@ -19,6 +19,11 @@ extension AbstractRepository {
         try modelContext.fetch(descriptor)
     }
 
+    func fetch(predicate: Predicate<Model>?, sortBy: [SortDescriptor<Model>]) throws -> [Model] {
+        let descriptor = FetchDescriptor<Model>(predicate: predicate, sortBy: sortBy)
+        return try modelContext.fetch(descriptor)
+    }
+
     func insert(_ model: Model) {
         modelContext.insert(model)
     }

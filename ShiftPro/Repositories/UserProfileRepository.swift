@@ -14,10 +14,6 @@ final class UserProfileRepository: AbstractRepository {
         self.init(modelContext: context)
     }
 
-    convenience init(context: ModelContext) {
-        self.init(modelContext: context)
-    }
-
     func fetchActiveProfile() throws -> UserProfile? {
         let descriptor = FetchDescriptor<UserProfile>()
         return try fetch(descriptor).first
@@ -32,10 +28,6 @@ final class UserProfileRepository: AbstractRepository {
             return profile
         }
         return try createProfile()
-    }
-
-    func ensurePrimary() throws -> UserProfile {
-        try ensureProfile()
     }
 
     func ensurePrimary() throws -> UserProfile {

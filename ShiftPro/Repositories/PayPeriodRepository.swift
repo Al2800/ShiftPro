@@ -2,13 +2,18 @@ import Foundation
 import SwiftData
 
 /// Repository for managing PayPeriod entities
+@MainActor
 final class PayPeriodRepository: AbstractRepository {
-    typealias ModelType = PayPeriod
+    typealias Model = PayPeriod
 
-    let context: ModelContext
+    let modelContext: ModelContext
 
-    init(context: ModelContext) {
-        self.context = context
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+    }
+
+    convenience init(context: ModelContext) {
+        self.init(modelContext: context)
     }
 
     /// Fetches all pay periods sorted by start date (most recent first)
@@ -48,7 +53,7 @@ final class PayPeriodRepository: AbstractRepository {
             sortBy: [PayPeriod.byStartDateDescending]
         )
         descriptor.fetchLimit = limit
-        return try context.fetch(descriptor)
+        return try modelContext.fetch(descriptor)
     }
 
     /// Gets or creates the current pay period based on profile settings

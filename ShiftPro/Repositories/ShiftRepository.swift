@@ -14,10 +14,6 @@ final class ShiftRepository: AbstractRepository {
         self.init(modelContext: context)
     }
 
-    convenience init(context: ModelContext) {
-        self.init(modelContext: context)
-    }
-
     func fetchShifts(
         in dateRange: DateInterval,
         includeDeleted: Bool = false

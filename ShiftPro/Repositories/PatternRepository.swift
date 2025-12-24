@@ -2,13 +2,18 @@ import Foundation
 import SwiftData
 
 /// Repository for managing ShiftPattern entities
+@MainActor
 final class PatternRepository: AbstractRepository {
-    typealias ModelType = ShiftPattern
+    typealias Model = ShiftPattern
 
-    let context: ModelContext
+    let modelContext: ModelContext
 
-    init(context: ModelContext) {
-        self.context = context
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+    }
+
+    convenience init(context: ModelContext) {
+        self.init(modelContext: context)
     }
 
     /// Fetches all active (non-deleted) patterns
@@ -94,7 +99,7 @@ final class PatternRepository: AbstractRepository {
                     durationMinutes: day.durationMinutes
                 )
                 newDay.pattern = newPattern
-                context.insert(newDay)
+                modelContext.insert(newDay)
             }
         }
 
