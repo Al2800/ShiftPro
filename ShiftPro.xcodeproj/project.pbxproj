@@ -1,0 +1,940 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+    0000000000000000000000BB /* AnalyticsEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000002C /* AnalyticsEngine.swift */; };
+    0000000000000000000000BC /* InsightsGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000002D /* InsightsGenerator.swift */; };
+    0000000000000000000000BD /* PredictiveModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000002E /* PredictiveModels.swift */; };
+    0000000000000000000000BE /* TrendAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000002F /* TrendAnalyzer.swift */; };
+    0000000000000000000000BF /* AnimationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000030 /* AnimationManager.swift */; };
+    0000000000000000000000C0 /* CustomAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000031 /* CustomAnimations.swift */; };
+    0000000000000000000000C1 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000032 /* HapticManager.swift */; };
+    0000000000000000000000C2 /* LoadingStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000033 /* LoadingStates.swift */; };
+    0000000000000000000000C3 /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000034 /* LottieView.swift */; };
+    0000000000000000000000C4 /* MicroInteractions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000035 /* MicroInteractions.swift */; };
+    0000000000000000000000C5 /* TransitionAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000036 /* TransitionAnimations.swift */; };
+    0000000000000000000000C6 /* AnimatedComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000037 /* AnimatedComponents.swift */; };
+    0000000000000000000000C7 /* HoursChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000038 /* HoursChart.swift */; };
+    0000000000000000000000C8 /* RateBreakdownChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000039 /* RateBreakdownChart.swift */; };
+    0000000000000000000000C9 /* HoursDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000003A /* HoursDisplay.swift */; };
+    0000000000000000000000CA /* QuickActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000003B /* QuickActionButton.swift */; };
+    0000000000000000000000CB /* RateBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000003C /* RateBadge.swift */; };
+    0000000000000000000000CC /* ShiftCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000003D /* ShiftCardView.swift */; };
+    0000000000000000000000CD /* StatusIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000003E /* StatusIndicator.swift */; };
+    0000000000000000000000CE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000003F /* ContentView.swift */; };
+    0000000000000000000000CF /* ModelContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000040 /* ModelContainer.swift */; };
+    0000000000000000000000D0 /* QueryOptimizations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000041 /* QueryOptimizations.swift */; };
+    0000000000000000000000D1 /* ColorScheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000042 /* ColorScheme.swift */; };
+    0000000000000000000000D2 /* LegacyAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000043 /* LegacyAliases.swift */; };
+    0000000000000000000000D3 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000044 /* Typography.swift */; };
+    0000000000000000000000D4 /* CalendarEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000045 /* CalendarEvent.swift */; };
+    0000000000000000000000D5 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000046 /* Enums.swift */; };
+    0000000000000000000000D6 /* ModelExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000047 /* ModelExtensions.swift */; };
+    0000000000000000000000D7 /* NotificationSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000048 /* NotificationSettings.swift */; };
+    0000000000000000000000D8 /* PatternDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000049 /* PatternDefinition.swift */; };
+    0000000000000000000000D9 /* PayPeriod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000004A /* PayPeriod.swift */; };
+    0000000000000000000000DA /* PayRuleset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000004B /* PayRuleset.swift */; };
+    0000000000000000000000DB /* PremiumFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000004C /* PremiumFeature.swift */; };
+    0000000000000000000000DC /* RotationDay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000004D /* RotationDay.swift */; };
+    0000000000000000000000DD /* Shift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000004E /* Shift.swift */; };
+    0000000000000000000000DE /* ShiftPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000004F /* ShiftPattern.swift */; };
+    0000000000000000000000DF /* SyncState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000050 /* SyncState.swift */; };
+    0000000000000000000000E0 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000051 /* UserProfile.swift */; };
+    0000000000000000000000E1 /* BackgroundProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000052 /* BackgroundProcessor.swift */; };
+    0000000000000000000000E2 /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000053 /* CacheManager.swift */; };
+    0000000000000000000000E3 /* DataPaginator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000054 /* DataPaginator.swift */; };
+    0000000000000000000000E4 /* MemoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000055 /* MemoryManager.swift */; };
+    0000000000000000000000E5 /* PerformanceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000056 /* PerformanceMonitor.swift */; };
+    0000000000000000000000E6 /* AbstractRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000057 /* AbstractRepository.swift */; };
+    0000000000000000000000E7 /* PatternRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000058 /* PatternRepository.swift */; };
+    0000000000000000000000E8 /* PayPeriodRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000059 /* PayPeriodRepository.swift */; };
+    0000000000000000000000E9 /* ShiftRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000005A /* ShiftRepository.swift */; };
+    0000000000000000000000EA /* UserProfileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000005B /* UserProfileRepository.swift */; };
+    0000000000000000000000EB /* AuthenticationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000005C /* AuthenticationManager.swift */; };
+    0000000000000000000000EC /* EncryptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000005D /* EncryptionManager.swift */; };
+    0000000000000000000000ED /* PrivacyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000005E /* PrivacyManager.swift */; };
+    0000000000000000000000EE /* SecureStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000005F /* SecureStorage.swift */; };
+    0000000000000000000000EF /* BackgroundTaskManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000060 /* BackgroundTaskManager.swift */; };
+    0000000000000000000000F0 /* CalendarIntegrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000061 /* CalendarIntegrationService.swift */; };
+    0000000000000000000000F1 /* CalendarPermissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000062 /* CalendarPermissions.swift */; };
+    0000000000000000000000F2 /* CloudKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000063 /* CloudKitManager.swift */; };
+    0000000000000000000000F3 /* ConflictResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000064 /* ConflictResolver.swift */; };
+    0000000000000000000000F4 /* EntitlementManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000065 /* EntitlementManager.swift */; };
+    0000000000000000000000F5 /* EventMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000066 /* EventMapper.swift */; };
+    0000000000000000000000F6 /* ExportManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000067 /* ExportManager.swift */; };
+    0000000000000000000000F7 /* HoursCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000068 /* HoursCalculator.swift */; };
+    0000000000000000000000F8 /* ImportManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000069 /* ImportManager.swift */; };
+    0000000000000000000000F9 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000006A /* NotificationManager.swift */; };
+    0000000000000000000000FA /* NotificationPermissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000006B /* NotificationPermissions.swift */; };
+    0000000000000000000000FB /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000006C /* NotificationScheduler.swift */; };
+    0000000000000000000000FC /* OnboardingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000006D /* OnboardingManager.swift */; };
+    0000000000000000000000FD /* OvertimePredictor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000006E /* OvertimePredictor.swift */; };
+    0000000000000000000000FE /* PatternEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000006F /* PatternEngine.swift */; };
+    0000000000000000000000FF /* PatternTemplates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000070 /* PatternTemplates.swift */; };
+    000000000000000000000100 /* PayPeriodCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000071 /* PayPeriodCalculator.swift */; };
+    000000000000000000000101 /* PayPeriodEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000072 /* PayPeriodEngine.swift */; };
+    000000000000000000000102 /* PremiumStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000073 /* PremiumStore.swift */; };
+    000000000000000000000103 /* ReportGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000074 /* ReportGenerator.swift */; };
+    000000000000000000000104 /* ShiftManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000075 /* ShiftManager.swift */; };
+    000000000000000000000105 /* ShiftValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000076 /* ShiftValidator.swift */; };
+    000000000000000000000106 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000077 /* SubscriptionManager.swift */; };
+    000000000000000000000107 /* WatchConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000078 /* WatchConnectivityManager.swift */; };
+    000000000000000000000108 /* WidgetSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000079 /* WidgetSyncService.swift */; };
+    000000000000000000000109 /* ShiftProApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000007A /* ShiftProApp.swift */; };
+    00000000000000000000010A /* AccessibilityIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000007B /* AccessibilityIdentifiers.swift */; };
+    00000000000000000000010B /* CSVFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000007C /* CSVFormatter.swift */; };
+    00000000000000000000010C /* DataError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000007D /* DataError.swift */; };
+    00000000000000000000010D /* DateExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000007E /* DateExtensions.swift */; };
+    00000000000000000000010E /* DateMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000007F /* DateMath.swift */; };
+    00000000000000000000010F /* LazyLoading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000080 /* LazyLoading.swift */; };
+    000000000000000000000110 /* PDFGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000081 /* PDFGenerator.swift */; };
+    000000000000000000000111 /* PermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000082 /* PermissionManager.swift */; };
+    000000000000000000000112 /* ReceiptValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000083 /* ReceiptValidator.swift */; };
+    000000000000000000000113 /* UITestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000084 /* UITestSupport.swift */; };
+    000000000000000000000114 /* AnalyticsDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000085 /* AnalyticsDashboard.swift */; };
+    000000000000000000000115 /* InsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000086 /* InsightsView.swift */; };
+    000000000000000000000116 /* TrendChartsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000087 /* TrendChartsView.swift */; };
+    000000000000000000000117 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000088 /* DashboardView.swift */; };
+    000000000000000000000118 /* ExportOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000089 /* ExportOptionsView.swift */; };
+    000000000000000000000119 /* ImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000008A /* ImportView.swift */; };
+    00000000000000000000011A /* HoursDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000008B /* HoursDashboard.swift */; };
+    00000000000000000000011B /* HoursView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000008C /* HoursView.swift */; };
+    00000000000000000000011C /* PayPeriodDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000008D /* PayPeriodDetailView.swift */; };
+    00000000000000000000011D /* RateMultiplierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000008E /* RateMultiplierView.swift */; };
+    00000000000000000000011E /* CalendarSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000008F /* CalendarSetupView.swift */; };
+    00000000000000000000011F /* CompletionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000090 /* CompletionView.swift */; };
+    000000000000000000000120 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000091 /* OnboardingView.swift */; };
+    000000000000000000000121 /* PatternDiscoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000092 /* PatternDiscoveryView.swift */; };
+    000000000000000000000122 /* PayPeriodSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000093 /* PayPeriodSetupView.swift */; };
+    000000000000000000000123 /* PermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000094 /* PermissionsView.swift */; };
+    000000000000000000000124 /* ProfileSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000095 /* ProfileSetupView.swift */; };
+    000000000000000000000125 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000096 /* WelcomeView.swift */; };
+    000000000000000000000126 /* PatternEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000097 /* PatternEditorView.swift */; };
+    000000000000000000000127 /* PatternLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000098 /* PatternLibraryView.swift */; };
+    000000000000000000000128 /* PatternPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000099 /* PatternPreviewView.swift */; };
+    000000000000000000000129 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000009A /* PaywallView.swift */; };
+    00000000000000000000012A /* ScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000009B /* ScheduleView.swift */; };
+    00000000000000000000012B /* CalendarSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000009C /* CalendarSettingsView.swift */; };
+    00000000000000000000012C /* NotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000009D /* NotificationSettingsView.swift */; };
+    00000000000000000000012D /* PremiumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000009E /* PremiumView.swift */; };
+    00000000000000000000012E /* PrivacySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000009F /* PrivacySettingsView.swift */; };
+    00000000000000000000012F /* SecuritySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A0 /* SecuritySettingsView.swift */; };
+    000000000000000000000130 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A1 /* SettingsView.swift */; };
+    000000000000000000000131 /* SubscriptionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A2 /* SubscriptionSettingsView.swift */; };
+    000000000000000000000132 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A3 /* MainTabView.swift */; };
+    000000000000000000000133 /* PayRulesetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A4 /* PayRulesetTests.swift */; };
+    000000000000000000000134 /* ShiftPatternTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A5 /* ShiftPatternTests.swift */; };
+    000000000000000000000135 /* ShiftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A6 /* ShiftTests.swift */; };
+    000000000000000000000136 /* UserProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A7 /* UserProfileTests.swift */; };
+    000000000000000000000137 /* HoursCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A8 /* HoursCalculatorTests.swift */; };
+    000000000000000000000138 /* ShiftManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000A9 /* ShiftManagerTests.swift */; };
+    000000000000000000000139 /* ShiftProTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000AA /* ShiftProTests.swift */; };
+    00000000000000000000013A /* TestDataBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000AB /* TestDataBuilder.swift */; };
+    00000000000000000000013B /* AccessibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000AC /* AccessibilityTests.swift */; };
+    00000000000000000000013C /* CalendarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000AD /* CalendarTests.swift */; };
+    00000000000000000000013D /* HoursTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000AE /* HoursTests.swift */; };
+    00000000000000000000013E /* OnboardingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000AF /* OnboardingTests.swift */; };
+    00000000000000000000013F /* PatternTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B0 /* PatternTests.swift */; };
+    000000000000000000000140 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B1 /* PerformanceTests.swift */; };
+    000000000000000000000141 /* ShiftManagementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B2 /* ShiftManagementTests.swift */; };
+    000000000000000000000142 /* ShiftProAccessibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B3 /* ShiftProAccessibilityTests.swift */; };
+    000000000000000000000143 /* ShiftProPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B4 /* ShiftProPerformanceTests.swift */; };
+    000000000000000000000144 /* ShiftProUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B5 /* ShiftProUITests.swift */; };
+    000000000000000000000145 /* TestUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000000B6 /* TestUtilities.swift */; };
+    000000000000000000000146 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 000000000000000000000029 /* KeychainAccess */; };
+    000000000000000000000147 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 00000000000000000000002A /* Lottie */; };
+    000000000000000000000148 /* Charts in Frameworks */ = {isa = PBXBuildFile; productRef = 00000000000000000000002B /* Charts */; };
+/* End PBXBuildFile section */
+
+
+/* Begin PBXContainerItemProxy section */
+    000000000000000000000022 /* PBXContainerItemProxy */ = {isa = PBXContainerItemProxy; containerPortal = 000000000000000000000001 /* Project object */; proxyType = 1; remoteGlobalIDString = 000000000000000000000013; remoteInfo = ShiftPro; };
+    000000000000000000000024 /* PBXContainerItemProxy */ = {isa = PBXContainerItemProxy; containerPortal = 000000000000000000000001 /* Project object */; proxyType = 1; remoteGlobalIDString = 000000000000000000000013; remoteInfo = ShiftPro; };
+/* End PBXContainerItemProxy section */
+
+
+/* Begin PBXFileReference section */
+    00000000000000000000002C /* AnalyticsEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Analytics/AnalyticsEngine.swift"; sourceTree = "<group>"; };
+    00000000000000000000002D /* InsightsGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Analytics/InsightsGenerator.swift"; sourceTree = "<group>"; };
+    00000000000000000000002E /* PredictiveModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Analytics/PredictiveModels.swift"; sourceTree = "<group>"; };
+    00000000000000000000002F /* TrendAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Analytics/TrendAnalyzer.swift"; sourceTree = "<group>"; };
+    000000000000000000000030 /* AnimationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Animations/AnimationManager.swift"; sourceTree = "<group>"; };
+    000000000000000000000031 /* CustomAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Animations/CustomAnimations.swift"; sourceTree = "<group>"; };
+    000000000000000000000032 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Animations/HapticManager.swift"; sourceTree = "<group>"; };
+    000000000000000000000033 /* LoadingStates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Animations/LoadingStates.swift"; sourceTree = "<group>"; };
+    000000000000000000000034 /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Animations/LottieView.swift"; sourceTree = "<group>"; };
+    000000000000000000000035 /* MicroInteractions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Animations/MicroInteractions.swift"; sourceTree = "<group>"; };
+    000000000000000000000036 /* TransitionAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Animations/TransitionAnimations.swift"; sourceTree = "<group>"; };
+    000000000000000000000037 /* AnimatedComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Components/AnimatedComponents.swift"; sourceTree = "<group>"; };
+    000000000000000000000038 /* HoursChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Components/Charts/HoursChart.swift"; sourceTree = "<group>"; };
+    000000000000000000000039 /* RateBreakdownChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Components/Charts/RateBreakdownChart.swift"; sourceTree = "<group>"; };
+    00000000000000000000003A /* HoursDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Components/HoursDisplay.swift"; sourceTree = "<group>"; };
+    00000000000000000000003B /* QuickActionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Components/QuickActionButton.swift"; sourceTree = "<group>"; };
+    00000000000000000000003C /* RateBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Components/RateBadge.swift"; sourceTree = "<group>"; };
+    00000000000000000000003D /* ShiftCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Components/ShiftCardView.swift"; sourceTree = "<group>"; };
+    00000000000000000000003E /* StatusIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Components/StatusIndicator.swift"; sourceTree = "<group>"; };
+    00000000000000000000003F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/ContentView.swift"; sourceTree = "<group>"; };
+    000000000000000000000040 /* ModelContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Data/ModelContainer.swift"; sourceTree = "<group>"; };
+    000000000000000000000041 /* QueryOptimizations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Data/QueryOptimizations.swift"; sourceTree = "<group>"; };
+    000000000000000000000042 /* ColorScheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Design/ColorScheme.swift"; sourceTree = "<group>"; };
+    000000000000000000000043 /* LegacyAliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Design/LegacyAliases.swift"; sourceTree = "<group>"; };
+    000000000000000000000044 /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Design/Typography.swift"; sourceTree = "<group>"; };
+    000000000000000000000045 /* CalendarEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Models/CalendarEvent.swift"; sourceTree = "<group>"; };
+    000000000000000000000046 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Models/Enums.swift"; sourceTree = "<group>"; };
+    000000000000000000000047 /* ModelExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Models/ModelExtensions.swift"; sourceTree = "<group>"; };
+    000000000000000000000048 /* NotificationSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Models/NotificationSettings.swift"; sourceTree = "<group>"; };
+    000000000000000000000049 /* PatternDefinition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Models/PatternDefinition.swift"; sourceTree = "<group>"; };
+    00000000000000000000004A /* PayPeriod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Models/PayPeriod.swift"; sourceTree = "<group>"; };
+    00000000000000000000004B /* PayRuleset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Models/PayRuleset.swift"; sourceTree = "<group>"; };
+    00000000000000000000004C /* PremiumFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Models/PremiumFeature.swift"; sourceTree = "<group>"; };
+    00000000000000000000004D /* RotationDay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Models/RotationDay.swift"; sourceTree = "<group>"; };
+    00000000000000000000004E /* Shift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Models/Shift.swift"; sourceTree = "<group>"; };
+    00000000000000000000004F /* ShiftPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Models/ShiftPattern.swift"; sourceTree = "<group>"; };
+    000000000000000000000050 /* SyncState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Models/SyncState.swift"; sourceTree = "<group>"; };
+    000000000000000000000051 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Models/UserProfile.swift"; sourceTree = "<group>"; };
+    000000000000000000000052 /* BackgroundProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Performance/BackgroundProcessor.swift"; sourceTree = "<group>"; };
+    000000000000000000000053 /* CacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Performance/CacheManager.swift"; sourceTree = "<group>"; };
+    000000000000000000000054 /* DataPaginator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Performance/DataPaginator.swift"; sourceTree = "<group>"; };
+    000000000000000000000055 /* MemoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Performance/MemoryManager.swift"; sourceTree = "<group>"; };
+    000000000000000000000056 /* PerformanceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Performance/PerformanceMonitor.swift"; sourceTree = "<group>"; };
+    000000000000000000000057 /* AbstractRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Repositories/AbstractRepository.swift"; sourceTree = "<group>"; };
+    000000000000000000000058 /* PatternRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Repositories/PatternRepository.swift"; sourceTree = "<group>"; };
+    000000000000000000000059 /* PayPeriodRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Repositories/PayPeriodRepository.swift"; sourceTree = "<group>"; };
+    00000000000000000000005A /* ShiftRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Repositories/ShiftRepository.swift"; sourceTree = "<group>"; };
+    00000000000000000000005B /* UserProfileRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Repositories/UserProfileRepository.swift"; sourceTree = "<group>"; };
+    00000000000000000000005C /* AuthenticationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Security/AuthenticationManager.swift"; sourceTree = "<group>"; };
+    00000000000000000000005D /* EncryptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Security/EncryptionManager.swift"; sourceTree = "<group>"; };
+    00000000000000000000005E /* PrivacyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Security/PrivacyManager.swift"; sourceTree = "<group>"; };
+    00000000000000000000005F /* SecureStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Security/SecureStorage.swift"; sourceTree = "<group>"; };
+    000000000000000000000060 /* BackgroundTaskManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/BackgroundTaskManager.swift"; sourceTree = "<group>"; };
+    000000000000000000000061 /* CalendarIntegrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/CalendarIntegrationService.swift"; sourceTree = "<group>"; };
+    000000000000000000000062 /* CalendarPermissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/CalendarPermissions.swift"; sourceTree = "<group>"; };
+    000000000000000000000063 /* CloudKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/CloudKitManager.swift"; sourceTree = "<group>"; };
+    000000000000000000000064 /* ConflictResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/ConflictResolver.swift"; sourceTree = "<group>"; };
+    000000000000000000000065 /* EntitlementManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/EntitlementManager.swift"; sourceTree = "<group>"; };
+    000000000000000000000066 /* EventMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/EventMapper.swift"; sourceTree = "<group>"; };
+    000000000000000000000067 /* ExportManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/ExportManager.swift"; sourceTree = "<group>"; };
+    000000000000000000000068 /* HoursCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/HoursCalculator.swift"; sourceTree = "<group>"; };
+    000000000000000000000069 /* ImportManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/ImportManager.swift"; sourceTree = "<group>"; };
+    00000000000000000000006A /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/NotificationManager.swift"; sourceTree = "<group>"; };
+    00000000000000000000006B /* NotificationPermissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/NotificationPermissions.swift"; sourceTree = "<group>"; };
+    00000000000000000000006C /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/NotificationScheduler.swift"; sourceTree = "<group>"; };
+    00000000000000000000006D /* OnboardingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/OnboardingManager.swift"; sourceTree = "<group>"; };
+    00000000000000000000006E /* OvertimePredictor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/OvertimePredictor.swift"; sourceTree = "<group>"; };
+    00000000000000000000006F /* PatternEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/PatternEngine.swift"; sourceTree = "<group>"; };
+    000000000000000000000070 /* PatternTemplates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/PatternTemplates.swift"; sourceTree = "<group>"; };
+    000000000000000000000071 /* PayPeriodCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/PayPeriodCalculator.swift"; sourceTree = "<group>"; };
+    000000000000000000000072 /* PayPeriodEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/PayPeriodEngine.swift"; sourceTree = "<group>"; };
+    000000000000000000000073 /* PremiumStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/PremiumStore.swift"; sourceTree = "<group>"; };
+    000000000000000000000074 /* ReportGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/ReportGenerator.swift"; sourceTree = "<group>"; };
+    000000000000000000000075 /* ShiftManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/ShiftManager.swift"; sourceTree = "<group>"; };
+    000000000000000000000076 /* ShiftValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/ShiftValidator.swift"; sourceTree = "<group>"; };
+    000000000000000000000077 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/SubscriptionManager.swift"; sourceTree = "<group>"; };
+    000000000000000000000078 /* WatchConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/WatchConnectivityManager.swift"; sourceTree = "<group>"; };
+    000000000000000000000079 /* WidgetSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Services/WidgetSyncService.swift"; sourceTree = "<group>"; };
+    00000000000000000000007A /* ShiftProApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/ShiftProApp.swift"; sourceTree = "<group>"; };
+    00000000000000000000007B /* AccessibilityIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Utils/AccessibilityIdentifiers.swift"; sourceTree = "<group>"; };
+    00000000000000000000007C /* CSVFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Utils/CSVFormatter.swift"; sourceTree = "<group>"; };
+    00000000000000000000007D /* DataError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Utils/DataError.swift"; sourceTree = "<group>"; };
+    00000000000000000000007E /* DateExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Utils/DateExtensions.swift"; sourceTree = "<group>"; };
+    00000000000000000000007F /* DateMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Utils/DateMath.swift"; sourceTree = "<group>"; };
+    000000000000000000000080 /* LazyLoading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Utils/LazyLoading.swift"; sourceTree = "<group>"; };
+    000000000000000000000081 /* PDFGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Utils/PDFGenerator.swift"; sourceTree = "<group>"; };
+    000000000000000000000082 /* PermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Utils/PermissionManager.swift"; sourceTree = "<group>"; };
+    000000000000000000000083 /* ReceiptValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Utils/ReceiptValidator.swift"; sourceTree = "<group>"; };
+    000000000000000000000084 /* UITestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Utils/UITestSupport.swift"; sourceTree = "<group>"; };
+    000000000000000000000085 /* AnalyticsDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Analytics/AnalyticsDashboard.swift"; sourceTree = "<group>"; };
+    000000000000000000000086 /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Analytics/InsightsView.swift"; sourceTree = "<group>"; };
+    000000000000000000000087 /* TrendChartsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Analytics/TrendChartsView.swift"; sourceTree = "<group>"; };
+    000000000000000000000088 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Dashboard/DashboardView.swift"; sourceTree = "<group>"; };
+    000000000000000000000089 /* ExportOptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Export/ExportOptionsView.swift"; sourceTree = "<group>"; };
+    00000000000000000000008A /* ImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Export/ImportView.swift"; sourceTree = "<group>"; };
+    00000000000000000000008B /* HoursDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Hours/HoursDashboard.swift"; sourceTree = "<group>"; };
+    00000000000000000000008C /* HoursView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Hours/HoursView.swift"; sourceTree = "<group>"; };
+    00000000000000000000008D /* PayPeriodDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Hours/PayPeriodDetailView.swift"; sourceTree = "<group>"; };
+    00000000000000000000008E /* RateMultiplierView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Hours/RateMultiplierView.swift"; sourceTree = "<group>"; };
+    00000000000000000000008F /* CalendarSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Onboarding/CalendarSetupView.swift"; sourceTree = "<group>"; };
+    000000000000000000000090 /* CompletionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Onboarding/CompletionView.swift"; sourceTree = "<group>"; };
+    000000000000000000000091 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Onboarding/OnboardingView.swift"; sourceTree = "<group>"; };
+    000000000000000000000092 /* PatternDiscoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Onboarding/PatternDiscoveryView.swift"; sourceTree = "<group>"; };
+    000000000000000000000093 /* PayPeriodSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Onboarding/PayPeriodSetupView.swift"; sourceTree = "<group>"; };
+    000000000000000000000094 /* PermissionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Onboarding/PermissionsView.swift"; sourceTree = "<group>"; };
+    000000000000000000000095 /* ProfileSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Onboarding/ProfileSetupView.swift"; sourceTree = "<group>"; };
+    000000000000000000000096 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Onboarding/WelcomeView.swift"; sourceTree = "<group>"; };
+    000000000000000000000097 /* PatternEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Patterns/PatternEditorView.swift"; sourceTree = "<group>"; };
+    000000000000000000000098 /* PatternLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Patterns/PatternLibraryView.swift"; sourceTree = "<group>"; };
+    000000000000000000000099 /* PatternPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Patterns/PatternPreviewView.swift"; sourceTree = "<group>"; };
+    00000000000000000000009A /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Paywall/PaywallView.swift"; sourceTree = "<group>"; };
+    00000000000000000000009B /* ScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Schedule/ScheduleView.swift"; sourceTree = "<group>"; };
+    00000000000000000000009C /* CalendarSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Settings/CalendarSettingsView.swift"; sourceTree = "<group>"; };
+    00000000000000000000009D /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Settings/NotificationSettingsView.swift"; sourceTree = "<group>"; };
+    00000000000000000000009E /* PremiumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Settings/PremiumView.swift"; sourceTree = "<group>"; };
+    00000000000000000000009F /* PrivacySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Settings/PrivacySettingsView.swift"; sourceTree = "<group>"; };
+    0000000000000000000000A0 /* SecuritySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Settings/SecuritySettingsView.swift"; sourceTree = "<group>"; };
+    0000000000000000000000A1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Settings/SettingsView.swift"; sourceTree = "<group>"; };
+    0000000000000000000000A2 /* SubscriptionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/Settings/SubscriptionSettingsView.swift"; sourceTree = "<group>"; };
+    0000000000000000000000A3 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftPro/Views/TabView/MainTabView.swift"; sourceTree = "<group>"; };
+    0000000000000000000000A4 /* PayRulesetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProTests/Models/PayRulesetTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000A5 /* ShiftPatternTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProTests/Models/ShiftPatternTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000A6 /* ShiftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProTests/Models/ShiftTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000A7 /* UserProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProTests/Models/UserProfileTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000A8 /* HoursCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProTests/Services/HoursCalculatorTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000A9 /* ShiftManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProTests/ShiftManagerTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000AA /* ShiftProTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProTests/ShiftProTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000AB /* TestDataBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProTests/TestUtilities/TestDataBuilder.swift"; sourceTree = "<group>"; };
+    0000000000000000000000AC /* AccessibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProUITests/AccessibilityTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000AD /* CalendarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProUITests/CalendarTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000AE /* HoursTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProUITests/HoursTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000AF /* OnboardingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProUITests/OnboardingTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000B0 /* PatternTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProUITests/PatternTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000B1 /* PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProUITests/PerformanceTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000B2 /* ShiftManagementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProUITests/ShiftManagementTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000B3 /* ShiftProAccessibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProUITests/ShiftProAccessibilityTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000B4 /* ShiftProPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProUITests/ShiftProPerformanceTests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000B5 /* ShiftProUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProUITests/ShiftProUITests.swift"; sourceTree = "<group>"; };
+    0000000000000000000000B6 /* TestUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShiftProUITests/TestUtilities.swift"; sourceTree = "<group>"; };
+    0000000000000000000000B7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ShiftPro/Info.plist"; sourceTree = "<group>"; };
+    0000000000000000000000B8 /* ShiftPro.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ShiftPro/ShiftPro.entitlements"; sourceTree = "<group>"; };
+    0000000000000000000000B9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ShiftProTests/Info.plist"; sourceTree = "<group>"; };
+    0000000000000000000000BA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ShiftProUITests/Info.plist"; sourceTree = "<group>"; };
+    000000000000000000000007 /* ShiftPro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ShiftPro.app; sourceTree = BUILT_PRODUCTS_DIR; };
+    000000000000000000000008 /* ShiftProTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShiftProTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+    000000000000000000000009 /* ShiftProUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShiftProUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+
+/* Begin PBXFrameworksBuildPhase section */
+    00000000000000000000000B /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (
+        000000000000000000000146,
+        000000000000000000000147,
+        000000000000000000000148,
+    ); runOnlyForDeploymentPostprocessing = 0; };
+    00000000000000000000000E /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+    000000000000000000000011 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+
+/* Begin PBXGroup section */
+    000000000000000000000002 = {isa = PBXGroup; children = (
+        000000000000000000000004 /* ShiftPro */,
+        000000000000000000000005 /* ShiftProTests */,
+        000000000000000000000006 /* ShiftProUITests */,
+        000000000000000000000003 /* Products */,
+    ); sourceTree = "<group>"; };
+    000000000000000000000003 /* Products */ = {isa = PBXGroup; children = (
+        000000000000000000000007 /* ShiftPro.app */,
+        000000000000000000000008 /* ShiftProTests.xctest */,
+        000000000000000000000009 /* ShiftProUITests.xctest */,
+    ); name = Products; sourceTree = BUILT_PRODUCTS_DIR; };
+    000000000000000000000004 /* ShiftPro */ = {isa = PBXGroup; children = (
+        00000000000000000000002C,
+        00000000000000000000002D,
+        00000000000000000000002E,
+        00000000000000000000002F,
+        000000000000000000000030,
+        000000000000000000000031,
+        000000000000000000000032,
+        000000000000000000000033,
+        000000000000000000000034,
+        000000000000000000000035,
+        000000000000000000000036,
+        000000000000000000000037,
+        000000000000000000000038,
+        000000000000000000000039,
+        00000000000000000000003A,
+        00000000000000000000003B,
+        00000000000000000000003C,
+        00000000000000000000003D,
+        00000000000000000000003E,
+        00000000000000000000003F,
+        000000000000000000000040,
+        000000000000000000000041,
+        000000000000000000000042,
+        000000000000000000000043,
+        000000000000000000000044,
+        0000000000000000000000B7,
+        000000000000000000000045,
+        000000000000000000000046,
+        000000000000000000000047,
+        000000000000000000000048,
+        000000000000000000000049,
+        00000000000000000000004A,
+        00000000000000000000004B,
+        00000000000000000000004C,
+        00000000000000000000004D,
+        00000000000000000000004E,
+        00000000000000000000004F,
+        000000000000000000000050,
+        000000000000000000000051,
+        000000000000000000000052,
+        000000000000000000000053,
+        000000000000000000000054,
+        000000000000000000000055,
+        000000000000000000000056,
+        000000000000000000000057,
+        000000000000000000000058,
+        000000000000000000000059,
+        00000000000000000000005A,
+        00000000000000000000005B,
+        00000000000000000000005C,
+        00000000000000000000005D,
+        00000000000000000000005E,
+        00000000000000000000005F,
+        000000000000000000000060,
+        000000000000000000000061,
+        000000000000000000000062,
+        000000000000000000000063,
+        000000000000000000000064,
+        000000000000000000000065,
+        000000000000000000000066,
+        000000000000000000000067,
+        000000000000000000000068,
+        000000000000000000000069,
+        00000000000000000000006A,
+        00000000000000000000006B,
+        00000000000000000000006C,
+        00000000000000000000006D,
+        00000000000000000000006E,
+        00000000000000000000006F,
+        000000000000000000000070,
+        000000000000000000000071,
+        000000000000000000000072,
+        000000000000000000000073,
+        000000000000000000000074,
+        000000000000000000000075,
+        000000000000000000000076,
+        000000000000000000000077,
+        000000000000000000000078,
+        000000000000000000000079,
+        0000000000000000000000B8,
+        00000000000000000000007A,
+        00000000000000000000007B,
+        00000000000000000000007C,
+        00000000000000000000007D,
+        00000000000000000000007E,
+        00000000000000000000007F,
+        000000000000000000000080,
+        000000000000000000000081,
+        000000000000000000000082,
+        000000000000000000000083,
+        000000000000000000000084,
+        000000000000000000000085,
+        000000000000000000000086,
+        000000000000000000000087,
+        000000000000000000000088,
+        000000000000000000000089,
+        00000000000000000000008A,
+        00000000000000000000008B,
+        00000000000000000000008C,
+        00000000000000000000008D,
+        00000000000000000000008E,
+        00000000000000000000008F,
+        000000000000000000000090,
+        000000000000000000000091,
+        000000000000000000000092,
+        000000000000000000000093,
+        000000000000000000000094,
+        000000000000000000000095,
+        000000000000000000000096,
+        000000000000000000000097,
+        000000000000000000000098,
+        000000000000000000000099,
+        00000000000000000000009A,
+        00000000000000000000009B,
+        00000000000000000000009C,
+        00000000000000000000009D,
+        00000000000000000000009E,
+        00000000000000000000009F,
+        0000000000000000000000A0,
+        0000000000000000000000A1,
+        0000000000000000000000A2,
+        0000000000000000000000A3,
+    ); path = ShiftPro; sourceTree = "<group>"; };
+    000000000000000000000005 /* ShiftProTests */ = {isa = PBXGroup; children = (
+        0000000000000000000000B9,
+        0000000000000000000000A4,
+        0000000000000000000000A5,
+        0000000000000000000000A6,
+        0000000000000000000000A7,
+        0000000000000000000000A8,
+        0000000000000000000000A9,
+        0000000000000000000000AA,
+        0000000000000000000000AB,
+    ); path = ShiftProTests; sourceTree = "<group>"; };
+    000000000000000000000006 /* ShiftProUITests */ = {isa = PBXGroup; children = (
+        0000000000000000000000AC,
+        0000000000000000000000AD,
+        0000000000000000000000AE,
+        0000000000000000000000BA,
+        0000000000000000000000AF,
+        0000000000000000000000B0,
+        0000000000000000000000B1,
+        0000000000000000000000B2,
+        0000000000000000000000B3,
+        0000000000000000000000B4,
+        0000000000000000000000B5,
+        0000000000000000000000B6,
+    ); path = ShiftProUITests; sourceTree = "<group>"; };
+/* End PBXGroup section */
+
+
+/* Begin PBXNativeTarget section */
+    000000000000000000000013 /* ShiftPro */ = {isa = PBXNativeTarget; buildConfigurationList = 000000000000000000000017 /* Build configuration list for PBXNativeTarget "ShiftPro" */; buildPhases = (
+        00000000000000000000000A /* Sources */,
+        00000000000000000000000B /* Frameworks */,
+        00000000000000000000000C /* Resources */,
+    ); buildRules = ( ); dependencies = ( ); name = ShiftPro; packageProductDependencies = (
+        000000000000000000000029 /* KeychainAccess */,
+        00000000000000000000002A /* Lottie */,
+        00000000000000000000002B /* Charts */,
+    ); productName = ShiftPro; productReference = 000000000000000000000007 /* ShiftPro.app */; productType = "com.apple.product-type.application"; };
+    000000000000000000000014 /* ShiftProTests */ = {isa = PBXNativeTarget; buildConfigurationList = 000000000000000000000018 /* Build configuration list for PBXNativeTarget "ShiftProTests" */; buildPhases = (
+        00000000000000000000000D /* Sources */,
+        00000000000000000000000E /* Frameworks */,
+        00000000000000000000000F /* Resources */,
+    ); buildRules = ( ); dependencies = (
+        000000000000000000000023 /* PBXTargetDependency */,
+    ); name = ShiftProTests; productName = ShiftProTests; productReference = 000000000000000000000008 /* ShiftProTests.xctest */; productType = "com.apple.product-type.bundle.unit-test"; };
+    000000000000000000000015 /* ShiftProUITests */ = {isa = PBXNativeTarget; buildConfigurationList = 000000000000000000000019 /* Build configuration list for PBXNativeTarget "ShiftProUITests" */; buildPhases = (
+        000000000000000000000010 /* Sources */,
+        000000000000000000000011 /* Frameworks */,
+        000000000000000000000012 /* Resources */,
+    ); buildRules = ( ); dependencies = (
+        000000000000000000000025 /* PBXTargetDependency */,
+    ); name = ShiftProUITests; productName = ShiftProUITests; productReference = 000000000000000000000009 /* ShiftProUITests.xctest */; productType = "com.apple.product-type.bundle.ui-testing"; };
+/* End PBXNativeTarget section */
+
+
+/* Begin PBXProject section */
+    000000000000000000000001 /* Project object */ = {isa = PBXProject; attributes = {
+            BuildIndependentTargetsInParallel = YES;
+            LastSwiftUpdateCheck = 1500;
+            LastUpgradeCheck = 1500;
+            TargetAttributes = {
+                000000000000000000000013 = {};
+                000000000000000000000014 = {};
+                000000000000000000000015 = {};
+            };
+        }; buildConfigurationList = 000000000000000000000016 /* Build configuration list for PBXProject "ShiftPro" */; compatibilityVersion = "Xcode 15.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (
+            en,
+            Base,
+        ); mainGroup = 000000000000000000000002; packageReferences = (
+            000000000000000000000026 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+            000000000000000000000027 /* XCRemoteSwiftPackageReference "lottie-ios" */,
+            000000000000000000000028 /* XCRemoteSwiftPackageReference "Charts" */,
+        ); productRefGroup = 000000000000000000000003 /* Products */; projectDirPath = ""; projectRoot = ""; targets = (
+            000000000000000000000013 /* ShiftPro */,
+            000000000000000000000014 /* ShiftProTests */,
+            000000000000000000000015 /* ShiftProUITests */,
+        ); };
+/* End PBXProject section */
+
+
+/* Begin PBXResourcesBuildPhase section */
+    00000000000000000000000C /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
+    ); runOnlyForDeploymentPostprocessing = 0; };
+    00000000000000000000000F /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
+    ); runOnlyForDeploymentPostprocessing = 0; };
+    000000000000000000000012 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
+    ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+
+/* Begin PBXSourcesBuildPhase section */
+    00000000000000000000000A /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+        0000000000000000000000BB,
+        0000000000000000000000BC,
+        0000000000000000000000BD,
+        0000000000000000000000BE,
+        0000000000000000000000BF,
+        0000000000000000000000C0,
+        0000000000000000000000C1,
+        0000000000000000000000C2,
+        0000000000000000000000C3,
+        0000000000000000000000C4,
+        0000000000000000000000C5,
+        0000000000000000000000C6,
+        0000000000000000000000C7,
+        0000000000000000000000C8,
+        0000000000000000000000C9,
+        0000000000000000000000CA,
+        0000000000000000000000CB,
+        0000000000000000000000CC,
+        0000000000000000000000CD,
+        0000000000000000000000CE,
+        0000000000000000000000CF,
+        0000000000000000000000D0,
+        0000000000000000000000D1,
+        0000000000000000000000D2,
+        0000000000000000000000D3,
+        0000000000000000000000D4,
+        0000000000000000000000D5,
+        0000000000000000000000D6,
+        0000000000000000000000D7,
+        0000000000000000000000D8,
+        0000000000000000000000D9,
+        0000000000000000000000DA,
+        0000000000000000000000DB,
+        0000000000000000000000DC,
+        0000000000000000000000DD,
+        0000000000000000000000DE,
+        0000000000000000000000DF,
+        0000000000000000000000E0,
+        0000000000000000000000E1,
+        0000000000000000000000E2,
+        0000000000000000000000E3,
+        0000000000000000000000E4,
+        0000000000000000000000E5,
+        0000000000000000000000E6,
+        0000000000000000000000E7,
+        0000000000000000000000E8,
+        0000000000000000000000E9,
+        0000000000000000000000EA,
+        0000000000000000000000EB,
+        0000000000000000000000EC,
+        0000000000000000000000ED,
+        0000000000000000000000EE,
+        0000000000000000000000EF,
+        0000000000000000000000F0,
+        0000000000000000000000F1,
+        0000000000000000000000F2,
+        0000000000000000000000F3,
+        0000000000000000000000F4,
+        0000000000000000000000F5,
+        0000000000000000000000F6,
+        0000000000000000000000F7,
+        0000000000000000000000F8,
+        0000000000000000000000F9,
+        0000000000000000000000FA,
+        0000000000000000000000FB,
+        0000000000000000000000FC,
+        0000000000000000000000FD,
+        0000000000000000000000FE,
+        0000000000000000000000FF,
+        000000000000000000000100,
+        000000000000000000000101,
+        000000000000000000000102,
+        000000000000000000000103,
+        000000000000000000000104,
+        000000000000000000000105,
+        000000000000000000000106,
+        000000000000000000000107,
+        000000000000000000000108,
+        000000000000000000000109,
+        00000000000000000000010A,
+        00000000000000000000010B,
+        00000000000000000000010C,
+        00000000000000000000010D,
+        00000000000000000000010E,
+        00000000000000000000010F,
+        000000000000000000000110,
+        000000000000000000000111,
+        000000000000000000000112,
+        000000000000000000000113,
+        000000000000000000000114,
+        000000000000000000000115,
+        000000000000000000000116,
+        000000000000000000000117,
+        000000000000000000000118,
+        000000000000000000000119,
+        00000000000000000000011A,
+        00000000000000000000011B,
+        00000000000000000000011C,
+        00000000000000000000011D,
+        00000000000000000000011E,
+        00000000000000000000011F,
+        000000000000000000000120,
+        000000000000000000000121,
+        000000000000000000000122,
+        000000000000000000000123,
+        000000000000000000000124,
+        000000000000000000000125,
+        000000000000000000000126,
+        000000000000000000000127,
+        000000000000000000000128,
+        000000000000000000000129,
+        00000000000000000000012A,
+        00000000000000000000012B,
+        00000000000000000000012C,
+        00000000000000000000012D,
+        00000000000000000000012E,
+        00000000000000000000012F,
+        000000000000000000000130,
+        000000000000000000000131,
+        000000000000000000000132,
+    ); runOnlyForDeploymentPostprocessing = 0; };
+    00000000000000000000000D /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+        000000000000000000000133,
+        000000000000000000000134,
+        000000000000000000000135,
+        000000000000000000000136,
+        000000000000000000000137,
+        000000000000000000000138,
+        000000000000000000000139,
+        00000000000000000000013A,
+    ); runOnlyForDeploymentPostprocessing = 0; };
+    000000000000000000000010 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+        00000000000000000000013B,
+        00000000000000000000013C,
+        00000000000000000000013D,
+        00000000000000000000013E,
+        00000000000000000000013F,
+        000000000000000000000140,
+        000000000000000000000141,
+        000000000000000000000142,
+        000000000000000000000143,
+        000000000000000000000144,
+        000000000000000000000145,
+    ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+
+/* Begin PBXTargetDependency section */
+    000000000000000000000023 /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = 000000000000000000000013 /* ShiftPro */; targetProxy = 000000000000000000000022 /* PBXContainerItemProxy */; };
+    000000000000000000000025 /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = 000000000000000000000013 /* ShiftPro */; targetProxy = 000000000000000000000024 /* PBXContainerItemProxy */; };
+/* End PBXTargetDependency section */
+
+
+/* Begin XCBuildConfiguration section */
+    00000000000000000000001A /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+			ALWAYS_SEARCH_USER_PATHS = NO;
+			CLANG_ANALYZER_NONNULL = YES;
+			CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+			CLANG_CXX_LANGUAGE_STANDARD = gnu++20;
+			CLANG_ENABLE_MODULES = YES;
+			CLANG_ENABLE_OBJC_ARC = YES;
+			CLANG_ENABLE_OBJC_WEAK = YES;
+			CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+			CLANG_WARN_BOOL_CONVERSION = YES;
+			CLANG_WARN_COMMA = YES;
+			CLANG_WARN_CONSTANT_CONVERSION = YES;
+			CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+			CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+			CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+			CLANG_WARN_EMPTY_BODY = YES;
+			CLANG_WARN_ENUM_CONVERSION = YES;
+			CLANG_WARN_INFINITE_RECURSION = YES;
+			CLANG_WARN_INT_CONVERSION = YES;
+			CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+			CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+			CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+			CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+			CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+			CLANG_WARN_STRICT_PROTOTYPES = YES;
+			CLANG_WARN_SUSPICIOUS_MOVE = YES;
+			CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+			CODE_SIGN_STYLE = Automatic;
+			COPY_PHASE_STRIP = NO;
+			DEBUG_INFORMATION_FORMAT = dwarf;
+			ENABLE_STRICT_OBJC_MSGSEND = YES;
+			ENABLE_TESTABILITY = YES;
+			GCC_C_LANGUAGE_STANDARD = gnu11;
+			GCC_DYNAMIC_NO_PIC = NO;
+			GCC_NO_COMMON_BLOCKS = YES;
+			GCC_OPTIMIZATION_LEVEL = 0;
+			GCC_PREPROCESSOR_DEFINITIONS = (
+                "DEBUG=1",
+                "$(inherited)",
+            );
+			GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+			GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+			GCC_WARN_UNDECLARED_SELECTOR = YES;
+			GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+			GCC_WARN_UNUSED_FUNCTION = YES;
+			GCC_WARN_UNUSED_VARIABLE = YES;
+			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+			ONLY_ACTIVE_ARCH = YES;
+			SDKROOT = iphoneos;
+			SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+			SWIFT_OPTIMIZATION_LEVEL = -Onone;
+    }; name = Debug; };
+    00000000000000000000001B /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+			ALWAYS_SEARCH_USER_PATHS = NO;
+			CLANG_ANALYZER_NONNULL = YES;
+			CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+			CLANG_CXX_LANGUAGE_STANDARD = gnu++20;
+			CLANG_ENABLE_MODULES = YES;
+			CLANG_ENABLE_OBJC_ARC = YES;
+			CLANG_ENABLE_OBJC_WEAK = YES;
+			CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+			CLANG_WARN_BOOL_CONVERSION = YES;
+			CLANG_WARN_COMMA = YES;
+			CLANG_WARN_CONSTANT_CONVERSION = YES;
+			CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+			CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+			CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+			CLANG_WARN_EMPTY_BODY = YES;
+			CLANG_WARN_ENUM_CONVERSION = YES;
+			CLANG_WARN_INFINITE_RECURSION = YES;
+			CLANG_WARN_INT_CONVERSION = YES;
+			CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+			CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+			CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+			CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+			CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+			CLANG_WARN_STRICT_PROTOTYPES = YES;
+			CLANG_WARN_SUSPICIOUS_MOVE = YES;
+			CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+			CODE_SIGN_STYLE = Automatic;
+			COPY_PHASE_STRIP = YES;
+			DEBUG_INFORMATION_FORMAT = dwarf-with-dsym;
+			ENABLE_STRICT_OBJC_MSGSEND = YES;
+			ENABLE_TESTABILITY = YES;
+			GCC_C_LANGUAGE_STANDARD = gnu11;
+			GCC_DYNAMIC_NO_PIC = NO;
+			GCC_NO_COMMON_BLOCKS = YES;
+			GCC_OPTIMIZATION_LEVEL = 0;
+			GCC_PREPROCESSOR_DEFINITIONS = (
+                "DEBUG=1",
+                "$(inherited)",
+            );
+			GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+			GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+			GCC_WARN_UNDECLARED_SELECTOR = YES;
+			GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+			GCC_WARN_UNUSED_FUNCTION = YES;
+			GCC_WARN_UNUSED_VARIABLE = YES;
+			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			MTL_ENABLE_DEBUG_INFO = NO;
+			ONLY_ACTIVE_ARCH = YES;
+			SDKROOT = iphoneos;
+			SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+			SWIFT_OPTIMIZATION_LEVEL = -O;
+			ENABLE_NS_ASSERTIONS = NO;
+			SWIFT_COMPILATION_MODE = wholemodule;
+    }; name = Release; };
+    00000000000000000000001C /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+			CODE_SIGN_STYLE = Automatic;
+			CURRENT_PROJECT_VERSION = 1;
+			DEVELOPMENT_TEAM = ;
+			INFOPLIST_FILE = ShiftPro/Info.plist;
+			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/Frameworks @loader_path/Frameworks;
+			PRODUCT_BUNDLE_IDENTIFIER = com.shiftpro.app;
+			PRODUCT_NAME = $(TARGET_NAME);
+			SWIFT_EMIT_LOC_STRINGS = YES;
+			SWIFT_VERSION = 5.9;
+			TARGETED_DEVICE_FAMILY = 1,2;
+			CODE_SIGN_ENTITLEMENTS = ShiftPro/ShiftPro.entitlements;
+			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+			ENABLE_PREVIEWS = YES;
+    }; name = Debug; };
+    00000000000000000000001D /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+			CODE_SIGN_STYLE = Automatic;
+			CURRENT_PROJECT_VERSION = 1;
+			DEVELOPMENT_TEAM = ;
+			INFOPLIST_FILE = ShiftPro/Info.plist;
+			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/Frameworks @loader_path/Frameworks;
+			PRODUCT_BUNDLE_IDENTIFIER = com.shiftpro.app;
+			PRODUCT_NAME = $(TARGET_NAME);
+			SWIFT_EMIT_LOC_STRINGS = YES;
+			SWIFT_VERSION = 5.9;
+			TARGETED_DEVICE_FAMILY = 1,2;
+			CODE_SIGN_ENTITLEMENTS = ShiftPro/ShiftPro.entitlements;
+			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+			ENABLE_PREVIEWS = YES;
+    }; name = Release; };
+    00000000000000000000001E /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+			CODE_SIGN_STYLE = Automatic;
+			CURRENT_PROJECT_VERSION = 1;
+			DEVELOPMENT_TEAM = ;
+			INFOPLIST_FILE = ShiftProTests/Info.plist;
+			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/Frameworks @loader_path/Frameworks;
+			PRODUCT_BUNDLE_IDENTIFIER = com.shiftpro.appTests;
+			PRODUCT_NAME = $(TARGET_NAME);
+			SWIFT_EMIT_LOC_STRINGS = YES;
+			SWIFT_VERSION = 5.9;
+			TARGETED_DEVICE_FAMILY = 1,2;
+			BUNDLE_LOADER = $(TEST_HOST);
+			TEST_HOST = $(BUILT_PRODUCTS_DIR)/ShiftPro.app/ShiftPro;
+    }; name = Debug; };
+    00000000000000000000001F /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+			CODE_SIGN_STYLE = Automatic;
+			CURRENT_PROJECT_VERSION = 1;
+			DEVELOPMENT_TEAM = ;
+			INFOPLIST_FILE = ShiftProTests/Info.plist;
+			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/Frameworks @loader_path/Frameworks;
+			PRODUCT_BUNDLE_IDENTIFIER = com.shiftpro.appTests;
+			PRODUCT_NAME = $(TARGET_NAME);
+			SWIFT_EMIT_LOC_STRINGS = YES;
+			SWIFT_VERSION = 5.9;
+			TARGETED_DEVICE_FAMILY = 1,2;
+			BUNDLE_LOADER = $(TEST_HOST);
+			TEST_HOST = $(BUILT_PRODUCTS_DIR)/ShiftPro.app/ShiftPro;
+    }; name = Release; };
+    000000000000000000000020 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+			CODE_SIGN_STYLE = Automatic;
+			CURRENT_PROJECT_VERSION = 1;
+			DEVELOPMENT_TEAM = ;
+			INFOPLIST_FILE = ShiftProUITests/Info.plist;
+			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/Frameworks @loader_path/Frameworks;
+			PRODUCT_BUNDLE_IDENTIFIER = com.shiftpro.appUITests;
+			PRODUCT_NAME = $(TARGET_NAME);
+			SWIFT_EMIT_LOC_STRINGS = YES;
+			SWIFT_VERSION = 5.9;
+			TARGETED_DEVICE_FAMILY = 1,2;
+			TEST_TARGET_NAME = ShiftPro;
+    }; name = Debug; };
+    000000000000000000000021 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+			CODE_SIGN_STYLE = Automatic;
+			CURRENT_PROJECT_VERSION = 1;
+			DEVELOPMENT_TEAM = ;
+			INFOPLIST_FILE = ShiftProUITests/Info.plist;
+			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/Frameworks @loader_path/Frameworks;
+			PRODUCT_BUNDLE_IDENTIFIER = com.shiftpro.appUITests;
+			PRODUCT_NAME = $(TARGET_NAME);
+			SWIFT_EMIT_LOC_STRINGS = YES;
+			SWIFT_VERSION = 5.9;
+			TARGETED_DEVICE_FAMILY = 1,2;
+			TEST_TARGET_NAME = ShiftPro;
+    }; name = Release; };
+/* End XCBuildConfiguration section */
+
+
+/* Begin XCConfigurationList section */
+    000000000000000000000016 /* Build configuration list for PBXProject "ShiftPro" */ = {isa = XCConfigurationList; buildConfigurations = (
+        00000000000000000000001A /* Debug */,
+        00000000000000000000001B /* Release */,
+    ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+    000000000000000000000017 /* Build configuration list for PBXNativeTarget "ShiftPro" */ = {isa = XCConfigurationList; buildConfigurations = (
+        00000000000000000000001C /* Debug */,
+        00000000000000000000001D /* Release */,
+    ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+    000000000000000000000018 /* Build configuration list for PBXNativeTarget "ShiftProTests" */ = {isa = XCConfigurationList; buildConfigurations = (
+        00000000000000000000001E /* Debug */,
+        00000000000000000000001F /* Release */,
+    ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+    000000000000000000000019 /* Build configuration list for PBXNativeTarget "ShiftProUITests" */ = {isa = XCConfigurationList; buildConfigurations = (
+        000000000000000000000020 /* Debug */,
+        000000000000000000000021 /* Release */,
+    ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+
+
+/* Begin XCRemoteSwiftPackageReference section */
+    000000000000000000000026 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess.git"; requirement = { kind = upToNextMajorVersion; minimumVersion = 4.0.0; }; };
+    000000000000000000000027 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/airbnb/lottie-ios.git"; requirement = { kind = upToNextMajorVersion; minimumVersion = 4.0.0; }; };
+    000000000000000000000028 /* XCRemoteSwiftPackageReference "Charts" */ = {isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/danielgindi/Charts.git"; requirement = { kind = upToNextMajorVersion; minimumVersion = 5.0.0; }; };
+/* End XCRemoteSwiftPackageReference section */
+
+
+/* Begin XCSwiftPackageProductDependency section */
+    000000000000000000000029 /* KeychainAccess */ = {isa = XCSwiftPackageProductDependency; package = 000000000000000000000026 /* XCRemoteSwiftPackageReference "KeychainAccess" */; productName = KeychainAccess; };
+    00000000000000000000002A /* Lottie */ = {isa = XCSwiftPackageProductDependency; package = 000000000000000000000027 /* XCRemoteSwiftPackageReference "lottie-ios" */; productName = Lottie; };
+    00000000000000000000002B /* Charts */ = {isa = XCSwiftPackageProductDependency; package = 000000000000000000000028 /* XCRemoteSwiftPackageReference "Charts" */; productName = Charts; };
+/* End XCSwiftPackageProductDependency section */
+
+	};
+	rootObject = 000000000000000000000001 /* Project object */;
+}
