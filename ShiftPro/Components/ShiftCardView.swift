@@ -1,12 +1,15 @@
 import SwiftUI
 
 struct ShiftCardView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     let title: String
     let timeRange: String
     let location: String
     let status: StatusIndicator.Status
     let rateMultiplier: Double
     let notes: String?
+    var accessibilityIdentifier: String? = nil
 
     @State private var isExpanded = false
 
@@ -40,9 +43,15 @@ struct ShiftCardView: View {
                 Text(notes)
                     .font(ShiftProTypography.body)
                     .foregroundStyle(ShiftProColors.ink)
+                    .transition(ShiftProTransitions.cardExpand)
             }
 
-            Button(action: { withAnimation(.easeInOut(duration: 0.2)) { isExpanded.toggle() } }) {
+            Button(action: {
+                withAnimation(AnimationManager.animation(.standard, reduceMotion: reduceMotion)) {
+                    isExpanded.toggle()
+                }
+                HapticManager.fire(.selection, enabled: !reduceMotion)
+            }) {
                 HStack(spacing: ShiftProSpacing.xxs) {
                     Text(isExpanded ? "Hide details" : "View details")
                         .font(ShiftProTypography.caption)
@@ -52,6 +61,7 @@ struct ShiftCardView: View {
                 .foregroundStyle(ShiftProColors.accent)
             }
             .buttonStyle(.plain)
+            .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: nil)
         }
         .padding(ShiftProSpacing.m)
         .background(ShiftProColors.surface)
@@ -63,6 +73,7 @@ struct ShiftCardView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Shift card")
         .accessibilityValue("\(title), \(timeRange), \(status.rawValue)")
+        .accessibilityIdentifier(accessibilityIdentifier ?? "")
     }
 }
 

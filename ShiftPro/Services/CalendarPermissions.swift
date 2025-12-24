@@ -29,10 +29,11 @@ final class CalendarPermissions: ObservableObject {
             let granted: Bool
             if #available(iOS 17.0, *) {
                 granted = try await eventStore.requestFullAccessToEvents()
+                status = granted ? .fullAccess : .denied
             } else {
                 granted = try await eventStore.requestAccess(to: .event)
+                status = granted ? .authorized : .denied
             }
-            status = granted ? .authorized : .denied
             return granted
         } catch {
             status = .denied

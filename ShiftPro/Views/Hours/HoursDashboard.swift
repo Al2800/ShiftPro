@@ -111,6 +111,7 @@ struct HoursDashboard: View {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .stroke(ShiftProColors.accentMuted, lineWidth: 1)
         )
+        .accessibilityIdentifier("hours.heroCard")
     }
 
     private var summaryCard: some View {
@@ -137,6 +138,7 @@ struct HoursDashboard: View {
         .padding(ShiftProSpacing.m)
         .background(ShiftProColors.surfaceElevated)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .accessibilityIdentifier("hours.summaryCard")
     }
 
     private var chartCard: some View {
@@ -150,6 +152,7 @@ struct HoursDashboard: View {
         .padding(ShiftProSpacing.m)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .accessibilityIdentifier("hours.chartCard")
     }
 
     private var rateBreakdownCard: some View {
@@ -214,6 +217,7 @@ struct HoursDashboard: View {
         .padding(ShiftProSpacing.m)
         .background(ShiftProColors.surfaceElevated)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .accessibilityIdentifier("hours.overtimeCard")
     }
 
     private var recentPeriodsCard: some View {

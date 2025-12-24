@@ -32,6 +32,7 @@ struct OnboardingView: View {
             ProgressView(value: manager.progress)
                 .tint(ShiftProColors.accent)
                 .padding(.horizontal, ShiftProSpacing.large)
+                .accessibilityIdentifier("onboarding.progress")
         }
     }
 
@@ -72,13 +73,16 @@ struct OnboardingView: View {
                     .foregroundStyle(ShiftProColors.midnight)
             }
             .padding(.horizontal, ShiftProSpacing.large)
+            .accessibilityIdentifier("onboarding.primary")
 
             HStack(spacing: 16) {
                 Button("Back") { manager.back() }
                     .disabled(manager.step == .welcome)
+                    .accessibilityIdentifier("onboarding.back")
 
                 if manager.step.isSkippable {
                     Button("Skip for now") { manager.skip() }
+                        .accessibilityIdentifier("onboarding.skip")
                 }
             }
             .font(ShiftProTypography.caption)

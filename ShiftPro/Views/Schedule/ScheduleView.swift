@@ -45,6 +45,7 @@ struct ScheduleView: View {
                         .foregroundStyle(ShiftProColors.accent)
                 }
                 .accessibilityLabel("Add shift")
+                .accessibilityIdentifier("schedule.addShift")
             }
         }
     }

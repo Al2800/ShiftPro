@@ -1,10 +1,15 @@
 import SwiftUI
 
 struct DashboardView: View {
+    @State private var animateIn = false
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ShiftProSpacing.l) {
                 heroCard
+                    .opacity(animateIn ? 1 : 0)
+                    .offset(y: animateIn ? 0 : 16)
+                    .animation(AnimationManager.shared.animation(for: .slow), value: animateIn)
 
                 VStack(alignment: .leading, spacing: ShiftProSpacing.m) {
                     Text("Upcoming")
@@ -17,7 +22,8 @@ struct DashboardView: View {
                         location: "Central Precinct",
                         status: .scheduled,
                         rateMultiplier: 1.5,
-                        notes: "Briefing at 6:30 AM. Body cam check before roll call."
+                        notes: "Briefing at 6:30 AM. Body cam check before roll call.",
+                        accessibilityIdentifier: AccessibilityIdentifiers.dashboardUpcomingShift
                     )
 
                     ShiftCardView(
@@ -26,9 +32,13 @@ struct DashboardView: View {
                         location: "North District",
                         status: .inProgress,
                         rateMultiplier: 2.0,
-                        notes: "Overtime shift due to staffing shortage."
+                        notes: "Overtime shift due to staffing shortage.",
+                        accessibilityIdentifier: AccessibilityIdentifiers.dashboardActiveShift
                     )
                 }
+                .opacity(animateIn ? 1 : 0)
+                .offset(y: animateIn ? 0 : 12)
+                .animation(AnimationManager.shared.animation(for: .standard), value: animateIn)
 
                 VStack(alignment: .leading, spacing: ShiftProSpacing.m) {
                     Text("Hours")
@@ -37,8 +47,14 @@ struct DashboardView: View {
 
                     HoursDisplay(totalHours: 84.5, regularHours: 72.0, overtimeHours: 12.5)
                 }
+                .opacity(animateIn ? 1 : 0)
+                .offset(y: animateIn ? 0 : 10)
+                .animation(AnimationManager.shared.animation(for: .standard), value: animateIn)
 
                 quickActions
+                    .opacity(animateIn ? 1 : 0)
+                    .offset(y: animateIn ? 0 : 8)
+                    .animation(AnimationManager.shared.animation(for: .standard), value: animateIn)
             }
             .padding(.horizontal, ShiftProSpacing.m)
             .padding(.vertical, ShiftProSpacing.l)
@@ -54,6 +70,10 @@ struct DashboardView: View {
                 }
                 .accessibilityLabel("Notifications")
             }
+        }
+        .onAppear {
+            guard !animateIn else { return }
+            animateIn = true
         }
     }
 
@@ -73,12 +93,18 @@ struct DashboardView: View {
                     .font(ShiftProTypography.subheadline)
                     .foregroundStyle(.white.opacity(0.85))
 
-                QuickActionButton(title: "Start Shift", systemImage: "play.fill") {}
+                QuickActionButton(
+                    title: "Start Shift",
+                    systemImage: "play.fill",
+                    action: {},
+                    accessibilityIdentifier: AccessibilityIdentifiers.dashboardStartShift
+                )
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(ShiftProSpacing.l)
         }
         .shadow(color: ShiftProColors.accent.opacity(0.25), radius: 18, x: 0, y: 12)
+        .accessibilityIdentifier(AccessibilityIdentifiers.dashboardHeroCard)
     }
 
     private var quickActions: some View {
@@ -88,8 +114,18 @@ struct DashboardView: View {
                 .foregroundStyle(ShiftProColors.ink)
 
             HStack(spacing: ShiftProSpacing.s) {
-                QuickActionButton(title: "Log Break", systemImage: "cup.and.saucer.fill") {}
-                QuickActionButton(title: "Add Shift", systemImage: "plus") {}
+                QuickActionButton(
+                    title: "Log Break",
+                    systemImage: "cup.and.saucer.fill",
+                    action: {},
+                    accessibilityIdentifier: AccessibilityIdentifiers.dashboardLogBreak
+                )
+                QuickActionButton(
+                    title: "Add Shift",
+                    systemImage: "plus",
+                    action: {},
+                    accessibilityIdentifier: AccessibilityIdentifiers.dashboardAddShift
+                )
             }
         }
     }

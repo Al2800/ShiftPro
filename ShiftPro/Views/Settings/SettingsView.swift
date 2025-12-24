@@ -22,11 +22,28 @@ struct SettingsView: View {
                 settingRow(icon: "lock.shield", title: "Privacy", detail: "Face ID")
             }
 
+            Section("Subscription") {
+                NavigationLink {
+                    SubscriptionSettingsView()
+                } label: {
+                    settingRow(icon: "star.circle", title: "Subscription", detail: "Manage plan")
+                }
+                .accessibilityIdentifier("settings.subscription")
+            }
+
             Section("Integrations") {
                 NavigationLink {
                     CalendarSettingsView()
                 } label: {
                     settingRow(icon: "calendar.badge.clock", title: "Calendar Settings", detail: "Sync & permissions")
+                }
+            }
+
+            Section("Premium") {
+                NavigationLink {
+                    PremiumView()
+                } label: {
+                    settingRow(icon: "star.circle", title: "ShiftPro Premium", detail: "Unlock advanced features")
                 }
             }
         }

@@ -6,6 +6,7 @@ import UniformTypeIdentifiers
 struct ExportOptionsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
+    @EnvironmentObject private var entitlementManager: EntitlementManager
 
     let period: PayPeriod
 
@@ -17,6 +18,7 @@ struct ExportOptionsView: View {
     @State private var exportedFileURL: URL?
     @State private var showShareSheet: Bool = false
     @State private var errorMessage: String?
+    @State private var showPaywall: Bool = false
 
     enum ExportCategory {
         case shiftReport
@@ -70,13 +72,29 @@ struct ExportOptionsView: View {
                     Picker("Format", selection: $selectedFormat) {
                         Text("CSV (Spreadsheet)").tag(ExportManager.ExportFormat.csv)
                         Text("PDF (Document)").tag(ExportManager.ExportFormat.pdf)
+                            .disabled(!entitlementManager.hasAccess(to: .fullExport))
                     }
                     .pickerStyle(.segmented)
+                    .onChange(of: selectedFormat) { newValue in
+                        if newValue == .pdf && !entitlementManager.hasAccess(to: .fullExport) {
+                            selectedFormat = .csv
+                            showPaywall = true
+                        }
+                    }
                 } header: {
                     Text("File Format")
                 } footer: {
-                    Text(formatDescription)
-                        .font(ShiftProTypography.caption)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(formatDescription)
+                            .font(ShiftProTypography.caption)
+
+                        if !entitlementManager.hasAccess(to: .fullExport) {
+                            Button("Upgrade to unlock PDF exports") {
+                                showPaywall = true
+                            }
+                            .font(ShiftProTypography.caption)
+                        }
+                    }
                 }
 
                 // Security Options
@@ -153,12 +171,22 @@ struct ExportOptionsView: View {
                     ShareSheet(items: [url])
                 }
             }
+            .sheet(isPresented: $showPaywall) {
+                NavigationStack {
+                    PaywallView()
+                }
+            }
         }
     }
 
     // MARK: - Export Logic
 
     private func performExport() {
+        guard entitlementManager.hasAccess(to: .fullExport) || selectedFormat == .csv else {
+            showPaywall = true
+            return
+        }
+
         isExporting = true
         errorMessage = nil
 
@@ -203,7 +231,9 @@ struct ExportOptionsView: View {
         case .csv:
             return "Compatible with Excel, Google Sheets, and other spreadsheet applications"
         case .pdf:
-            return "Professional document format for printing and archiving"
+            return entitlementManager.hasAccess(to: .fullExport)
+                ? "Professional document format for printing and archiving"
+                : "Premium plan required for PDF exports"
         default:
             return ""
         }
@@ -227,4 +257,5 @@ struct ShareSheet: UIViewControllerRepresentable {
 #Preview {
     ExportOptionsView(period: PayPeriod.currentWeek())
         .modelContainer(for: [PayPeriod.self])
+        .environmentObject(EntitlementManager())
 }

@@ -7,32 +7,33 @@ struct HoursDisplay: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
-            Text("Total Hours")
-                .font(ShiftProTypography.caption)
-                .foregroundStyle(ShiftProColor.textSecondary)
-
-            Text(String(format: "%.1f", totalHours))
-                .font(ShiftProTypography.title)
-                .foregroundStyle(ShiftProColor.textPrimary)
+            AnimatedCounter(
+                title: "Total Hours",
+                value: totalHours,
+                titleFont: ShiftProTypography.caption,
+                titleColor: ShiftProColor.textSecondary,
+                valueFont: ShiftProTypography.title,
+                valueColor: ShiftProColor.textPrimary
+            )
 
             HStack(spacing: ShiftProSpacing.medium) {
-                VStack(alignment: .leading, spacing: ShiftProSpacing.xSmall) {
-                    Text("Regular")
-                        .font(ShiftProTypography.caption)
-                        .foregroundStyle(ShiftProColor.textSecondary)
-                    Text(String(format: "%.1f", regularHours))
-                        .font(ShiftProTypography.subheadline)
-                        .foregroundStyle(ShiftProColor.textPrimary)
-                }
+                AnimatedCounter(
+                    title: "Regular",
+                    value: regularHours,
+                    titleFont: ShiftProTypography.caption,
+                    titleColor: ShiftProColor.textSecondary,
+                    valueFont: ShiftProTypography.subheadline,
+                    valueColor: ShiftProColor.textPrimary
+                )
 
-                VStack(alignment: .leading, spacing: ShiftProSpacing.xSmall) {
-                    Text("Overtime")
-                        .font(ShiftProTypography.caption)
-                        .foregroundStyle(ShiftProColor.textSecondary)
-                    Text(String(format: "%.1f", overtimeHours))
-                        .font(ShiftProTypography.subheadline)
-                        .foregroundStyle(ShiftProColor.textPrimary)
-                }
+                AnimatedCounter(
+                    title: "Overtime",
+                    value: overtimeHours,
+                    titleFont: ShiftProTypography.caption,
+                    titleColor: ShiftProColor.textSecondary,
+                    valueFont: ShiftProTypography.subheadline,
+                    valueColor: ShiftProColor.textPrimary
+                )
             }
         }
         .padding(ShiftProSpacing.medium)
