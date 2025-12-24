@@ -130,11 +130,14 @@ final class AnalyticsEngine: ObservableObject {
         
         // Overtime pattern insight
         if let monthly = monthlyMetrics, monthly.overtimeHours > monthly.totalHours * 0.2 {
+            let otHours = String(format: "%.1f", monthly.overtimeHours)
+            let otPercent = Int(monthly.overtimeHours / monthly.totalHours * 100)
             newInsights.append(AnalyticsInsight(
                 id: UUID(),
                 type: .warning,
                 title: "High Overtime",
-                message: "You've worked \(String(format: "%.1f", monthly.overtimeHours)) overtime hours this month, which is \(Int(monthly.overtimeHours / monthly.totalHours * 100))% of your total hours.",
+                message: "You've worked \(otHours) overtime hours this month, " +
+                         "which is \(otPercent)% of your total hours.",
                 actionLabel: "View Details",
                 priority: .high
             ))

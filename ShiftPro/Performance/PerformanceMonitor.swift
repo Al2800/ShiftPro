@@ -96,7 +96,9 @@ final class PerformanceMonitor: ObservableObject {
             memorySnapshots = Array(memorySnapshots.prefix(50))
         }
 
-        logger.debug("Memory: \(String(format: "%.1f", snapshot.usedMemoryMB))MB used (\(String(format: "%.1f", snapshot.usagePercentage))%)")
+        let usedMB = String(format: "%.1f", snapshot.usedMemoryMB)
+        let usagePct = String(format: "%.1f", snapshot.usagePercentage)
+        logger.debug("Memory: \(usedMB)MB used (\(usagePct)%)")
 
         // Warn if high memory usage
         if snapshot.usagePercentage > 80 {

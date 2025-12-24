@@ -26,7 +26,12 @@ struct RateMultiplierView: View {
                         TextField("Label", text: Binding(
                             get: { rateConfigs[index].label },
                             set: { newValue in
-                                rateConfigs[index] = .init(id: rateConfigs[index].id, label: newValue, multiplier: rateConfigs[index].multiplier)
+                                let config = rateConfigs[index]
+                                rateConfigs[index] = .init(
+                                    id: config.id,
+                                    label: newValue,
+                                    multiplier: config.multiplier
+                                )
                                 persistChanges()
                             }
                         ))
@@ -37,7 +42,12 @@ struct RateMultiplierView: View {
                         Stepper(value: Binding(
                             get: { rateConfigs[index].multiplier },
                             set: { newValue in
-                                rateConfigs[index] = .init(id: rateConfigs[index].id, label: rateConfigs[index].label, multiplier: newValue)
+                                let config = rateConfigs[index]
+                                rateConfigs[index] = .init(
+                                    id: config.id,
+                                    label: config.label,
+                                    multiplier: newValue
+                                )
                                 persistChanges()
                             }
                         ), in: 1.0...3.0, step: 0.1) {

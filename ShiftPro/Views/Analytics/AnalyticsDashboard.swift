@@ -186,7 +186,10 @@ struct AnalyticsDashboard: View {
     
     // MARK: - Computed Properties
     
-    private var currentMetrics: (totalHours: Double, shiftCount: Int, averageShiftDuration: Double, premiumHours: Double, comparedToPrevious: Double)? {
+    private var currentMetrics: (
+        totalHours: Double, shiftCount: Int, averageShiftDuration: Double,
+        premiumHours: Double, comparedToPrevious: Double
+    )? {
         switch selectedPeriod {
         case .week:
             guard let m = analyticsEngine.weeklyMetrics else { return nil }
