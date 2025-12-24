@@ -273,6 +273,7 @@ final class WatchConnectivityManager: NSObject, ObservableObject {
 
 // MARK: - WCSessionDelegate
 
+// swiftlint:disable line_length
 extension WatchConnectivityManager: WCSessionDelegate {
     nonisolated func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         Task { @MainActor in
@@ -306,6 +307,7 @@ extension WatchConnectivityManager: WCSessionDelegate {
         }
     }
 }
+// swiftlint:enable line_length
 
 // MARK: - Payload Types
 

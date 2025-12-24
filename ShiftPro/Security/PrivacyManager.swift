@@ -26,13 +26,17 @@ final class PrivacyManager: ObservableObject {
         var description: String {
             switch self {
             case .cloudSync:
-                return "Sync your shift data across devices using iCloud. Data remains encrypted and private to your account."
+                return "Sync your shift data across devices using iCloud. " +
+                       "Data remains encrypted and private to your account."
             case .crashReporting:
-                return "Send anonymous crash reports to help improve app stability. No personal shift data is included."
+                return "Send anonymous crash reports to help improve app stability. " +
+                       "No personal shift data is included."
             case .usageAnalytics:
-                return "Share anonymous usage patterns to help improve the app. No shift details or personal information is collected."
+                return "Share anonymous usage patterns to help improve the app. " +
+                       "No shift details or personal information is collected."
             case .locationServices:
-                return "Enable location-based features like automatic shift detection and geofencing (future feature)."
+                return "Enable location-based features like automatic shift detection " +
+                       "and geofencing (future feature)."
             }
         }
     }

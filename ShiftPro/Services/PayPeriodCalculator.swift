@@ -86,8 +86,10 @@ struct PayPeriodCalculator {
             let dayStart = calendar.startOfDay(for: date)
             let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
             let minutes = shifts.reduce(0) { total, shift in
-                guard shift.scheduledStart >= dayStart && shift.scheduledStart < dayEnd else { return total }
-                let paid = shift.paidMinutes > 0 ? shift.paidMinutes : max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
+                guard shift.scheduledStart >= dayStart,
+                      shift.scheduledStart < dayEnd else { return total }
+                let effective = shift.effectiveDurationMinutes - shift.breakMinutes
+                let paid = shift.paidMinutes > 0 ? shift.paidMinutes : max(0, effective)
                 return total + paid
             }
             results.append(DailyTotal(date: date, minutes: minutes))
@@ -104,10 +106,12 @@ struct PayPeriodCalculator {
 
         let buckets = grouped.map { multiplier, groupedShifts in
             let minutes = groupedShifts.reduce(0) { total, shift in
-                let paid = shift.paidMinutes > 0 ? shift.paidMinutes : max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
+                let effective = shift.effectiveDurationMinutes - shift.breakMinutes
+                let paid = shift.paidMinutes > 0 ? shift.paidMinutes : max(0, effective)
                 return total + paid
             }
-            let label = RateMultiplier(rawValue: multiplier)?.displayName ?? String(format: "%.1fx", multiplier)
+            let defaultLabel = String(format: "%.1fx", multiplier)
+            let label = RateMultiplier(rawValue: multiplier)?.displayName ?? defaultLabel
             return RateBucket(label: label, multiplier: multiplier, minutes: minutes)
         }
 

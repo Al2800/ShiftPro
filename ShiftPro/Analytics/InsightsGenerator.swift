@@ -71,11 +71,12 @@ actor InsightsGenerator {
             ))
         case .stable:
             if weekly.totalHours >= 40 {
+                let hoursStr = String(format: "%.1f", weekly.totalHours)
                 insights.append(ShiftInsight(
                     id: UUID(),
                     type: .positive,
                     title: "Consistent Schedule",
-                    description: "You're maintaining a steady workload of \(String(format: "%.1f", weekly.totalHours)) hours this week.",
+                    description: "You're maintaining a steady workload of \(hoursStr) hours this week.",
                     priority: .low,
                     iconName: "checkmark.circle",
                     actionable: false,
@@ -107,13 +108,14 @@ actor InsightsGenerator {
         var insights: [ShiftInsight] = []
         let overtime = trends.overtimeTrend
         
+        let otHours = String(format: "%.1f", overtime.averageOvertimePerWeek)
         switch overtime.riskLevel {
         case .high:
             insights.append(ShiftInsight(
                 id: UUID(),
                 type: .warning,
                 title: "High Overtime",
-                description: "Averaging \(String(format: "%.1f", overtime.averageOvertimePerWeek)) overtime hours/week. This may affect your well-being.",
+                description: "Averaging \(otHours) overtime hours/week. This may affect your well-being.",
                 priority: .high,
                 iconName: "clock.badge.exclamationmark",
                 actionable: true,
@@ -124,7 +126,7 @@ actor InsightsGenerator {
                 id: UUID(),
                 type: .info,
                 title: "Moderate Overtime",
-                description: "You're working \(String(format: "%.1f", overtime.averageOvertimePerWeek)) overtime hours/week on average.",
+                description: "You're working \(otHours) overtime hours/week on average.",
                 priority: .medium,
                 iconName: "clock.badge",
                 actionable: false,
@@ -136,7 +138,7 @@ actor InsightsGenerator {
                     id: UUID(),
                     type: .positive,
                     title: "Healthy Overtime Levels",
-                    description: "Your overtime is well-managed at \(String(format: "%.1f", overtime.averageOvertimePerWeek)) hours/week.",
+                    description: "Your overtime is well-managed at \(otHours) hours/week.",
                     priority: .low,
                     iconName: "checkmark.seal",
                     actionable: false,

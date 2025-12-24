@@ -122,7 +122,11 @@ final class CalendarIntegrationService: ObservableObject {
         if let calendarEvent = shift.calendarEvent,
            !calendarEvent.eventIdentifier.isEmpty,
            let event = eventStore.event(withIdentifier: calendarEvent.eventIdentifier) {
-            let decision = conflictResolver.resolve(shift: shift, event: event, lastSyncDate: calendarEvent.lastSyncDate)
+            let decision = conflictResolver.resolve(
+                shift: shift,
+                event: event,
+                lastSyncDate: calendarEvent.lastSyncDate
+            )
 
             switch decision {
             case .conflict:

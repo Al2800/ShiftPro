@@ -55,7 +55,13 @@ final class ShiftValidator {
             errors.append(ShiftValidationError.invalidRateMultiplier)
         }
 
-        if await hasConflicts(start: shift.scheduledStart, end: shift.scheduledEnd, owner: shift.owner, excludingShiftId: shift.id) {
+        let conflicts = await hasConflicts(
+            start: shift.scheduledStart,
+            end: shift.scheduledEnd,
+            owner: shift.owner,
+            excludingShiftId: shift.id
+        )
+        if conflicts {
             errors.append(ShiftValidationError.overlappingShift)
         }
 

@@ -38,7 +38,10 @@ final class ReportGenerator {
             let percentage = totalHours > 0 ? (hours / totalHours) * 100.0 : 0
             let label = shifts.first?.rateLabel ?? rateLabelForMultiplier(multiplier)
 
-            csv += "\(label),\(String(format: "%.1fx", multiplier)),\(String(format: "%.2f", hours)),\(String(format: "%.1f%%", percentage))\n"
+            let multiplierStr = String(format: "%.1fx", multiplier)
+            let hoursStr = String(format: "%.2f", hours)
+            let percentStr = String(format: "%.1f%%", percentage)
+            csv += "\(label),\(multiplierStr),\(hoursStr),\(percentStr)\n"
         }
         csv += "\n"
 

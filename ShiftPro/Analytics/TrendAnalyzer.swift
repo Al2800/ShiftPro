@@ -125,7 +125,9 @@ struct TrendAnalyzer {
         }
         
         // Check for common patterns like 4-on/4-off
-        let avgStreak = consecutiveWorkDays.isEmpty ? 0 : Double(consecutiveWorkDays.reduce(0, +)) / Double(consecutiveWorkDays.count)
+        let total = Double(consecutiveWorkDays.reduce(0, +))
+        let count = Double(consecutiveWorkDays.count)
+        let avgStreak = consecutiveWorkDays.isEmpty ? 0 : total / count
         
         if avgStreak >= 3 && avgStreak <= 5 {
             return DetectedPattern(
@@ -184,7 +186,9 @@ struct TrendAnalyzer {
         }
         
         let frequency = Double(overtimeShifts.count) / Double(shifts.count)
-        let avgHours = overtimeShifts.isEmpty ? 0 : Double(overtimeShifts.reduce(0) { $0 + $1.paidMinutes }) / Double(overtimeShifts.count) / 60.0
+        let totalPaidMinutes = Double(overtimeShifts.reduce(0) { $0 + $1.paidMinutes })
+        let overtimeCount = Double(overtimeShifts.count)
+        let avgHours = overtimeShifts.isEmpty ? 0 : totalPaidMinutes / overtimeCount / 60.0
         
         // Find most common day for overtime
         let calendar = Calendar.current
@@ -218,23 +222,43 @@ struct TrendAnalyzer {
         // Check total hours (40-50 is ideal)
         if metrics.totalHours > 50 {
             score -= 0.2
-            factors.append(BalanceFactor(name: "High Hours", impact: -0.2, description: "Working over 50 hours per week"))
+            factors.append(BalanceFactor(
+                name: "High Hours",
+                impact: -0.2,
+                description: "Working over 50 hours per week"
+            ))
             recommendations.append("Consider reducing weekly hours for better balance")
         } else if metrics.totalHours > 40 {
             score -= 0.1
-            factors.append(BalanceFactor(name: "Above Average", impact: -0.1, description: "Working 40-50 hours per week"))
+            factors.append(BalanceFactor(
+                name: "Above Average",
+                impact: -0.1,
+                description: "Working 40-50 hours per week"
+            ))
         } else if metrics.totalHours < 20 {
-            factors.append(BalanceFactor(name: "Low Hours", impact: 0, description: "Working under 20 hours per week"))
+            factors.append(BalanceFactor(
+                name: "Low Hours",
+                impact: 0,
+                description: "Working under 20 hours per week"
+            ))
         } else {
-            factors.append(BalanceFactor(name: "Healthy Hours", impact: 0.1, description: "Working 20-40 hours per week"))
+            factors.append(BalanceFactor(
+                name: "Healthy Hours",
+                impact: 0.1,
+                description: "Working 20-40 hours per week"
+            ))
             score += 0.1
         }
-        
+
         // Check overtime percentage
         let overtimePercent = metrics.premiumHours / max(1, metrics.totalHours)
         if overtimePercent > 0.3 {
             score -= 0.15
-            factors.append(BalanceFactor(name: "High Overtime", impact: -0.15, description: "Over 30% of hours are overtime"))
+            factors.append(BalanceFactor(
+                name: "High Overtime",
+                impact: -0.15,
+                description: "Over 30% of hours are overtime"
+            ))
             recommendations.append("Try to balance overtime with regular shifts")
         }
         
@@ -243,11 +267,19 @@ struct TrendAnalyzer {
             let workedDays = byDay.filter { $0.hours > 0 }.count
             if workedDays >= 6 {
                 score -= 0.1
-                factors.append(BalanceFactor(name: "Few Rest Days", impact: -0.1, description: "Working 6+ days per week"))
+                factors.append(BalanceFactor(
+                    name: "Few Rest Days",
+                    impact: -0.1,
+                    description: "Working 6+ days per week"
+                ))
                 recommendations.append("Ensure at least 2 rest days per week")
             } else if workedDays <= 4 {
                 score += 0.1
-                factors.append(BalanceFactor(name: "Good Rest", impact: 0.1, description: "3+ rest days per week"))
+                factors.append(BalanceFactor(
+                    name: "Good Rest",
+                    impact: 0.1,
+                    description: "3+ rest days per week"
+                ))
             }
         }
         
