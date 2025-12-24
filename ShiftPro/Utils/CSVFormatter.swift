@@ -110,7 +110,7 @@ struct CSVFormatter {
         csv += "Rate,Multiplier,Hours,Estimated Pay\n"
 
         // Calculate rate breakdown
-        var rateMap: [Double: (label: String, hours: Double, pay: Double)] = [:]
+        var rateMap: [Double: RateBreakdown] = [:]
 
         for shift in shifts where shift.isCompleted {
             let multiplier = shift.rateMultiplier
@@ -122,13 +122,10 @@ struct CSVFormatter {
                 pay = (Double(baseRateCents) / 100.0) * hours * multiplier
             }
 
-            if var existing = rateMap[multiplier] {
-                existing.hours += hours
-                existing.pay += pay
-                rateMap[multiplier] = existing
-            } else {
-                rateMap[multiplier] = (label, hours, pay)
-            }
+            var existing = rateMap[multiplier] ?? RateBreakdown(label: label, hours: 0, pay: 0)
+            existing.hours += hours
+            existing.pay += pay
+            rateMap[multiplier] = existing
         }
 
         for (multiplier, data) in rateMap.sorted(by: { $0.key < $1.key }) {
@@ -181,4 +178,10 @@ struct CSVFormatter {
         default: return String(format: "%.1fx", multiplier)
         }
     }
+}
+
+private struct RateBreakdown {
+    let label: String
+    var hours: Double
+    var pay: Double
 }

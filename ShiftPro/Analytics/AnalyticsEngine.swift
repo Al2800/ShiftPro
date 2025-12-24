@@ -1,6 +1,6 @@
+import Combine
 import Foundation
 import SwiftData
-import Combine
 
 /// Core analytics engine providing data aggregation and metrics computation.
 @MainActor
@@ -51,7 +51,7 @@ final class AnalyticsEngine: ObservableObject {
         let prevShifts = fetchShifts(from: prevWeekStart, to: weekStart, context: context)
         
         let currentHours = computeHours(from: shifts)
-        let prevHours = computeHours(from: prevShifts)
+        let previousHours = computeHours(from: prevShifts)
         
         weeklyMetrics = WeeklyMetrics(
             periodStart: weekStart,
@@ -61,7 +61,7 @@ final class AnalyticsEngine: ObservableObject {
             premiumHours: currentHours.premium,
             shiftCount: shifts.count,
             averageShiftDuration: shifts.isEmpty ? 0 : currentHours.total / Double(shifts.count),
-            comparedToPrevious: prevHours.total > 0 ? (currentHours.total - prevHours.total) / prevHours.total : 0,
+            comparedToPrevious: previousHours.total > 0 ? (currentHours.total - previousHours.total) / previousHours.total : 0,
             byDay: computeHoursByDay(shifts: shifts, weekStart: weekStart)
         )
     }
@@ -79,7 +79,7 @@ final class AnalyticsEngine: ObservableObject {
         let prevShifts = fetchShifts(from: prevMonthStart, to: monthStart, context: context)
         
         let currentHours = computeHours(from: shifts)
-        let prevHours = computeHours(from: prevShifts)
+        let previousHours = computeHours(from: prevShifts)
         
         monthlyMetrics = MonthlyMetrics(
             periodStart: monthStart,
@@ -90,7 +90,7 @@ final class AnalyticsEngine: ObservableObject {
             overtimeHours: currentHours.overtime,
             shiftCount: shifts.count,
             averageShiftDuration: shifts.isEmpty ? 0 : currentHours.total / Double(shifts.count),
-            comparedToPrevious: prevHours.total > 0 ? (currentHours.total - prevHours.total) / prevHours.total : 0,
+            comparedToPrevious: previousHours.total > 0 ? (currentHours.total - previousHours.total) / previousHours.total : 0,
             byWeek: computeHoursByWeek(shifts: shifts, monthStart: monthStart)
         )
     }
@@ -108,7 +108,7 @@ final class AnalyticsEngine: ObservableObject {
         let prevShifts = fetchShifts(from: prevYearStart, to: yearStart, context: context)
         
         let currentHours = computeHours(from: shifts)
-        let prevHours = computeHours(from: prevShifts)
+        let previousHours = computeHours(from: prevShifts)
         
         yearlyMetrics = YearlyMetrics(
             year: calendar.component(.year, from: now),
@@ -118,7 +118,7 @@ final class AnalyticsEngine: ObservableObject {
             overtimeHours: currentHours.overtime,
             shiftCount: shifts.count,
             averageShiftDuration: shifts.isEmpty ? 0 : currentHours.total / Double(shifts.count),
-            comparedToPrevious: prevHours.total > 0 ? (currentHours.total - prevHours.total) / prevHours.total : 0,
+            comparedToPrevious: previousHours.total > 0 ? (currentHours.total - previousHours.total) / previousHours.total : 0,
             byMonth: computeHoursByMonth(shifts: shifts, yearStart: yearStart)
         )
     }
@@ -200,7 +200,7 @@ final class AnalyticsEngine: ObservableObject {
         return (try? context.fetch(descriptor)) ?? []
     }
     
-    private func computeHours(from shifts: [Shift]) -> (total: Double, regular: Double, premium: Double, overtime: Double) {
+    private func computeHours(from shifts: [Shift]) -> HoursBreakdown {
         let totalMinutes = shifts.reduce(0) { $0 + $1.paidMinutes }
         let premiumMinutes = shifts.reduce(0) { $0 + $1.premiumMinutes }
         let regularMinutes = totalMinutes - premiumMinutes
@@ -208,7 +208,7 @@ final class AnalyticsEngine: ObservableObject {
         // Overtime is premium hours above standard multiplier
         let overtimeMinutes = shifts.filter { $0.rateMultiplier > 1.0 }.reduce(0) { $0 + $1.paidMinutes }
         
-        return (
+        return HoursBreakdown(
             total: Double(totalMinutes) / 60.0,
             regular: Double(regularMinutes) / 60.0,
             premium: Double(premiumMinutes) / 60.0,
@@ -268,6 +268,13 @@ final class AnalyticsEngine: ObservableObject {
 }
 
 // MARK: - Metrics Models
+
+struct HoursBreakdown {
+    let total: Double
+    let regular: Double
+    let premium: Double
+    let overtime: Double
+}
 
 struct WeeklyMetrics {
     let periodStart: Date

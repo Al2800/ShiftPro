@@ -1,6 +1,6 @@
 import Foundation
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 /// Lazy loading utilities for efficient data access
 struct LazyLoading {
@@ -116,12 +116,7 @@ struct LazyLoadingList<Item: Identifiable, RowContent: View>: View {
         List {
             ForEach(items) { item in
                 rowContent(item)
-                    .onAppear {
-                        // Load more when reaching the last item
-                        if item.id == items.last?.id && hasMore && !isLoading {
-                            onLoadMore()
-                        }
-                    }
+                    .onAppear { handleAppear(for: item) }
             }
 
             if isLoading {
@@ -133,6 +128,13 @@ struct LazyLoadingList<Item: Identifiable, RowContent: View>: View {
                 .listRowSeparator(.hidden)
             }
         }
+    }
+
+    private func handleAppear(for item: Item) {
+        guard let lastID = items.last?.id else { return }
+        guard item.id == lastID else { return }
+        guard hasMore && !isLoading else { return }
+        onLoadMore()
     }
 }
 

@@ -10,15 +10,10 @@ enum ShiftProTypography {
 }
 
 enum ShiftProSpacing {
-    static let xxs: CGFloat = 4
-    static let xs: CGFloat = 8
+    static let extraExtraSmall: CGFloat = 4
+    static let extraSmall: CGFloat = 8
     static let small: CGFloat = 12
     static let medium: CGFloat = 16
     static let large: CGFloat = 24
-    static let xl: CGFloat = 32
-
-    static let s: CGFloat = small
-    static let m: CGFloat = medium
-    static let l: CGFloat = large
-    static let xLarge: CGFloat = xl
+    static let extraLarge: CGFloat = 32
 }

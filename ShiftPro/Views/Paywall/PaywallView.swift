@@ -7,7 +7,7 @@ struct PaywallView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.l) {
+            VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
                 header
 
                 featureList
@@ -20,8 +20,8 @@ struct PaywallView: View {
 
                 restoreSection
             }
-            .padding(.horizontal, ShiftProSpacing.m)
-            .padding(.vertical, ShiftProSpacing.l)
+            .padding(.horizontal, ShiftProSpacing.medium)
+            .padding(.vertical, ShiftProSpacing.large)
         }
         .background(ShiftProColors.background.ignoresSafeArea())
         .navigationTitle("Upgrade")
@@ -47,7 +47,7 @@ struct PaywallView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             Text("Unlock ShiftPro Pro")
                 .font(ShiftProTypography.title)
                 .foregroundStyle(ShiftProColors.ink)
@@ -56,19 +56,19 @@ struct PaywallView: View {
                 .font(ShiftProTypography.body)
                 .foregroundStyle(ShiftProColors.inkSubtle)
         }
-        .padding(ShiftProSpacing.m)
+        .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
     private var featureList: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             Text("Premium features")
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.ink)
 
             ForEach(ShiftProFeature.allCases, id: \.self) { feature in
-                HStack(spacing: ShiftProSpacing.s) {
+                HStack(spacing: ShiftProSpacing.small) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(ShiftProColors.success)
                     VStack(alignment: .leading, spacing: 4) {
@@ -82,13 +82,13 @@ struct PaywallView: View {
                 }
             }
         }
-        .padding(ShiftProSpacing.m)
+        .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surfaceElevated)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
     private var productCards: some View {
-        VStack(spacing: ShiftProSpacing.m) {
+        VStack(spacing: ShiftProSpacing.medium) {
             ForEach(entitlementManager.products, id: \.id) { product in
                 PaywallProductCard(product: product) {
                     Task { await entitlementManager.purchase(product) }
@@ -98,14 +98,14 @@ struct PaywallView: View {
     }
 
     private var placeholderCards: some View {
-        VStack(spacing: ShiftProSpacing.m) {
+        VStack(spacing: ShiftProSpacing.medium) {
             PaywallPlaceholderCard(title: "Premium")
             PaywallPlaceholderCard(title: "Enterprise")
         }
     }
 
     private var restoreSection: some View {
-        VStack(spacing: ShiftProSpacing.s) {
+        VStack(spacing: ShiftProSpacing.small) {
             Button("Restore Purchases") {
                 Task { await entitlementManager.restorePurchases() }
             }
@@ -125,7 +125,7 @@ private struct PaywallProductCard: View {
     let action: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(product.displayName)
@@ -154,7 +154,7 @@ private struct PaywallProductCard: View {
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: .selection)
         }
-        .padding(ShiftProSpacing.m)
+        .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
@@ -164,7 +164,7 @@ private struct PaywallPlaceholderCard: View {
     let title: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             Text(title)
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.ink)
@@ -175,7 +175,7 @@ private struct PaywallPlaceholderCard: View {
             ShimmerView(cornerRadius: 12)
                 .frame(height: 36)
         }
-        .padding(ShiftProSpacing.m)
+        .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }

@@ -52,10 +52,10 @@ struct SettingsView: View {
     }
 
     private func settingRow(icon: String, title: String, detail: String) -> some View {
-        HStack(spacing: ShiftProSpacing.m) {
+        HStack(spacing: ShiftProSpacing.medium) {
             Image(systemName: icon)
                 .foregroundStyle(ShiftProColors.accent)
-            VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+            VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
                 Text(title)
                     .font(ShiftProTypography.body)
                     .foregroundStyle(ShiftProColors.ink)
@@ -64,7 +64,7 @@ struct SettingsView: View {
                     .foregroundStyle(ShiftProColors.inkSubtle)
             }
         }
-        .padding(.vertical, ShiftProSpacing.xxs)
+        .padding(.vertical, ShiftProSpacing.extraExtraSmall)
     }
 }
 

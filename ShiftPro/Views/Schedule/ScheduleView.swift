@@ -5,10 +5,10 @@ struct ScheduleView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.l) {
+            VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
                 calendarStrip
 
-                VStack(alignment: .leading, spacing: ShiftProSpacing.m) {
+                VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
                     Text("This Week")
                         .font(ShiftProTypography.headline)
                         .foregroundStyle(ShiftProColors.ink)
@@ -32,8 +32,8 @@ struct ScheduleView: View {
                     )
                 }
             }
-            .padding(.horizontal, ShiftProSpacing.m)
-            .padding(.vertical, ShiftProSpacing.l)
+            .padding(.horizontal, ShiftProSpacing.medium)
+            .padding(.vertical, ShiftProSpacing.large)
         }
         .background(ShiftProColors.background.ignoresSafeArea())
         .navigationTitle("Schedule")
@@ -51,14 +51,14 @@ struct ScheduleView: View {
     }
 
     private var calendarStrip: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             Text("December")
                 .font(ShiftProTypography.subheadline)
                 .foregroundStyle(ShiftProColors.inkSubtle)
 
-            HStack(spacing: ShiftProSpacing.s) {
+            HStack(spacing: ShiftProSpacing.small) {
                 ForEach(weekDays, id: \.self) { day in
-                    VStack(spacing: ShiftProSpacing.xxs) {
+                    VStack(spacing: ShiftProSpacing.extraExtraSmall) {
                         Text(day)
                             .font(ShiftProTypography.caption)
                             .foregroundStyle(ShiftProColors.inkSubtle)
@@ -67,7 +67,7 @@ struct ScheduleView: View {
                             .foregroundStyle(ShiftProColors.ink)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, ShiftProSpacing.xs)
+                    .padding(.vertical, ShiftProSpacing.extraSmall)
                     .background(ShiftProColors.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }

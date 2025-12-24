@@ -70,7 +70,7 @@ struct LoadingStateView: View {
     let message: String
 
     var body: some View {
-        VStack(spacing: ShiftProSpacing.m) {
+        VStack(spacing: ShiftProSpacing.medium) {
             LoadingDots()
             Text(title)
                 .font(ShiftProTypography.headline)
@@ -80,7 +80,7 @@ struct LoadingStateView: View {
                 .foregroundStyle(ShiftProColors.inkSubtle)
                 .multilineTextAlignment(.center)
         }
-        .padding(ShiftProSpacing.l)
+        .padding(ShiftProSpacing.large)
         .frame(maxWidth: .infinity)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))

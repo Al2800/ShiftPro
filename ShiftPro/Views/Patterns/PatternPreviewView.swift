@@ -10,12 +10,12 @@ struct PatternPreviewView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.m) {
+            VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
                 header
 
                 ForEach(previews) { preview in
                     HStack {
-                        VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+                        VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
                             Text(preview.date.shiftDateFormatted)
                                 .font(ShiftProTypography.subheadline)
                                 .foregroundStyle(ShiftProColors.ink)
@@ -30,19 +30,19 @@ struct PatternPreviewView: View {
                             .font(ShiftProTypography.caption)
                             .foregroundStyle(ShiftProColors.accent)
                     }
-                    .padding(ShiftProSpacing.m)
+                    .padding(ShiftProSpacing.medium)
                     .background(ShiftProColors.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 }
             }
-            .padding(ShiftProSpacing.m)
+            .padding(ShiftProSpacing.medium)
         }
         .background(ShiftProColors.background.ignoresSafeArea())
         .navigationTitle("Preview")
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.xs) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.extraSmall) {
             Text(definition.name)
                 .font(ShiftProTypography.title)
                 .foregroundStyle(ShiftProColors.ink)

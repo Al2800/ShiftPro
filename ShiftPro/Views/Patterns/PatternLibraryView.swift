@@ -10,7 +10,7 @@ struct PatternLibraryView: View {
                     NavigationLink {
                         PatternPreviewView(definition: template)
                     } label: {
-                        VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+                        VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
                             Text(template.name)
                                 .font(ShiftProTypography.headline)
                             Text(template.notes ?? "")

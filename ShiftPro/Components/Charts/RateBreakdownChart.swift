@@ -1,5 +1,5 @@
-import SwiftUI
 import Charts
+import SwiftUI
 
 /// Pie/bar chart showing rate multiplier distribution
 struct RateBreakdownChart: View {

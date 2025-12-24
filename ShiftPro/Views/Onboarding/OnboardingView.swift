@@ -18,7 +18,7 @@ struct OnboardingView: View {
 
                 navigationControls
             }
-            .padding(.vertical, ShiftProSpacing.xLarge)
+            .padding(.vertical, ShiftProSpacing.extraLarge)
         }
         .environmentObject(permissionManager)
     }

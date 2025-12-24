@@ -50,7 +50,7 @@ struct PrivacySettingsView: View {
                         handleToggle(option, enabled: enabled)
                     }
                 )) {
-                    VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+                    VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
                         Text(option.displayName)
                             .font(ShiftProTypography.body)
                         Text(option.description)
@@ -260,7 +260,7 @@ struct AuditEntryRow: View {
     let entry: PrivacyManager.AuditEntry
 
     var body: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
             HStack {
                 Text(entry.eventType.rawValue.capitalized)
                     .font(ShiftProTypography.subheadline)
@@ -279,7 +279,7 @@ struct AuditEntryRow: View {
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(ShiftProColors.inkSubtle)
         }
-        .padding(.vertical, ShiftProSpacing.xxs)
+        .padding(.vertical, ShiftProSpacing.extraExtraSmall)
     }
 }
 

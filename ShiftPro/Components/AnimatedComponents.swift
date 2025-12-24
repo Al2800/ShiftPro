@@ -10,7 +10,7 @@ struct AnimatedCounter: View {
     var valueColor: Color = ShiftProColors.ink
 
     var body: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
             if let title {
                 Text(title)
                     .font(titleFont)
@@ -45,7 +45,7 @@ struct ExpandableCard<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             Button {
                 HapticManager.shared.selectionChanged()
                 withAnimation(AnimationManager.shared.animation(for: .bouncy)) {
@@ -68,7 +68,7 @@ struct ExpandableCard<Content: View>: View {
                     .transition(ShiftProTransition.cardReveal)
             }
         }
-        .padding(ShiftProSpacing.m)
+        .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }

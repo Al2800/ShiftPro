@@ -5,13 +5,13 @@ struct DashboardView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.l) {
+            VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
                 heroCard
                     .opacity(animateIn ? 1 : 0)
                     .offset(y: animateIn ? 0 : 16)
                     .animation(AnimationManager.shared.animation(for: .slow), value: animateIn)
 
-                VStack(alignment: .leading, spacing: ShiftProSpacing.m) {
+                VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
                     Text("Upcoming")
                         .font(ShiftProTypography.headline)
                         .foregroundStyle(ShiftProColors.ink)
@@ -40,7 +40,7 @@ struct DashboardView: View {
                 .offset(y: animateIn ? 0 : 12)
                 .animation(AnimationManager.shared.animation(for: .standard), value: animateIn)
 
-                VStack(alignment: .leading, spacing: ShiftProSpacing.m) {
+                VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
                     Text("Hours")
                         .font(ShiftProTypography.headline)
                         .foregroundStyle(ShiftProColors.ink)
@@ -56,8 +56,8 @@ struct DashboardView: View {
                     .offset(y: animateIn ? 0 : 8)
                     .animation(AnimationManager.shared.animation(for: .standard), value: animateIn)
             }
-            .padding(.horizontal, ShiftProSpacing.m)
-            .padding(.vertical, ShiftProSpacing.l)
+            .padding(.horizontal, ShiftProSpacing.medium)
+            .padding(.vertical, ShiftProSpacing.large)
         }
         .background(ShiftProColors.background.ignoresSafeArea())
         .navigationTitle("Dashboard")
@@ -84,7 +84,7 @@ struct DashboardView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 180)
 
-            VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+            VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
                 Text("Ready for roll call")
                     .font(ShiftProTypography.title)
                     .foregroundStyle(.white)
@@ -101,19 +101,19 @@ struct DashboardView: View {
                 )
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(ShiftProSpacing.l)
+            .padding(ShiftProSpacing.large)
         }
         .shadow(color: ShiftProColors.accent.opacity(0.25), radius: 18, x: 0, y: 12)
         .accessibilityIdentifier(AccessibilityIdentifiers.dashboardHeroCard)
     }
 
     private var quickActions: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.m) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
             Text("Quick Actions")
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.ink)
 
-            HStack(spacing: ShiftProSpacing.s) {
+            HStack(spacing: ShiftProSpacing.small) {
                 QuickActionButton(
                     title: "Log Break",
                     systemImage: "cup.and.saucer.fill",

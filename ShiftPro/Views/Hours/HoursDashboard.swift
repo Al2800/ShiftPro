@@ -18,7 +18,7 @@ struct HoursDashboard: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.l) {
+            VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
                 heroCard
 
                 NavigationLink {
@@ -40,8 +40,8 @@ struct HoursDashboard: View {
 
                 recentPeriodsCard
             }
-            .padding(.horizontal, ShiftProSpacing.m)
-            .padding(.vertical, ShiftProSpacing.l)
+            .padding(.horizontal, ShiftProSpacing.medium)
+            .padding(.vertical, ShiftProSpacing.large)
         }
         .background(ShiftProColors.background.ignoresSafeArea())
         .navigationTitle("Hours")
@@ -86,7 +86,7 @@ struct HoursDashboard: View {
     }
 
     private var heroCard: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             Text("Current Pay Period")
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(ShiftProColors.inkSubtle)
@@ -98,13 +98,13 @@ struct HoursDashboard: View {
             ProgressView(value: currentPeriod.progress)
                 .tint(ShiftProColors.accent)
 
-            HStack(spacing: ShiftProSpacing.m) {
+            HStack(spacing: ShiftProSpacing.medium) {
                 metricView(title: "Total", value: String(format: "%.1f", summary.totalHours))
                 metricView(title: "Regular", value: String(format: "%.1f", summary.regularHours))
                 metricView(title: "Premium", value: String(format: "%.1f", summary.premiumHours))
             }
         }
-        .padding(ShiftProSpacing.m)
+        .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
@@ -115,7 +115,7 @@ struct HoursDashboard: View {
     }
 
     private var summaryCard: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             HStack {
                 Text("Pay Period Summary")
                     .font(ShiftProTypography.headline)
@@ -135,28 +135,28 @@ struct HoursDashboard: View {
                     .foregroundStyle(ShiftProColors.ink)
             }
         }
-        .padding(ShiftProSpacing.m)
+        .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surfaceElevated)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .accessibilityIdentifier("hours.summaryCard")
     }
 
     private var chartCard: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             Text("Hours Trend")
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.ink)
 
             HoursChart(dataPoints: dailyTotals, targetHours: profile?.regularHoursPerPay)
         }
-        .padding(ShiftProSpacing.m)
+        .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .accessibilityIdentifier("hours.chartCard")
     }
 
     private var rateBreakdownCard: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             HStack {
                 Text("Rate Breakdown")
                     .font(ShiftProTypography.headline)
@@ -179,19 +179,19 @@ struct HoursDashboard: View {
                 RateBreakdownChart(rateData: rateData, style: rateChartStyle)
             }
         }
-        .padding(ShiftProSpacing.m)
+        .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
     private var overtimeCard: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             Text("Overtime Forecast")
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.ink)
 
             HStack {
-                VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+                VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
                     Text("Projected")
                         .font(ShiftProTypography.caption)
                         .foregroundStyle(ShiftProColors.inkSubtle)
@@ -200,7 +200,7 @@ struct HoursDashboard: View {
                         .foregroundStyle(ShiftProColors.ink)
                 }
                 Spacer()
-                VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+                VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
                     Text("Threshold")
                         .font(ShiftProTypography.caption)
                         .foregroundStyle(ShiftProColors.inkSubtle)
@@ -214,21 +214,21 @@ struct HoursDashboard: View {
                 .font(ShiftProTypography.body)
                 .foregroundStyle(color(for: overtimeForecast.status))
         }
-        .padding(ShiftProSpacing.m)
+        .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surfaceElevated)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .accessibilityIdentifier("hours.overtimeCard")
     }
 
     private var recentPeriodsCard: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             Text("Recent Periods")
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.ink)
 
             ForEach(payPeriods.prefix(4), id: \.id) { period in
                 HStack {
-                    VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+                    VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
                         Text(period.dateRangeFormatted)
                             .font(ShiftProTypography.body)
                             .foregroundStyle(ShiftProColors.ink)
@@ -242,20 +242,20 @@ struct HoursDashboard: View {
                             .foregroundStyle(ShiftProColors.success)
                     }
                 }
-                .padding(.vertical, ShiftProSpacing.xxs)
+                .padding(.vertical, ShiftProSpacing.extraExtraSmall)
 
                 if period.id != payPeriods.prefix(4).last?.id {
                     Divider()
                 }
             }
         }
-        .padding(ShiftProSpacing.m)
+        .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
     private func metricView(title: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
             Text(title)
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(ShiftProColors.inkSubtle)

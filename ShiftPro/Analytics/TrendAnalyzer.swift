@@ -105,9 +105,9 @@ struct TrendAnalyzer {
         let sortedShifts = shifts.sorted { $0.scheduledStart < $1.scheduledStart }
         let calendar = Calendar.current
         
-        for i in 1..<sortedShifts.count {
-            let prevDate = calendar.startOfDay(for: sortedShifts[i-1].scheduledStart)
-            let currDate = calendar.startOfDay(for: sortedShifts[i].scheduledStart)
+        for index in 1..<sortedShifts.count {
+            let prevDate = calendar.startOfDay(for: sortedShifts[index - 1].scheduledStart)
+            let currDate = calendar.startOfDay(for: sortedShifts[index].scheduledStart)
             let daysDiff = calendar.dateComponents([.day], from: prevDate, to: currDate).day ?? 0
             
             if daysDiff == 1 {

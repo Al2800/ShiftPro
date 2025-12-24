@@ -9,23 +9,23 @@ struct PayPeriodDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.l) {
+            VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
                 summaryCard
 
                 HoursChart(dataPoints: dailyTotals, targetHours: nil)
-                    .padding(ShiftProSpacing.m)
+                    .padding(ShiftProSpacing.medium)
                     .background(ShiftProColors.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
 
                 RateBreakdownChart(rateData: rateData, style: .bar)
-                    .padding(ShiftProSpacing.m)
+                    .padding(ShiftProSpacing.medium)
                     .background(ShiftProColors.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
 
                 shiftsList
             }
-            .padding(.horizontal, ShiftProSpacing.m)
-            .padding(.vertical, ShiftProSpacing.l)
+            .padding(.horizontal, ShiftProSpacing.medium)
+            .padding(.vertical, ShiftProSpacing.large)
         }
         .background(ShiftProColors.background.ignoresSafeArea())
         .navigationTitle("Pay Period")
@@ -45,12 +45,12 @@ struct PayPeriodDetailView: View {
     }
 
     private var summaryCard: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             Text(period.dateRangeFormatted)
                 .font(ShiftProTypography.title)
                 .foregroundStyle(ShiftProColors.ink)
 
-            HStack(spacing: ShiftProSpacing.m) {
+            HStack(spacing: ShiftProSpacing.medium) {
                 metricView(title: "Total", value: String(format: "%.1f", summary.totalHours))
                 metricView(title: "Regular", value: String(format: "%.1f", summary.regularHours))
                 metricView(title: "Premium", value: String(format: "%.1f", summary.premiumHours))
@@ -62,13 +62,13 @@ struct PayPeriodDetailView: View {
                     .foregroundStyle(ShiftProColors.ink)
             }
         }
-        .padding(ShiftProSpacing.m)
+        .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surfaceElevated)
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 
     private var shiftsList: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             Text("Shifts")
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.ink)
@@ -93,7 +93,7 @@ struct PayPeriodDetailView: View {
     }
 
     private func metricView(title: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
             Text(title)
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(ShiftProColors.inkSubtle)

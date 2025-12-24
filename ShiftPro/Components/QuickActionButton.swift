@@ -13,15 +13,15 @@ struct QuickActionButton: View {
             HapticManager.fire(.impactLight, enabled: !reduceMotion)
             action()
         }) {
-            HStack(spacing: ShiftProSpacing.xs) {
+            HStack(spacing: ShiftProSpacing.extraSmall) {
                 Image(systemName: systemImage)
                     .font(.system(size: 16, weight: .bold))
                 Text(title)
                     .font(ShiftProTypography.subheadline)
             }
             .foregroundStyle(ShiftProColors.ink)
-            .padding(.horizontal, ShiftProSpacing.m)
-            .padding(.vertical, ShiftProSpacing.s)
+            .padding(.horizontal, ShiftProSpacing.medium)
+            .padding(.vertical, ShiftProSpacing.small)
             .background(ShiftProColors.accentMuted)
             .clipShape(Capsule())
             .shadow(color: ShiftProColors.accent.opacity(0.2), radius: 12, x: 0, y: 6)

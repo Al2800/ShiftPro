@@ -9,14 +9,14 @@ struct ShiftCardView: View {
     let status: StatusIndicator.Status
     let rateMultiplier: Double
     let notes: String?
-    var accessibilityIdentifier: String? = nil
+    var accessibilityIdentifier: String?
 
     @State private var isExpanded = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.s) {
-            HStack(alignment: .top, spacing: ShiftProSpacing.s) {
-                VStack(alignment: .leading, spacing: ShiftProSpacing.xxs) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+            HStack(alignment: .top, spacing: ShiftProSpacing.small) {
+                VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
                     Text(title)
                         .font(ShiftProTypography.headline)
                         .foregroundStyle(ShiftProColors.ink)
@@ -32,7 +32,7 @@ struct ShiftCardView: View {
 
                 Spacer()
 
-                VStack(alignment: .trailing, spacing: ShiftProSpacing.xs) {
+                VStack(alignment: .trailing, spacing: ShiftProSpacing.extraSmall) {
                     StatusIndicator(status: status)
                     RateBadge(multiplier: rateMultiplier)
                 }
@@ -46,13 +46,13 @@ struct ShiftCardView: View {
                     .transition(ShiftProTransitions.cardExpand)
             }
 
-            Button(action: {
+            Button {
                 withAnimation(AnimationManager.animation(.standard, reduceMotion: reduceMotion)) {
                     isExpanded.toggle()
                 }
                 HapticManager.fire(.selection, enabled: !reduceMotion)
-            }) {
-                HStack(spacing: ShiftProSpacing.xxs) {
+            } label: {
+                HStack(spacing: ShiftProSpacing.extraExtraSmall) {
                     Text(isExpanded ? "Hide details" : "View details")
                         .font(ShiftProTypography.caption)
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
@@ -63,7 +63,7 @@ struct ShiftCardView: View {
             .buttonStyle(.plain)
             .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: nil)
         }
-        .padding(ShiftProSpacing.m)
+        .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .overlay(
