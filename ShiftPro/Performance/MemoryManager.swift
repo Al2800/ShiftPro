@@ -116,13 +116,14 @@ final class MemoryManager: ObservableObject {
         return UIImage(data: compressedData)
     }
 
-    @MainActor func downsampleImage(at url: URL, to pointSize: CGSize, scale: CGFloat = UIScreen.main.scale) -> UIImage? {
+    @MainActor func downsampleImage(at url: URL, to pointSize: CGSize, scale: CGFloat? = nil) -> UIImage? {
         let imageSourceOptions = [kCGImageSourceShouldCache: false] as CFDictionary
         guard let imageSource = CGImageSourceCreateWithURL(url as CFURL, imageSourceOptions) else {
             return nil
         }
 
-        let maxDimensionInPixels = max(pointSize.width, pointSize.height) * scale
+        let effectiveScale = scale ?? UIScreen.main.scale
+        let maxDimensionInPixels = max(pointSize.width, pointSize.height) * effectiveScale
 
         let downsampleOptions = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,

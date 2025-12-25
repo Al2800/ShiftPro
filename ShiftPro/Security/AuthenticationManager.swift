@@ -238,8 +238,9 @@ final class AuthenticationManager: ObservableObject {
             withTimeInterval: interval,
             repeats: false
         ) { [weak self] _ in
+            guard let authManager = self else { return }
             Task { @MainActor in
-                self?.lock()
+                authManager.lock()
             }
         }
     }

@@ -1,6 +1,7 @@
 import EventKit
 import Foundation
 import SwiftData
+import UIKit
 
 @MainActor
 final class CalendarIntegrationService: ObservableObject {

@@ -66,11 +66,12 @@ struct OptimizedQueries {
         let now = Date()
         let futureDate = Calendar.current.date(byAdding: .day, value: days, to: now) ?? now
 
+        let cancelledRaw = ShiftStatus.cancelled.rawValue
         let predicate = #Predicate<Shift> { shift in
             shift.deletedAt == nil &&
             shift.scheduledStart >= now &&
             shift.scheduledStart < futureDate &&
-            shift.status != .cancelled
+            shift.statusRaw != cancelledRaw
         }
 
         var descriptor = FetchDescriptor(

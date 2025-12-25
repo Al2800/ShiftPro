@@ -36,7 +36,7 @@ final class ExportManager {
             switch self {
             case .csv: return .commaSeparatedText
             case .pdf: return .pdf
-            case .ics: return .ics
+            case .ics: return .calendarEvent
             case .json: return .json
             case .excel: return .commaSeparatedText // Simplified
             }

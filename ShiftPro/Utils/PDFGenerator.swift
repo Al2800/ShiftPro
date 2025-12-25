@@ -259,6 +259,25 @@ struct PDFGenerator {
         return yPosition + 12
     }
 
+
+    // MARK: - Export Manager Compatibility Methods
+
+    /// Generates shift report PDF - wrapper for ExportManager
+    func generateShiftReport(shifts: [Shift], period: PayPeriod) throws -> Data {
+        guard let data = generateShiftsReport(shifts: shifts, profile: nil, title: "Shift Report: \(period.dateRangeFormatted)") else {
+            throw NSError(domain: "PDFGenerator", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to generate PDF"])
+        }
+        return data
+    }
+
+    /// Generates hours summary PDF - wrapper for ExportManager
+    func generateHoursSummary(period: PayPeriod) throws -> Data {
+        guard let data = generateHoursSummaryReport(shifts: period.activeShifts, period: period, profile: nil) else {
+            throw NSError(domain: "PDFGenerator", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to generate PDF"])
+        }
+        return data
+    }
+
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d, yyyy"

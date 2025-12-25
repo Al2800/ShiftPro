@@ -180,6 +180,27 @@ struct CSVFormatter {
     }
 }
 
+
+    // MARK: - Export Manager Compatibility Methods
+
+    /// Formats shift report - wrapper for ExportManager
+    func formatShiftReport(shifts: [Shift]) throws -> Data {
+        let csv = exportShifts(shifts, profile: nil)
+        guard let data = csv.data(using: .utf8) else {
+            throw NSError(domain: "CSVFormatter", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to encode CSV"])
+        }
+        return data
+    }
+
+    /// Formats hours summary - wrapper for ExportManager
+    func formatHoursSummary(period: PayPeriod) throws -> Data {
+        let csv = exportHoursSummary(shifts: period.activeShifts, period: period, profile: nil)
+        guard let data = csv.data(using: .utf8) else {
+            throw NSError(domain: "CSVFormatter", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to encode CSV"])
+        }
+        return data
+    }
+
 private struct RateBreakdown {
     let label: String
     var hours: Double

@@ -105,10 +105,9 @@ final class ImportManager {
             // Import profiles
             for profileData in backup.profiles {
                 let profile = UserProfile(
-                    name: profileData.name,
+                    badgeNumber: profileData.name,
                     baseRateCents: profileData.baseRateCents,
-                    regularHoursPerPay: profileData.regularHoursPerPay,
-                    targetWeeklyHours: profileData.targetWeeklyHours
+                    regularHoursPerPay: profileData.regularHoursPerPay
                 )
                 context.insert(profile)
             }
@@ -116,11 +115,8 @@ final class ImportManager {
             // Import patterns
             for patternData in backup.patterns {
                 let pattern = ShiftPattern(
-                    title: patternData.title,
-                    scheduleType: patternData.scheduleType == "weekly" ? .weekly : .cycling,
-                    defaultStartTime: patternData.defaultStartTime,
-                    defaultEndTime: patternData.defaultEndTime,
-                    defaultBreakMinutes: patternData.defaultBreakMinutes
+                    name: patternData.title,
+                    scheduleType: patternData.scheduleType == "weekly" ? .weekly : .cycling
                 )
                 context.insert(pattern)
             }
@@ -166,9 +162,10 @@ final class ImportManager {
         var importedShifts = 0
 
         for event in events {
+            guard let startDate = event.startDate, let endDate = event.endDate else { continue }
             let shift = Shift(
-                scheduledStart: event.startDate,
-                scheduledEnd: event.endDate,
+                scheduledStart: startDate,
+                scheduledEnd: endDate,
                 notes: event.summary
             )
             context.insert(shift)

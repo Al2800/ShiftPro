@@ -159,6 +159,35 @@ extension ShiftPattern {
     }
 }
 
+
+    /// Alias for name - used by export
+    var title: String { name }
+
+    /// Default start time for the pattern
+    var defaultStartTime: Date? {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        return calendar.date(byAdding: .minute, value: startMinuteOfDay, to: today)
+    }
+
+    /// Default end time for the pattern
+    var defaultEndTime: Date? {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        return calendar.date(byAdding: .minute, value: startMinuteOfDay + durationMinutes, to: today)
+    }
+
+    /// Default break minutes (estimated from duration)
+    var defaultBreakMinutes: Int {
+        // Assume 30 min break for shifts > 6 hours
+        durationMinutes > 360 ? 30 : 0
+    }
+
+    /// Number of cycle days (for cycling patterns)
+    var cycleDays: Int? {
+        scheduleType == .cycling ? cycleLengthDays : nil
+    }
+
 // MARK: - Convenience Methods
 extension ShiftPattern {
     /// Soft deletes this pattern

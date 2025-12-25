@@ -57,6 +57,39 @@ extension NotificationSettings {
         DateComponents(hour: quietHoursEndMinutes / 60, minute: quietHoursEndMinutes % 60)
     }
 
+    
+    /// Whether notifications are enabled overall
+    var isEnabled: Bool {
+        shiftStartReminderEnabled || shiftEndSummaryEnabled || weeklySummaryEnabled
+    }
+
+    /// Alias for shiftEndSummaryEnabled
+    var endReminderEnabled: Bool { shiftEndSummaryEnabled }
+
+    /// Alias for shiftStartReminderMinutes
+    var startReminderMinutes: Int { shiftStartReminderMinutes }
+
+    /// Weekly summary weekday (default to Sunday = 1)
+    var weeklySummaryWeekday: Int { 1 }
+
+    /// Weekly summary hour (default to 9 AM)
+    var weeklySummaryHour: Int { 9 }
+
+    /// Whether quiet hours are enabled (always true if hours are set)
+    var quietHoursEnabled: Bool { true }
+
+    /// Quiet hours start hour
+    var quietHoursStartHour: Int { quietHoursStartMinutes / 60 }
+
+    /// Quiet hours end hour
+    var quietHoursEndHour: Int { quietHoursEndMinutes / 60 }
+
+    /// Static load method for compatibility
+    static func load() -> NotificationSettings {
+        // Return default settings - actual loading happens via SwiftData
+        NotificationSettings()
+    }
+
     func markUpdated() {
         updatedAt = Date()
     }

@@ -337,6 +337,12 @@ struct OvertimeTrend: Sendable {
         case stable
     }
 
+    enum RiskLevel: Sendable {
+        case low
+        case medium
+        case high
+    }
+
     init(
         frequency: Double = 0,
         averageHoursPerOccurrence: Double = 0,
@@ -349,6 +355,20 @@ struct OvertimeTrend: Sendable {
         self.mostCommonDay = mostCommonDay
         self.mostCommonTime = mostCommonTime
         self.trend = trend
+    }
+
+    /// Average overtime hours per week (computed from frequency and average hours)
+    var averageOvertimePerWeek: Double {
+        frequency * averageHoursPerOccurrence
+    }
+
+    /// Risk level based on overtime amount
+    var riskLevel: RiskLevel {
+        switch averageOvertimePerWeek {
+        case ..<2: return .low
+        case 2..<5: return .medium
+        default: return .high
+        }
     }
 }
 

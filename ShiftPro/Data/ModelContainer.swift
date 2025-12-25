@@ -12,8 +12,11 @@ enum ModelContainerFactory {
             configuration = ModelConfiguration(isStoredInMemoryOnly: true)
         } else {
             let storeURL = try storeLocationURL()
-            let database: ModelConfiguration.CloudKitDatabase? = cloudSyncEnabled ? .automatic : nil
-            configuration = ModelConfiguration(url: storeURL, cloudKitDatabase: database)
+            if cloudSyncEnabled {
+                configuration = ModelConfiguration(url: storeURL, cloudKitDatabase: .automatic)
+            } else {
+                configuration = ModelConfiguration(url: storeURL)
+            }
         }
 
         do {
@@ -30,7 +33,7 @@ enum ModelContainerFactory {
             )
         } catch {
             if cloudSyncEnabled && !inMemory {
-                let fallback = ModelConfiguration(url: try storeLocationURL(), cloudKitDatabase: nil)
+                let fallback = ModelConfiguration(url: try storeLocationURL())
                 return try ModelContainer(
                     for: UserProfile.self,
                     ShiftPattern.self,

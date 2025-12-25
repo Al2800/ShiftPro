@@ -10,7 +10,7 @@ struct ConflictResolver {
     }
 
     func resolve(shift: Shift, event: EKEvent, lastSyncDate: Date?) -> Decision {
-        let eventModified = event.lastModifiedDate ?? event.creationDate ?? event.startDate
+        let eventModified = event.lastModifiedDate ?? event.creationDate ?? event.startDate ?? Date.distantPast
         let shiftUpdated = shift.updatedAt
 
         if let lastSyncDate = lastSyncDate {

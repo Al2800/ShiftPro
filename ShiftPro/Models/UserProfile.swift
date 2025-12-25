@@ -126,6 +126,23 @@ extension UserProfile {
     }
 }
 
+
+    /// User's name (using displayName as alias)
+    var name: String { displayName }
+
+    /// Target weekly hours (derived from regularHoursPerPay)
+    var targetWeeklyHours: Int {
+        // Convert based on pay period type
+        switch payPeriodType {
+        case .weekly:
+            return regularHoursPerPay
+        case .biweekly:
+            return regularHoursPerPay / 2
+        case .semimonthly, .monthly:
+            return 40  // Default to 40 hours/week
+        }
+    }
+
 // MARK: - Convenience Methods
 extension UserProfile {
     /// Marks the profile as updated

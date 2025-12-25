@@ -13,6 +13,7 @@ enum ShiftProTypography {
 enum ShiftProSpacing {
     static let extraExtraSmall: CGFloat = 4
     static let extraSmall: CGFloat = 8
+    static let xSmall: CGFloat = 8  // Alias for extraSmall
     static let small: CGFloat = 12
     static let medium: CGFloat = 16
     static let large: CGFloat = 24
