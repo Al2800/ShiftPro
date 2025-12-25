@@ -136,7 +136,7 @@ extension UserProfile {
             return regularHoursPerPay
         case .biweekly:
             return regularHoursPerPay / 2
-        case .semimonthly, .monthly:
+        case .monthly:
             return 40  // Default to 40 hours/week
         }
     }
