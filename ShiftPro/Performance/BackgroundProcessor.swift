@@ -46,7 +46,7 @@ final class BackgroundProcessor {
 
         // Sort by priority
         taskQueue.sort { lhs, rhs in
-            lhs.priority.qos.rawValue > rhs.priority.qos.rawValue
+            UInt32(lhs.priority.qos.rawValue.rawValue) > UInt32(rhs.priority.qos.rawValue.rawValue)
         }
 
         // Process queue

@@ -11,7 +11,7 @@ struct ImportView: View {
     @State private var selectedFormat: ImportManager.ImportFormat = .csv
     @State private var showFilePicker: Bool = false
     @State private var isImporting: Bool = false
-    @State private var importResult: ImportManager.ImportResult?
+    @State private var importResult: ImportResult?
     @State private var errorMessage: String?
 
     private var profile: UserProfile? {

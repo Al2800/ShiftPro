@@ -324,17 +324,31 @@ struct DetectedPattern: Identifiable {
     }
 }
 
-struct OvertimeTrend {
+struct OvertimeTrend: Sendable {
     let frequency: Double
     let averageHoursPerOccurrence: Double
     let mostCommonDay: Int?
     let mostCommonTime: Int?
     let trend: Trend
-    
-    enum Trend {
+
+    enum Trend: Sendable {
         case increasing
         case decreasing
         case stable
+    }
+
+    init(
+        frequency: Double = 0,
+        averageHoursPerOccurrence: Double = 0,
+        mostCommonDay: Int? = nil,
+        mostCommonTime: Int? = nil,
+        trend: Trend = .stable
+    ) {
+        self.frequency = frequency
+        self.averageHoursPerOccurrence = averageHoursPerOccurrence
+        self.mostCommonDay = mostCommonDay
+        self.mostCommonTime = mostCommonTime
+        self.trend = trend
     }
 }
 

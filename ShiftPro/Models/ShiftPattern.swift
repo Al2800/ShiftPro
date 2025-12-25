@@ -66,7 +66,8 @@ final class ShiftPattern {
         colorHex: String = "#007AFF",
         isSystem: Bool = false,
         createdAt: Date = Date(),
-        deletedAt: Date? = nil
+        deletedAt: Date? = nil,
+        owner: UserProfile? = nil
     ) {
         self.id = id
         self.name = name
@@ -81,6 +82,7 @@ final class ShiftPattern {
         self.isSystem = isSystem
         self.createdAt = createdAt
         self.deletedAt = deletedAt
+        self.owner = owner
     }
 }
 

@@ -64,7 +64,7 @@ private struct PressableScaleEffect: ViewModifier {
     let scale: CGFloat
     let opacity: Double
 
-    @Environment(\\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func body(content: Content) -> some View {
         content

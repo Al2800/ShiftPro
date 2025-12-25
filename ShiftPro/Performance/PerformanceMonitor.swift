@@ -108,8 +108,9 @@ final class PerformanceMonitor: ObservableObject {
 
     func startMemoryMonitoring(interval: TimeInterval = 5.0) {
         Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+            guard let monitor = self else { return }
             Task { @MainActor in
-                self?.captureMemorySnapshot()
+                monitor.captureMemorySnapshot()
             }
         }
     }

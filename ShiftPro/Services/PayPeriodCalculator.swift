@@ -1,14 +1,21 @@
 import Foundation
 
 struct PayPeriodCalculator {
-    struct RateBucket: Identifiable {
-        let id = UUID()
+    struct RateBucket: Identifiable, Codable {
+        let id: UUID
         let label: String
         let multiplier: Double
         let minutes: Int
 
         var hours: Double {
             Double(minutes) / 60.0
+        }
+
+        init(id: UUID = UUID(), label: String, multiplier: Double, minutes: Int) {
+            self.id = id
+            self.label = label
+            self.multiplier = multiplier
+            self.minutes = minutes
         }
     }
 

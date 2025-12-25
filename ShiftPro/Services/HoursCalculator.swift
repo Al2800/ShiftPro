@@ -1,7 +1,7 @@
 import Foundation
 
 final class HoursCalculator {
-    struct PeriodSummary {
+    struct PeriodSummary: Codable {
         let totalPaidMinutes: Int
         let premiumMinutes: Int
         let regularMinutes: Int

@@ -109,7 +109,13 @@ private struct NotificationSettingsForm: View {
                     Task {
                         isScheduling = true
                         let upcoming = shifts.filter { $0.scheduledStart > Date() }
-                        await NotificationManager.shared.scheduleNotifications(for: upcoming, settings: settings)
+                        let scheduler = NotificationScheduler()
+                        let center = UNUserNotificationCenter.current()
+                        let requests = scheduler.requests(for: upcoming, settings: settings, now: Date())
+                        center.removePendingNotificationRequests(withIdentifiers: requests.map(\.identifier))
+                        for request in requests {
+                            try? await center.add(request)
+                        }
                         isScheduling = false
                     }
                 }
