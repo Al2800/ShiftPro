@@ -257,7 +257,7 @@ struct InsightCard: View {
             if let action = insight.actionLabel {
                 Button(action) {}
                     .font(.caption)
-                    .foregroundStyle(.accent)
+                    .foregroundStyle(Color.accentColor)
             }
         }
         .padding()

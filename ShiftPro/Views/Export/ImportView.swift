@@ -156,9 +156,10 @@ struct ImportView: View {
         errorMessage = nil
         importResult = nil
 
+        let capturedContext = context
         Task {
             do {
-                let importManager = ImportManager(context: context)
+                let importManager = await ImportManager(context: capturedContext)
                 let result = try await importManager.importData(
                     from: url,
                     format: selectedFormat,
@@ -198,7 +199,7 @@ struct ImportView: View {
         case .json:
             return [.json]
         case .ics:
-            return [.ics]
+            return [.calendarEvent]
         }
     }
 }

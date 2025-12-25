@@ -9,7 +9,7 @@ enum ReceiptValidator {
 
         let tier = active
             .map { tier(for: $0.productID) }
-            .max(by: { $0.rank < $1.rank }) ?? .free
+            .max(by: { (a: SubscriptionTier, b: SubscriptionTier) in a.rank < b.rank }) ?? .free
 
         let expiration = active
             .filter { tier(for: $0.productID) == tier }
