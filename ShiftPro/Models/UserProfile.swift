@@ -124,8 +124,6 @@ extension UserProfile {
             .filter { $0.deletedAt == nil }
             .sorted { $0.scheduledStart > $1.scheduledStart }
     }
-}
-
 
     /// User's name (using displayName as alias)
     var name: String { displayName }
@@ -142,6 +140,7 @@ extension UserProfile {
             return 40  // Default to 40 hours/week
         }
     }
+}
 
 // MARK: - Convenience Methods
 extension UserProfile {

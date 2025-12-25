@@ -157,8 +157,6 @@ extension ShiftPattern {
     var activeShifts: [Shift] {
         shifts.filter { $0.deletedAt == nil }
     }
-}
-
 
     /// Alias for name - used by export
     var title: String { name }
@@ -187,6 +185,7 @@ extension ShiftPattern {
     var cycleDays: Int? {
         scheduleType == .cycling ? cycleLengthDays : nil
     }
+}
 
 // MARK: - Convenience Methods
 extension ShiftPattern {

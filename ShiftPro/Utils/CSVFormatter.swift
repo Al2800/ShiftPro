@@ -178,8 +178,6 @@ struct CSVFormatter {
         default: return String(format: "%.1fx", multiplier)
         }
     }
-}
-
 
     // MARK: - Export Manager Compatibility Methods
 
@@ -200,6 +198,7 @@ struct CSVFormatter {
         }
         return data
     }
+}
 
 private struct RateBreakdown {
     let label: String
