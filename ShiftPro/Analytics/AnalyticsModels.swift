@@ -135,3 +135,11 @@ enum HoursTrend: String, Sendable {
     case decreasing = "decreasing"
     case stable = "stable"
 }
+
+/// Shift timing pattern classification.
+enum ShiftTimingPattern: String, Sendable {
+    case morningDominant = "morning"
+    case afternoonDominant = "afternoon"
+    case nightDominant = "night"
+    case mixed = "mixed"
+}
