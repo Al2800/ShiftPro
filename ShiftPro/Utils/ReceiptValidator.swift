@@ -7,12 +7,12 @@ enum ReceiptValidator {
             .filter { $0.revocationDate == nil }
             .filter { $0.expirationDate == nil || $0.expirationDate ?? now > now }
 
-        let tier = active
-            .map { tier(for: $0.productID) }
+        let activeTier = active
+            .map { Self.tier(for: $0.productID) }
             .max(by: { (a: SubscriptionTier, b: SubscriptionTier) in a.rank < b.rank }) ?? .free
 
         let expiration = active
-            .filter { tier(for: $0.productID) == tier }
+            .filter { Self.tier(for: $0.productID) == activeTier }
             .compactMap(
                 \Transaction.expirationDate
             )
@@ -20,7 +20,7 @@ enum ReceiptValidator {
             .first
 
         return SubscriptionState(
-            tier: tier,
+            tier: activeTier,
             expirationDate: expiration,
             isInGracePeriod: false,
             lastUpdated: now
