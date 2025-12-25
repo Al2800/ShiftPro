@@ -11,11 +11,9 @@ enum ReceiptValidator {
             .map { Self.tier(for: $0.productID) }
             .max(by: { (a: SubscriptionTier, b: SubscriptionTier) in a.rank < b.rank }) ?? .free
 
-        let expiration = active
+        let expiration: Date? = active
             .filter { Self.tier(for: $0.productID) == activeTier }
-            .compactMap(
-                \Transaction.expirationDate
-            )
+            .compactMap { $0.expirationDate }
             .sorted(by: >)
             .first
 
