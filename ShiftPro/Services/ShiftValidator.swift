@@ -96,18 +96,21 @@ final class ShiftValidator {
 
     func hasConflicts(start: Date, end: Date, owner: UserProfile?, excludingShiftId: UUID? = nil) async -> Bool {
         guard let owner else { return false }
+        // Fetch all non-deleted shifts and filter in-memory to avoid complex predicate issues
         let predicate = #Predicate<Shift> { shift in
-            shift.owner?.id == owner.id &&
-            shift.deletedAt == nil &&
-            shift.scheduledStart < end &&
-            shift.scheduledEnd > start
+            shift.deletedAt == nil
         }
         let descriptor = FetchDescriptor<Shift>(predicate: predicate)
-        guard let conflict = try? context.fetch(descriptor).first else { return false }
-        if let excludingShiftId, conflict.id == excludingShiftId {
-            return false
+        guard let allShifts = try? context.fetch(descriptor) else { return false }
+
+        // Filter for owner and time overlap in-memory
+        let conflicts = allShifts.filter { shift in
+            shift.owner?.id == owner.id &&
+            shift.scheduledStart < end &&
+            shift.scheduledEnd > start &&
+            shift.id != excludingShiftId
         }
-        return true
+        return !conflicts.isEmpty
     }
 
     private func isValidDuration(_ shift: Shift, maximumHours: Int = 24) -> Bool {

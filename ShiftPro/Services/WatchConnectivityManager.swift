@@ -129,27 +129,31 @@ final class WatchConnectivityManager: NSObject, ObservableObject {
     private func fetchHoursData(from modelContext: ModelContext) -> WatchHoursPayload? {
         let now = Date()
         
-        let descriptor = FetchDescriptor<PayPeriod>(
-            predicate: #Predicate<PayPeriod> { period in
-                period.startDate <= now && period.endDate >= now
-            },
+        // Fetch all pay periods and filter in-memory to avoid predicate issues
+        let periodDescriptor = FetchDescriptor<PayPeriod>(
             sortBy: [SortDescriptor(\.startDate, order: .reverse)]
         )
         
-        guard let period = try? modelContext.fetch(descriptor).first else {
+        guard let allPeriods = try? modelContext.fetch(periodDescriptor),
+              let period = allPeriods.first(where: { $0.startDate <= now && $0.endDate >= now }) else {
             return nil
         }
         
+        // Fetch all non-deleted shifts and filter in-memory
         let shiftDescriptor = FetchDescriptor<Shift>(
             predicate: #Predicate<Shift> { shift in
-                shift.deletedAt == nil &&
-                shift.scheduledStart >= period.startDate &&
-                shift.scheduledStart <= period.endDate
+                shift.deletedAt == nil
             }
         )
         
-        guard let shifts = try? modelContext.fetch(shiftDescriptor) else {
+        guard let allShifts = try? modelContext.fetch(shiftDescriptor) else {
             return nil
+        }
+        
+        // Filter shifts in-memory for the pay period
+        let shifts = allShifts.filter { shift in
+            shift.scheduledStart >= period.startDate &&
+            shift.scheduledStart <= period.endDate
         }
         
         let totalMinutes = shifts.reduce(0) { $0 + $1.paidMinutes }

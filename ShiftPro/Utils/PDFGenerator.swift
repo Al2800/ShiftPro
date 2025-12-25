@@ -278,6 +278,14 @@ struct PDFGenerator {
         return data
     }
 
+    /// Generates payroll report PDF - wrapper for ReportGenerator
+    func generatePayrollReport(period: PayPeriod) throws -> Data {
+        guard let data = generatePayPeriodReport(period: period, profile: nil) else {
+            throw NSError(domain: "PDFGenerator", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to generate PDF"])
+        }
+        return data
+    }
+
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d, yyyy"
