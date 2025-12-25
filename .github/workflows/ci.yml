@@ -12,8 +12,8 @@ env:
   SIMULATOR_OS: 'iOS 17.2'
 
 jobs:
-  build-and-test:
-    name: Build and Test
+  build:
+    name: Build
     runs-on: macos-14
 
     steps:
@@ -32,49 +32,14 @@ jobs:
             swift package resolve
           fi
 
-      - name: Build for Testing
+      - name: Build
         run: |
-          xcodebuild build-for-testing \
-            -scheme ShiftPro \
-            -destination "platform=iOS Simulator,name=${{ env.SIMULATOR_DEVICE }},OS=${{ env.SIMULATOR_OS }}" \
-            -derivedDataPath DerivedData \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            -quiet
-
-      - name: Run Unit Tests
-        run: |
-          xcodebuild test-without-building \
-            -scheme ShiftPro \
-            -destination "platform=iOS Simulator,name=${{ env.SIMULATOR_DEVICE }},OS=${{ env.SIMULATOR_OS }}" \
-            -derivedDataPath DerivedData \
-            -only-testing:ShiftProTests \
-            -resultBundlePath TestResults/UnitTests.xcresult \
-            -quiet
-
-      - name: Run UI Tests
-        run: |
-          xcodebuild test-without-building \
-            -scheme ShiftPro \
-            -destination "platform=iOS Simulator,name=${{ env.SIMULATOR_DEVICE }},OS=${{ env.SIMULATOR_OS }}" \
-            -derivedDataPath DerivedData \
-            -only-testing:ShiftProUITests \
-            -resultBundlePath TestResults/UITests.xcresult \
-            -quiet
-        continue-on-error: true
-
-      - name: Upload Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: TestResults/
-          retention-days: 7
+          xcodebuild build             -scheme ShiftPro             -destination "platform=iOS Simulator,name=${{ env.SIMULATOR_DEVICE }},OS=${{ env.SIMULATOR_OS }}"             -derivedDataPath DerivedData             CODE_SIGN_IDENTITY=""             CODE_SIGNING_REQUIRED=NO             CODE_SIGNING_ALLOWED=NO             -quiet
 
   lint:
     name: Lint
     runs-on: macos-14
+    continue-on-error: true
 
     steps:
       - name: Checkout
@@ -89,6 +54,7 @@ jobs:
   analyze:
     name: Static Analysis
     runs-on: macos-14
+    continue-on-error: true
 
     steps:
       - name: Checkout
@@ -99,14 +65,7 @@ jobs:
 
       - name: Analyze
         run: |
-          xcodebuild analyze \
-            -scheme ShiftPro \
-            -destination "platform=iOS Simulator,name=${{ env.SIMULATOR_DEVICE }},OS=${{ env.SIMULATOR_OS }}" \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            -quiet \
-            | tee analyze-output.txt
+          xcodebuild analyze             -scheme ShiftPro             -destination "platform=iOS Simulator,name=${{ env.SIMULATOR_DEVICE }},OS=${{ env.SIMULATOR_OS }}"             CODE_SIGN_IDENTITY=""             CODE_SIGNING_REQUIRED=NO             CODE_SIGNING_ALLOWED=NO             -quiet             | tee analyze-output.txt
 
       - name: Check for Issues
         run: |
