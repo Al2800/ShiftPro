@@ -51,6 +51,65 @@ jobs:
       - name: Run SwiftLint
         run: swiftlint lint --reporter github-actions-logging
 
+  screenshots:
+    name: Capture Screenshots
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Build for Simulator
+        run: |
+          xcodebuild build \
+            -scheme ShiftPro \
+            -destination "platform=iOS Simulator,name=${{ env.SIMULATOR_DEVICE }},OS=${{ env.SIMULATOR_OS }}" \
+            -derivedDataPath DerivedData \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Boot Simulator
+        run: |
+          xcrun simctl boot "${{ env.SIMULATOR_DEVICE }}" || true
+          xcrun simctl bootstatus "${{ env.SIMULATOR_DEVICE }}" -b
+
+      - name: Install App
+        run: |
+          APP_PATH=$(find DerivedData -name "*.app" -type d | head -1)
+          echo "Installing app from: $APP_PATH"
+          xcrun simctl install booted "$APP_PATH"
+
+      - name: Launch App and Capture Screenshots
+        run: |
+          # Get bundle ID from the app
+          APP_PATH=$(find DerivedData -name "*.app" -type d | head -1)
+          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist")
+          echo "Launching bundle: $BUNDLE_ID"
+
+          # Launch the app
+          xcrun simctl launch booted "$BUNDLE_ID"
+
+          # Wait for app to fully load
+          sleep 8
+
+          # Capture main screen
+          xcrun simctl io booted screenshot screenshot-01-main.png
+
+          # Give time between screenshots
+          sleep 2
+          xcrun simctl io booted screenshot screenshot-02-current.png
+
+      - name: Upload Screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-screenshots
+          path: screenshot-*.png
+          retention-days: 30
+
   analyze:
     name: Static Analysis
     runs-on: macos-14
