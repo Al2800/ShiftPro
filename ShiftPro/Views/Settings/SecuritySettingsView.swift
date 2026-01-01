@@ -10,6 +10,7 @@ struct SecuritySettingsView: View {
     @State private var showError = false
     @State private var errorMessage = ""
     @State private var pendingAuthMethod: AuthenticationManager.AuthMethod?
+    @State private var showResetConfirmation = false
 
     var body: some View {
         Form {
@@ -23,6 +24,14 @@ struct SecuritySettingsView: View {
             PINSetupView { pin in
                 handlePINSetup(pin)
             }
+        }
+        .confirmationDialog("Reset Security Settings?", isPresented: $showResetConfirmation, titleVisibility: .visible) {
+            Button("Reset Security Settings", role: .destructive) {
+                handleResetSecurity()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This will remove your saved PIN, disable biometric lock, and reset the auto-lock timeout.")
         }
         .alert("Error", isPresented: $showError) {
             Button("OK", role: .cancel) { }
@@ -107,7 +116,7 @@ struct SecuritySettingsView: View {
     private var dangerZoneSection: some View {
         Section {
             Button(role: .destructive) {
-                handleResetSecurity()
+                showResetConfirmation = true
             } label: {
                 Text("Reset Security Settings")
                     .font(ShiftProTypography.body)

@@ -9,10 +9,10 @@ struct PatternDefinition: Identifiable, Codable, Hashable {
     struct RotationDayDefinition: Identifiable, Codable, Hashable {
         let id: UUID
         let index: Int
-        let isWorkDay: Bool
-        let shiftName: String?
-        let startMinuteOfDay: Int?
-        let durationMinutes: Int?
+        var isWorkDay: Bool
+        var shiftName: String?
+        var startMinuteOfDay: Int?
+        var durationMinutes: Int?
 
         init(
             id: UUID = UUID(),
