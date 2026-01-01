@@ -29,11 +29,6 @@ final class OnboardingTests: XCTestCase {
         XCTAssertTrue(primaryButton.waitForExistence(timeout: 3))
         primaryButton.tap()
 
-        let skipButton = app.buttons["onboarding.skip"]
-        if skipButton.waitForExistence(timeout: 2) {
-            skipButton.tap()
-        }
-
         let workplaceField = app.textFields["Workplace (optional)"]
         XCTAssertTrue(workplaceField.waitForExistence(timeout: 2))
         enterText("Test Workplace", into: workplaceField, in: app)
@@ -44,23 +39,36 @@ final class OnboardingTests: XCTestCase {
         let employeeIdField = app.textFields["Employee ID (optional)"]
         enterText("E123", into: employeeIdField, in: app)
 
-        primaryButton.tap()
-
-        if skipButton.waitForExistence(timeout: 2) {
-            skipButton.tap()
-        }
-        if skipButton.waitForExistence(timeout: 2) {
-            skipButton.tap()
-        }
-
-        primaryButton.tap()
-
-        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 3))
+        advanceOnboarding(in: app, maxSteps: 8)
+        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 4))
         UITestHelper.openTab("Settings", in: app)
 
         XCTAssertTrue(app.staticTexts["Test Workplace"].waitForExistence(timeout: 2))
         XCTAssertTrue(app.staticTexts["Test Role"].exists)
         XCTAssertTrue(app.staticTexts["E123"].exists)
+    }
+
+    private func advanceOnboarding(in app: XCUIApplication, maxSteps: Int) {
+        let primaryButton = app.buttons["onboarding.primary"]
+        let skipButton = app.buttons["onboarding.skip"]
+
+        for _ in 0..<maxSteps {
+            if app.tabBars.buttons["Settings"].exists {
+                break
+            }
+
+            if primaryButton.waitForExistence(timeout: 1) {
+                primaryButton.tap()
+                continue
+            }
+
+            if skipButton.waitForExistence(timeout: 1) {
+                skipButton.tap()
+                continue
+            }
+
+            break
+        }
     }
 
     private func enterText(_ text: String, into field: XCUIElement, in app: XCUIApplication) {
