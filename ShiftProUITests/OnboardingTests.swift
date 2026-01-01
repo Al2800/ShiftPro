@@ -34,9 +34,11 @@ final class OnboardingTests: XCTestCase {
         enterText("Test Workplace", into: workplaceField, in: app)
 
         let roleField = app.textFields["Job Title (optional)"]
+        XCTAssertTrue(roleField.waitForExistence(timeout: 2))
         enterText("Test Role", into: roleField, in: app)
 
         let employeeIdField = app.textFields["Employee ID (optional)"]
+        XCTAssertTrue(employeeIdField.waitForExistence(timeout: 2))
         enterText("E123", into: employeeIdField, in: app)
 
         advanceOnboarding(in: app, maxSteps: 8)

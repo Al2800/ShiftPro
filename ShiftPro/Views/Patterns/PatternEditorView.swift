@@ -139,7 +139,7 @@ private extension PatternEditorView {
     func updateDuration(hours: Int, minutes: Int) {
         let clampedHours = max(0, min(hours, 24))
         let clampedMinutes = durationMinuteOptions.contains(minutes) ? minutes : 0
-        let totalMinutes = max(60, min((clampedHours * 60) + clampedMinutes, 1440))
+        let totalMinutes = max(15, min((clampedHours * 60) + clampedMinutes, 1440))
         definition.durationMinutes = totalMinutes
     }
 
