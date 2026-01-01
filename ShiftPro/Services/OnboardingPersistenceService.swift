@@ -54,9 +54,23 @@ struct OnboardingPersistenceService {
 
         let definition = data.selectedPatternDefinition()
         let pattern = patternEngine.buildPattern(from: definition, owner: profile)
+        pattern.cycleStartDate = data.patternStartDate
         context.insert(pattern)
         for rotationDay in pattern.rotationDays {
             context.insert(rotationDay)
+        }
+        try context.save()
+
+        try generateInitialShifts(for: pattern, startDate: data.patternStartDate, owner: profile)
+    }
+
+    private func generateInitialShifts(for pattern: ShiftPattern, startDate: Date, owner: UserProfile) throws {
+        let calendar = Calendar.current
+        let endDate = calendar.date(byAdding: .month, value: 2, to: startDate) ?? startDate
+
+        let shifts = patternEngine.generateShifts(for: pattern, from: startDate, to: endDate, owner: owner)
+        for shift in shifts {
+            context.insert(shift)
         }
         try context.save()
     }
