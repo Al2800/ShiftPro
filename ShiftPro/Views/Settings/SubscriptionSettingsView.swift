@@ -4,6 +4,9 @@ struct SubscriptionSettingsView: View {
     @EnvironmentObject private var entitlementManager: EntitlementManager
     @Environment(\.openURL) private var openURL
 
+    private let termsURL = URL(string: "https://shiftpro.app/terms")!
+    private let privacyURL = URL(string: "https://shiftpro.app/privacy")!
+
     var body: some View {
         List {
             Section("Current Plan") {
@@ -42,6 +45,26 @@ struct SubscriptionSettingsView: View {
                         openURL(url)
                     }
                 }
+            }
+
+            Section("Legal") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Payment will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period.")
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+
+                    Text("Manage or cancel anytime in App Store settings.")
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+
+                    HStack(spacing: 12) {
+                        Link("Terms of Use", destination: termsURL)
+                        Link("Privacy Policy", destination: privacyURL)
+                    }
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.accent)
+                }
+                .padding(.vertical, 4)
             }
         }
         .navigationTitle("Subscription")

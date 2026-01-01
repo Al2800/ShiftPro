@@ -4,6 +4,11 @@ import SwiftUI
 struct PaywallView: View {
     @EnvironmentObject private var entitlementManager: EntitlementManager
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
+
+    private let termsURL = URL(string: "https://shiftpro.app/terms")!
+    private let privacyURL = URL(string: "https://shiftpro.app/privacy")!
+    private let manageSubscriptionURL = URL(string: "https://apps.apple.com/account/subscriptions")!
 
     var body: some View {
         ScrollView {
@@ -111,10 +116,27 @@ struct PaywallView: View {
             }
             .font(ShiftProTypography.subheadline)
 
-            Text("Subscriptions auto-renew unless canceled 24 hours before renewal.")
+            Button("Manage Subscription") {
+                openURL(manageSubscriptionURL)
+            }
+            .font(ShiftProTypography.subheadline)
+
+            Text("Payment will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period.")
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(ShiftProColors.inkSubtle)
                 .multilineTextAlignment(.center)
+
+            Text("Manage or cancel anytime in App Store settings.")
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(ShiftProColors.inkSubtle)
+                .multilineTextAlignment(.center)
+
+            HStack(spacing: ShiftProSpacing.medium) {
+                Link("Terms of Use", destination: termsURL)
+                Link("Privacy Policy", destination: privacyURL)
+            }
+            .font(ShiftProTypography.caption)
+            .foregroundStyle(ShiftProColors.accent)
         }
         .frame(maxWidth: .infinity)
     }
