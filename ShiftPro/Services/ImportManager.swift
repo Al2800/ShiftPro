@@ -105,7 +105,9 @@ final class ImportManager {
             // Import profiles
             for profileData in backup.profiles {
                 let profile = UserProfile(
-                    badgeNumber: profileData.name,
+                    employeeId: profileData.employeeId,
+                    workplace: profileData.workplace ?? profileData.name,
+                    jobTitle: profileData.jobTitle,
                     baseRateCents: profileData.baseRateCents,
                     regularHoursPerPay: profileData.regularHoursPerPay
                 )

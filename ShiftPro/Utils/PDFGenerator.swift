@@ -65,11 +65,11 @@ struct PDFGenerator {
     ) -> CGFloat {
         var yPos = yPosition
 
-        if let badge = profile.badgeNumber {
-            yPos = drawText("Badge: \(badge)", fontSize: 12, at: CGPoint(x: leftMargin, y: yPos), in: context)
+        if let workplace = profile.workplace {
+            yPos = drawText("Workplace: \(workplace)", fontSize: 12, at: CGPoint(x: leftMargin, y: yPos), in: context)
         }
-        if let dept = profile.department {
-            yPos = drawText("Department: \(dept)", fontSize: 12, at: CGPoint(x: leftMargin, y: yPos), in: context)
+        if let jobTitle = profile.jobTitle {
+            yPos = drawText("Position: \(jobTitle)", fontSize: 12, at: CGPoint(x: leftMargin, y: yPos), in: context)
         }
 
         return yPos

@@ -19,7 +19,9 @@ struct CompletionView: View {
                 .foregroundStyle(ShiftProColors.fog)
 
             VStack(alignment: .leading, spacing: 8) {
-                summaryRow(label: "Department", value: data.department)
+                if !data.workplace.isEmpty {
+                    summaryRow(label: "Workplace", value: data.workplace)
+                }
                 summaryRow(label: "Pay Period", value: data.payPeriod.title)
                 summaryRow(label: "Pattern", value: data.selectedPattern.title)
             }

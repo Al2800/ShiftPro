@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-/// Configurable pay rules stored as JSON for flexibility across departments.
+/// Configurable pay rules stored as JSON for flexibility across employers or teams.
 /// Supports unpaid breaks, rate multipliers, and pay period settings.
 @Model
 final class PayRuleset {
@@ -157,24 +157,27 @@ struct PayRules: Codable, Sendable {
 
 // MARK: - Factory Methods
 extension PayRuleset {
-    /// Creates a standard UK police ruleset
-    static func ukPoliceStandard(owner: UserProfile? = nil) -> PayRuleset {
+    /// Creates a standard shift-worker ruleset
+    static func standardShiftWorker(
+        owner: UserProfile? = nil,
+        payPeriodType: PayPeriodType = .biweekly
+    ) -> PayRuleset {
         let rules = PayRules(
             unpaidBreakMinutes: 30,
             rateMultipliers: [
                 .init(label: "Regular", multiplier: 1.0),
                 .init(label: "Overtime (1.3x)", multiplier: 1.3),
-                .init(label: "Rest Day Working", multiplier: 1.5),
+                .init(label: "Extra Shift", multiplier: 1.5),
                 .init(label: "Bank Holiday", multiplier: 2.0)
             ],
-            payPeriodType: .biweekly
+            payPeriodType: payPeriodType
         )
 
         let json = try? JSONEncoder().encode(rules)
         let jsonString = json.flatMap { String(data: $0, encoding: .utf8) } ?? PayRules.defaultRulesJSON
 
         return PayRuleset(
-            name: "UK Police Standard",
+            name: "Standard Shift Ruleset",
             rulesJSON: jsonString,
             owner: owner
         )

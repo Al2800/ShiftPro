@@ -56,9 +56,9 @@ enum ModelContainerFactory {
         let context = container.mainContext
 
         let profile = UserProfile(
-            badgeNumber: "1234",
-            department: "Metro Police",
-            rank: "Sergeant",
+            employeeId: "E1234",
+            workplace: "City Hospital",
+            jobTitle: "Senior Nurse",
             baseRateCents: 3500,
             regularHoursPerPay: 80
         )

@@ -262,12 +262,18 @@ struct FullBackupData: Codable {
 
 struct ProfileBackupData: Codable {
     let name: String
+    let employeeId: String?
+    let workplace: String?
+    let jobTitle: String?
     let baseRateCents: Int64?
     let regularHoursPerPay: Int
     let targetWeeklyHours: Int
 
     init(from profile: UserProfile) {
         self.name = profile.name
+        self.employeeId = profile.employeeId
+        self.workplace = profile.workplace
+        self.jobTitle = profile.jobTitle
         self.baseRateCents = profile.baseRateCents
         self.regularHoursPerPay = profile.regularHoursPerPay
         self.targetWeeklyHours = profile.targetWeeklyHours

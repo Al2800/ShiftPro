@@ -3,22 +3,6 @@ import SwiftUI
 struct ProfileSetupView: View {
     @Binding var data: OnboardingData
 
-    private let departments = [
-        "Metro PD",
-        "County Sheriff",
-        "State Patrol",
-        "Transit Authority",
-        "Custom"
-    ]
-
-    private let ranks = [
-        "Officer",
-        "Sergeant",
-        "Lieutenant",
-        "Captain",
-        "Detective"
-    ]
-
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Profile Setup")
@@ -30,22 +14,14 @@ struct ProfileSetupView: View {
                 .foregroundStyle(ShiftProColors.fog)
 
             VStack(alignment: .leading, spacing: 12) {
-                TextField("Badge Number", text: $data.badgeNumber)
+                TextField("Workplace (optional)", text: $data.workplace)
                     .textFieldStyle(.roundedBorder)
 
-                Picker("Department", selection: $data.department) {
-                    ForEach(departments, id: \.self) { department in
-                        Text(department).tag(department)
-                    }
-                }
-                .pickerStyle(.menu)
+                TextField("Job Title (optional)", text: $data.jobTitle)
+                    .textFieldStyle(.roundedBorder)
 
-                Picker("Rank", selection: $data.rank) {
-                    ForEach(ranks, id: \.self) { rank in
-                        Text(rank).tag(rank)
-                    }
-                }
-                .pickerStyle(.menu)
+                TextField("Employee ID (optional)", text: $data.employeeId)
+                    .textFieldStyle(.roundedBorder)
 
                 DatePicker(
                     "Start Date",

@@ -79,12 +79,12 @@ struct ShiftCardView: View {
 
 #Preview {
     ShiftCardView(
-        title: "Day Patrol",
+        title: "Day Shift",
         timeRange: "7:00 AM - 7:00 PM",
-        location: "Central Precinct",
+        location: "Main Site",
         status: .scheduled,
         rateMultiplier: 1.5,
-        notes: "Remember body camera check and briefing at 6:30 AM."
+        notes: "Team briefing at 6:30 AM."
     )
     .padding()
     .background(ShiftProColors.background)

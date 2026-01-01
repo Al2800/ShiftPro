@@ -1,8 +1,13 @@
 import SwiftUI
+import SwiftData
 
 struct OnboardingView: View {
+    @Environment(\.modelContext) private var modelContext
     @StateObject private var manager = OnboardingManager()
     @StateObject private var permissionManager = PermissionManager()
+    @State private var isSaving = false
+    @State private var showSaveError = false
+    @State private var saveError: String?
 
     let onFinish: () -> Void
 
@@ -21,6 +26,14 @@ struct OnboardingView: View {
             .padding(.vertical, ShiftProSpacing.extraLarge)
         }
         .environmentObject(permissionManager)
+        .alert("Unable to Save", isPresented: $showSaveError) {
+            Button("OK", role: .cancel) {
+                showSaveError = false
+                saveError = nil
+            }
+        } message: {
+            Text(saveError ?? "An unknown error occurred.")
+        }
     }
 
     private var progressHeader: some View {
@@ -62,7 +75,7 @@ struct OnboardingView: View {
     private var navigationControls: some View {
         VStack(spacing: 12) {
             Button(action: primaryAction) {
-                Text(primaryButtonTitle)
+                Text(isSaving ? "Saving..." : primaryButtonTitle)
                     .font(ShiftProTypography.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
@@ -74,6 +87,7 @@ struct OnboardingView: View {
             }
             .padding(.horizontal, ShiftProSpacing.large)
             .accessibilityIdentifier("onboarding.primary")
+            .disabled(isSaving)
 
             HStack(spacing: 16) {
                 Button("Back") { manager.back() }
@@ -96,7 +110,17 @@ struct OnboardingView: View {
 
     private func primaryAction() {
         if manager.step == .completion {
-            onFinish()
+            guard !isSaving else { return }
+            isSaving = true
+            do {
+                try manager.persist(context: modelContext)
+                isSaving = false
+                onFinish()
+            } catch {
+                isSaving = false
+                saveError = error.localizedDescription
+                showSaveError = true
+            }
         } else {
             manager.next()
         }

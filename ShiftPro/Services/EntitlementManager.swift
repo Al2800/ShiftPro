@@ -35,7 +35,7 @@ enum SubscriptionTier: String, Codable, CaseIterable {
         case .premium:
             return "Advanced analytics and sync"
         case .enterprise:
-            return "Department-wide insights"
+            return "Team-wide insights"
         }
     }
 }

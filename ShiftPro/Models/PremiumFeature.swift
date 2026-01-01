@@ -52,7 +52,7 @@ enum PremiumCatalog {
         PremiumFeature(
             id: "com.shiftpro.pro.exports",
             title: "Smart Export Suite",
-            description: "One-tap PDF, CSV, and calendar sharing with officer notes.",
+            description: "One-tap PDF, CSV, and calendar sharing with shift notes.",
             entitlements: [.smartExports]
         )
     ]

@@ -35,14 +35,14 @@ final class UserProfileRepository: AbstractRepository {
     }
 
     func createProfile(
-        badgeNumber: String? = nil,
-        department: String? = nil,
-        rank: String? = nil
+        employeeId: String? = nil,
+        workplace: String? = nil,
+        jobTitle: String? = nil
     ) throws -> UserProfile {
         let profile = UserProfile(
-            badgeNumber: badgeNumber,
-            department: department,
-            rank: rank
+            employeeId: employeeId,
+            workplace: workplace,
+            jobTitle: jobTitle
         )
         insert(profile)
         try save()

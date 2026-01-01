@@ -82,7 +82,7 @@ struct PayPeriodDetailView: View {
                     ShiftCardView(
                         title: shift.pattern?.name ?? "Shift",
                         timeRange: "\(shift.dateFormatted) • \(shift.timeRangeFormatted)",
-                        location: shift.owner?.department ?? "",
+                        location: shift.owner?.workplace ?? "",
                         status: status(for: shift),
                         rateMultiplier: shift.rateMultiplier,
                         notes: shift.notes

@@ -8,9 +8,9 @@ enum TestDataBuilder {
 
     static func userProfile(
         id: UUID = UUID(),
-        badgeNumber: String? = "1234",
-        department: String? = "Metro Police",
-        rank: String? = "Constable",
+        employeeId: String? = "E1234",
+        workplace: String? = "City Hospital",
+        jobTitle: String? = "Nurse",
         startDate: Date = Date(),
         baseRateCents: Int64? = 3500,
         regularHoursPerPay: Int = 80,
@@ -19,9 +19,9 @@ enum TestDataBuilder {
     ) -> UserProfile {
         UserProfile(
             id: id,
-            badgeNumber: badgeNumber,
-            department: department,
-            rank: rank,
+            employeeId: employeeId,
+            workplace: workplace,
+            jobTitle: jobTitle,
             startDate: startDate,
             baseRateCents: baseRateCents,
             regularHoursPerPay: regularHoursPerPay,

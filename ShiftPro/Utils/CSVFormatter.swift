@@ -97,11 +97,11 @@ struct CSVFormatter {
 
         if let profile = profile {
             csv += "Employee,\(profile.displayName)\n"
-            if let badge = profile.badgeNumber {
-                csv += "Badge Number,\(badge)\n"
+            if let workplace = profile.workplace {
+                csv += "Workplace,\(workplace)\n"
             }
-            if let dept = profile.department {
-                csv += "Department,\(dept)\n"
+            if let jobTitle = profile.jobTitle {
+                csv += "Position,\(jobTitle)\n"
             }
         }
 

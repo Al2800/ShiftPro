@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-/// User profile containing settings, pay rules, and department information.
+/// User profile containing settings, pay rules, and workplace information.
 /// This is the root entity that owns patterns, shifts, and pay rulesets.
 @Model
 final class UserProfile {
@@ -9,9 +9,9 @@ final class UserProfile {
     @Attribute(.unique) var id: UUID
 
     // MARK: - User Information
-    var badgeNumber: String?
-    var department: String?
-    var rank: String?
+    @Attribute(originalName: "badgeNumber") var employeeId: String?
+    @Attribute(originalName: "department") var workplace: String?
+    @Attribute(originalName: "rank") var jobTitle: String?
     var startDate: Date
 
     // MARK: - Pay Configuration
@@ -44,9 +44,9 @@ final class UserProfile {
     // MARK: - Initialization
     init(
         id: UUID = UUID(),
-        badgeNumber: String? = nil,
-        department: String? = nil,
-        rank: String? = nil,
+        employeeId: String? = nil,
+        workplace: String? = nil,
+        jobTitle: String? = nil,
         startDate: Date = Date(),
         baseRateCents: Int64? = nil,
         regularHoursPerPay: Int = 80,
@@ -56,9 +56,9 @@ final class UserProfile {
         updatedAt: Date = Date()
     ) {
         self.id = id
-        self.badgeNumber = badgeNumber
-        self.department = department
-        self.rank = rank
+        self.employeeId = employeeId
+        self.workplace = workplace
+        self.jobTitle = jobTitle
         self.startDate = startDate
         self.baseRateCents = baseRateCents
         self.regularHoursPerPay = regularHoursPerPay
@@ -104,11 +104,14 @@ extension UserProfile {
 
     /// Display name for the user
     var displayName: String {
-        if let badge = badgeNumber, !badge.isEmpty {
-            return "Badge #\(badge)"
+        if let title = jobTitle, !title.isEmpty {
+            return title
         }
-        if let dept = department, !dept.isEmpty {
-            return dept
+        if let place = workplace, !place.isEmpty {
+            return place
+        }
+        if let empId = employeeId, !empId.isEmpty {
+            return "ID: \(empId)"
         }
         return "User"
     }

@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import SwiftData
 
 @MainActor
 final class OnboardingManager: ObservableObject {
@@ -29,6 +30,14 @@ final class OnboardingManager: ObservableObject {
     func reset() {
         step = .welcome
         data = OnboardingData()
+    }
+
+    // MARK: - Persistence
+
+    /// Persists onboarding data to SwiftData models.
+    /// Call this when user completes onboarding (taps "Start Using ShiftPro").
+    func persist(context: ModelContext) throws {
+        try OnboardingPersistenceService(context: context).persist(data: data)
     }
 }
 
@@ -87,14 +96,14 @@ enum OnboardingStep: CaseIterable {
 }
 
 struct OnboardingData {
-    var badgeNumber: String = ""
-    var department: String = "Metro PD"
-    var rank: String = "Officer"
+    var employeeId: String = ""
+    var workplace: String = ""
+    var jobTitle: String = ""
     var startDate: Date = Date()
     var payPeriod: PayPeriodOption = .biweekly
     var regularHours: Double = 40
-    var baseRate: Double = 42
-    var selectedPattern: ShiftPatternOption = .twelveHour
+    var baseRate: Double = 25
+    var selectedPattern: ShiftPatternOption = .eightHour
     var wantsCalendarSync: Bool = true
     var wantsNotifications: Bool = true
 }
@@ -114,6 +123,17 @@ enum PayPeriodOption: String, CaseIterable, Identifiable {
             return "Bi-Weekly"
         case .monthly:
             return "Monthly"
+        }
+    }
+
+    func toPayPeriodType() -> PayPeriodType {
+        switch self {
+        case .weekly:
+            return .weekly
+        case .biweekly:
+            return .biweekly
+        case .monthly:
+            return .monthly
         }
     }
 }
@@ -144,7 +164,7 @@ enum ShiftPatternOption: String, CaseIterable, Identifiable {
         case .eightHour:
             return "Balanced 3-shift rotation"
         case .twelveHour:
-            return "Popular for patrol coverage"
+            return "Popular for 24/7 coverage"
         case .fourOnFourOff:
             return "Predictable blocks of time off"
         case .pitman:

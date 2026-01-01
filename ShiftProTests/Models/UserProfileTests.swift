@@ -14,11 +14,14 @@ final class UserProfileTests: XCTestCase {
     }
 
     func testDisplayNameFallbacks() {
-        let badgeProfile = UserProfile(badgeNumber: "5678")
-        XCTAssertEqual(badgeProfile.displayName, "Badge #5678")
+        let jobTitleProfile = UserProfile(jobTitle: "Nurse")
+        XCTAssertEqual(jobTitleProfile.displayName, "Nurse")
 
-        let deptProfile = UserProfile(department: "Metro Police")
-        XCTAssertEqual(deptProfile.displayName, "Metro Police")
+        let workplaceProfile = UserProfile(workplace: "City Hospital")
+        XCTAssertEqual(workplaceProfile.displayName, "City Hospital")
+
+        let employeeIdProfile = UserProfile(employeeId: "E5678")
+        XCTAssertEqual(employeeIdProfile.displayName, "ID: E5678")
 
         let defaultProfile = UserProfile()
         XCTAssertEqual(defaultProfile.displayName, "User")
