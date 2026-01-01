@@ -1,11 +1,15 @@
 import SwiftUI
-import StoreKit
 
-/// Premium view using the canonical EntitlementManager system.
-/// Note: This view now uses EntitlementManager for subscription state.
-/// The legacy PremiumStore is deprecated.
+/// Premium features showcase view.
+/// This view displays available premium features and their unlock status.
+/// All purchasing is routed through PaywallView for a single source of truth.
 struct PremiumView: View {
     @EnvironmentObject private var entitlementManager: EntitlementManager
+    @State private var showingPaywall = false
+
+    private var isPremium: Bool {
+        entitlementManager.state.tier != .free
+    }
 
     var body: some View {
         ScrollView {
@@ -25,62 +29,65 @@ struct PremiumView: View {
                     }
                 }
 
-                VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
-                    Text("Plans")
-                        .font(ShiftProTypography.headline)
-                        .foregroundStyle(ShiftProColors.ink)
-
-                    if entitlementManager.products.isEmpty {
-                        Text("StoreKit products are unavailable. Try again later.")
-                            .font(ShiftProTypography.body)
-                            .foregroundStyle(ShiftProColors.inkSubtle)
-                    } else {
-                        ForEach(entitlementManager.products, id: \.id) { product in
-                            PremiumProductRow(
-                                product: product,
-                                isPurchased: entitlementManager.state.tier != .free
-                            ) {
-                                Task { await entitlementManager.purchase(product) }
-                            }
-                        }
-                    }
-
-                    if let error = entitlementManager.errorMessage {
-                        Text(error)
-                            .font(ShiftProTypography.caption)
-                            .foregroundStyle(ShiftProColors.warning)
-                    }
+                if !isPremium {
+                    upgradeButton
                 }
             }
             .padding(ShiftProSpacing.large)
         }
         .background(ShiftProColors.background.ignoresSafeArea())
         .navigationTitle("Premium")
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Restore") {
-                    Task { await entitlementManager.restorePurchases() }
-                }
+        .sheet(isPresented: $showingPaywall) {
+            NavigationStack {
+                PaywallView()
             }
-        }
-        .task {
-            await entitlementManager.loadProducts()
         }
     }
 
     private var premiumHero: some View {
         VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
-            Text("Upgrade to ShiftPro Premium")
-                .font(ShiftProTypography.title)
-                .foregroundStyle(ShiftProColors.ink)
-            Text("Unlock advanced analytics, custom rotations, and automatic exports for your team.")
-                .font(ShiftProTypography.body)
-                .foregroundStyle(ShiftProColors.inkSubtle)
+            if isPremium {
+                HStack(spacing: ShiftProSpacing.small) {
+                    Image(systemName: "checkmark.seal.fill")
+                        .foregroundStyle(ShiftProColors.success)
+                    Text("ShiftPro Premium Active")
+                        .font(ShiftProTypography.title)
+                        .foregroundStyle(ShiftProColors.ink)
+                }
+                Text("You have access to all premium features.")
+                    .font(ShiftProTypography.body)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+            } else {
+                Text("Upgrade to ShiftPro Premium")
+                    .font(ShiftProTypography.title)
+                    .foregroundStyle(ShiftProColors.ink)
+                Text("Unlock advanced analytics, custom rotations, and automatic exports for your team.")
+                    .font(ShiftProTypography.body)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+            }
         }
         .padding(ShiftProSpacing.large)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+    }
+
+    private var upgradeButton: some View {
+        Button {
+            showingPaywall = true
+        } label: {
+            HStack {
+                Image(systemName: "star.circle.fill")
+                Text("View Upgrade Options")
+            }
+            .font(ShiftProTypography.headline)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, ShiftProSpacing.medium)
+            .background(ShiftProColors.accent)
+            .foregroundStyle(ShiftProColors.midnight)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
+        .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: .selection)
     }
 }
 
@@ -104,42 +111,6 @@ private struct PremiumFeatureRow: View {
         }
         .padding(ShiftProSpacing.medium)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-    }
-}
-
-private struct PremiumProductRow: View {
-    let product: Product
-    let isPurchased: Bool
-    let purchaseAction: () -> Void
-
-    var body: some View {
-        HStack(spacing: ShiftProSpacing.medium) {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
-                Text(product.displayName)
-                    .font(ShiftProTypography.body)
-                    .foregroundStyle(ShiftProColors.ink)
-                Text(product.description)
-                    .font(ShiftProTypography.caption)
-                    .foregroundStyle(ShiftProColors.inkSubtle)
-            }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: ShiftProSpacing.extraExtraSmall) {
-                Text(product.displayPrice)
-                    .font(ShiftProTypography.subheadline)
-                    .foregroundStyle(ShiftProColors.ink)
-                Button(isPurchased ? "Active" : "Buy") {
-                    purchaseAction()
-                }
-                .buttonStyle(PressableScaleButtonStyle())
-                .disabled(isPurchased)
-                .foregroundStyle(isPurchased ? ShiftProColors.success : ShiftProColors.accent)
-            }
-        }
-        .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }

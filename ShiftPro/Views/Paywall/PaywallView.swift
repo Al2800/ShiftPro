@@ -48,7 +48,7 @@ struct PaywallView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
-            Text("Unlock ShiftPro Pro")
+            Text("Unlock ShiftPro Premium")
                 .font(ShiftProTypography.title)
                 .foregroundStyle(ShiftProColors.ink)
 

@@ -4,11 +4,11 @@ import SwiftUI
 struct InsightsView: View {
     let insights: [ShiftInsight]
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 16) {
+                VStack(spacing: ShiftProSpacing.medium) {
                     if insights.isEmpty {
                         emptyState
                     } else {
@@ -17,8 +17,9 @@ struct InsightsView: View {
                         }
                     }
                 }
-                .padding()
+                .padding(ShiftProSpacing.medium)
             }
+            .background(ShiftProColors.background)
             .navigationTitle("Insights")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -30,116 +31,119 @@ struct InsightsView: View {
             }
         }
     }
-    
+
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: ShiftProSpacing.medium) {
             Image(systemName: "lightbulb.slash")
-                .font(.largeTitle)
-                .foregroundStyle(.secondary)
-            
+                .font(.system(size: 48))
+                .foregroundStyle(ShiftProColors.inkSubtle)
+
             Text("No Insights Yet")
-                .font(.headline)
-            
+                .font(ShiftProTypography.headline)
+                .foregroundStyle(ShiftProColors.ink)
+
             Text("Complete more shifts to generate personalized insights about your work patterns.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(ShiftProTypography.subheadline)
+                .foregroundStyle(ShiftProColors.inkSubtle)
                 .multilineTextAlignment(.center)
         }
-        .padding(.top, 60)
+        .padding(.top, ShiftProSpacing.extraLarge)
     }
 }
 
 struct InsightDetailCard: View {
     let insight: ShiftInsight
     @State private var isExpanded = false
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
             // Header
-            HStack(spacing: 12) {
+            HStack(spacing: ShiftProSpacing.medium) {
                 Image(systemName: insight.iconName)
-                    .font(.title2)
+                    .font(.system(size: 24))
                     .foregroundStyle(insightColor)
                     .frame(width: 44, height: 44)
                     .background(insightColor.opacity(0.1))
-                    .cornerRadius(12)
-                
-                VStack(alignment: .leading, spacing: 2) {
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
                     HStack {
                         Text(insight.title)
-                            .font(.headline)
-                        
+                            .font(ShiftProTypography.headline)
+                            .foregroundStyle(ShiftProColors.ink)
+
                         Spacer()
-                        
+
                         priorityBadge
                     }
-                    
+
                     Text(insight.type.rawValue.capitalized)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
                 }
             }
-            
+
             // Description
             Text(insight.description)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            
+                .font(ShiftProTypography.subheadline)
+                .foregroundStyle(ShiftProColors.inkSubtle)
+
             // Action (if available)
             if insight.actionable, let action = insight.action {
                 Divider()
-                
-                VStack(alignment: .leading, spacing: 8) {
+
+                VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
                     Text("Suggested Action")
-                        .font(.caption)
+                        .font(ShiftProTypography.caption)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
-                    
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+
                     HStack {
                         Image(systemName: "arrow.right.circle")
                             .foregroundStyle(insightColor)
-                        
+
                         Text(action)
-                            .font(.subheadline)
+                            .font(ShiftProTypography.subheadline)
+                            .foregroundStyle(ShiftProColors.ink)
                     }
                 }
             }
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
+        .padding(ShiftProSpacing.medium)
+        .background(ShiftProColors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
-    
+
     private var insightColor: Color {
         switch insight.type {
-        case .positive: return .green
-        case .warning: return .orange
-        case .info: return .blue
-        case .trend: return .purple
+        case .positive: return ShiftProColors.success
+        case .warning: return ShiftProColors.warning
+        case .info: return ShiftProColors.accent
+        case .trend: return ShiftProColors.accentMuted
         }
     }
-    
+
     private var priorityBadge: some View {
         Group {
             switch insight.priority {
             case .high:
                 Text("High")
-                    .font(.caption2)
+                    .font(ShiftProTypography.caption)
                     .fontWeight(.medium)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.red.opacity(0.1))
-                    .foregroundStyle(.red)
-                    .cornerRadius(4)
+                    .padding(.horizontal, ShiftProSpacing.small)
+                    .padding(.vertical, ShiftProSpacing.extraExtraSmall)
+                    .background(ShiftProColors.danger.opacity(0.1))
+                    .foregroundStyle(ShiftProColors.danger)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
             case .medium:
                 Text("Medium")
-                    .font(.caption2)
+                    .font(ShiftProTypography.caption)
                     .fontWeight(.medium)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.orange.opacity(0.1))
-                    .foregroundStyle(.orange)
-                    .cornerRadius(4)
+                    .padding(.horizontal, ShiftProSpacing.small)
+                    .padding(.vertical, ShiftProSpacing.extraExtraSmall)
+                    .background(ShiftProColors.warning.opacity(0.1))
+                    .foregroundStyle(ShiftProColors.warning)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
             case .low:
                 EmptyView()
             }
