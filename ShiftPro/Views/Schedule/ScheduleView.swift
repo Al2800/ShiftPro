@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 struct ScheduleView: View {
+    @Environment(\.modelContext) private var modelContext
     @Query(filter: #Predicate<Shift> { $0.deletedAt == nil }, sort: [SortDescriptor(\Shift.scheduledStart, order: .forward)])
     private var shifts: [Shift]
     @Query(sort: [SortDescriptor(\UserProfile.createdAt, order: .forward)])
@@ -9,6 +10,7 @@ struct ScheduleView: View {
 
     @State private var selectedDate = Date()
     @State private var showingAddShift = false
+    @State private var testShiftID: UUID?
 
     private let calendar = Calendar.current
 
@@ -49,6 +51,12 @@ struct ScheduleView: View {
                         }
                     }
                 }
+
+                #if DEBUG
+                if UITestSupport.isUITesting {
+                    testControls
+                }
+                #endif
             }
             .padding(.horizontal, ShiftProSpacing.medium)
             .padding(.vertical, ShiftProSpacing.large)
@@ -224,6 +232,96 @@ struct ScheduleView: View {
                 .stroke(isToday && !isSelected ? ShiftProColors.accent : .clear, lineWidth: 2)
         )
     }
+
+    #if DEBUG
+    private var testControls: some View {
+        VStack(spacing: ShiftProSpacing.extraSmall) {
+            Button("Seed Shift") {
+                seedTestShift()
+            }
+            .accessibilityIdentifier("test.shift.seed")
+
+            Button("Edit Shift") {
+                editTestShift()
+            }
+            .accessibilityIdentifier("test.shift.edit")
+
+            Button("Delete Shift") {
+                deleteTestShift()
+            }
+            .accessibilityIdentifier("test.shift.delete")
+        }
+        .font(ShiftProTypography.caption)
+        .foregroundStyle(ShiftProColors.accent)
+        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.top, ShiftProSpacing.medium)
+    }
+
+    @MainActor
+    private func seedTestShift() {
+        let repository = ShiftRepository(context: modelContext)
+        let profileRepository = UserProfileRepository(context: modelContext)
+        let calendar = Calendar.current
+
+        for shift in shifts {
+            try? repository.softDelete(shift)
+        }
+
+        guard let start = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: Date()),
+              let end = calendar.date(bySettingHour: 17, minute: 0, second: 0, of: Date()) else {
+            return
+        }
+
+        let owner = try? profileRepository.ensurePrimary()
+        let shift = Shift(
+            scheduledStart: start,
+            scheduledEnd: end,
+            breakMinutes: 30,
+            notes: "UI Test Shift",
+            owner: owner
+        )
+        try? repository.add(shift)
+        testShiftID = shift.id
+    }
+
+    @MainActor
+    private func editTestShift() {
+        let repository = ShiftRepository(context: modelContext)
+        let calendar = Calendar.current
+
+        let shift: Shift?
+        if let testShiftID {
+            shift = try? repository.fetch(id: testShiftID)
+        } else {
+            shift = shifts.first
+        }
+
+        guard let shift else { return }
+
+        if let updatedEnd = calendar.date(byAdding: .hour, value: 2, to: shift.scheduledEnd) {
+            shift.scheduledEnd = updatedEnd
+        }
+        shift.notes = "UI Test Shift (Edited)"
+        try? repository.update(shift)
+        testShiftID = shift.id
+    }
+
+    @MainActor
+    private func deleteTestShift() {
+        let repository = ShiftRepository(context: modelContext)
+
+        let shift: Shift?
+        if let testShiftID {
+            shift = try? repository.fetch(id: testShiftID)
+        } else {
+            shift = shifts.first
+        }
+
+        guard let shift else { return }
+        try? repository.softDelete(shift)
+        testShiftID = nil
+    }
+    #endif
 }
 
 #Preview {

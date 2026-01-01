@@ -7,7 +7,12 @@ struct ContentView: View {
     var body: some View {
         MainTabView()
             .onAppear {
-                showOnboarding = !hasOnboarded
+                if ProcessInfo.processInfo.arguments.contains("-skip-onboarding") {
+                    hasOnboarded = true
+                    showOnboarding = false
+                } else {
+                    showOnboarding = !hasOnboarded
+                }
             }
             .fullScreenCover(isPresented: $showOnboarding) {
                 OnboardingView {
