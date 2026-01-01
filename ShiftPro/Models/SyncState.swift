@@ -21,6 +21,8 @@ struct CalendarSyncSettings: Codable, Sendable, Equatable {
     var mode: CalendarSyncMode
     var includeAlarms: Bool
     var alarmOffsetMinutes: Int
+    var lastSyncedAt: Date?
+    var twoWaySyncConfirmed: Bool
 
     static let storageKey = "ShiftPro.CalendarSyncSettings"
 
@@ -28,7 +30,9 @@ struct CalendarSyncSettings: Codable, Sendable, Equatable {
         isEnabled: true,
         mode: .exportOnly,
         includeAlarms: true,
-        alarmOffsetMinutes: 30
+        alarmOffsetMinutes: 30,
+        lastSyncedAt: nil,
+        twoWaySyncConfirmed: false
     )
 
     static func load() -> CalendarSyncSettings {
@@ -42,5 +46,10 @@ struct CalendarSyncSettings: Codable, Sendable, Equatable {
     func save() {
         guard let data = try? JSONEncoder().encode(self) else { return }
         UserDefaults.standard.set(data, forKey: CalendarSyncSettings.storageKey)
+    }
+
+    mutating func markSynced() {
+        lastSyncedAt = Date()
+        save()
     }
 }

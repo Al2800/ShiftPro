@@ -105,6 +105,8 @@ final class CalendarIntegrationService: ObservableObject {
         }
 
         lastSyncDate = Date()
+        var updatedSettings = settings
+        updatedSettings.markSynced()
     }
 
     func syncShift(_ shift: Shift) async throws {
