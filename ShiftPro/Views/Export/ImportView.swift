@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
@@ -11,6 +12,10 @@ struct ImportView: View {
     @State private var selectedFormat: ImportManager.ImportFormat = .csv
     @State private var showFilePicker: Bool = false
     @State private var isImporting: Bool = false
+    @State private var isValidating: Bool = false
+    @State private var selectedFileURL: URL?
+    @State private var filePreview: ImportFilePreview?
+    @State private var validationState: ValidationState = .idle
     @State private var importResult: ImportResult?
     @State private var errorMessage: String?
 
@@ -29,6 +34,11 @@ struct ImportView: View {
                         Text("ICS (Calendar)").tag(ImportManager.ImportFormat.ics)
                     }
                     .pickerStyle(.segmented)
+                    .onChange(of: selectedFormat) { _ in
+                        if let url = selectedFileURL {
+                            preparePreview(from: url)
+                        }
+                    }
                 } header: {
                     Text("Import Format")
                 } footer: {
@@ -43,12 +53,62 @@ struct ImportView: View {
                     } label: {
                         HStack {
                             Image(systemName: "doc.badge.plus")
-                            Text("Select File to Import")
+                            Text(selectedFileURL == nil ? "Select File to Import" : "Choose Different File")
                         }
                     }
                     .disabled(isImporting)
                 } header: {
                     Text("Import Data")
+                } footer: {
+                    if isValidating {
+                        Text("Validating file...")
+                            .font(ShiftProTypography.caption)
+                            .foregroundStyle(ShiftProColors.inkSubtle)
+                    }
+                }
+
+                if let filePreview {
+                    Section {
+                        HStack {
+                            Image(systemName: "doc.text.magnifyingglass")
+                                .foregroundStyle(ShiftProColors.accent)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(filePreview.displayName)
+                                    .font(ShiftProTypography.body)
+                                Text(filePreview.detailLine)
+                                    .font(ShiftProTypography.caption)
+                                    .foregroundStyle(ShiftProColors.inkSubtle)
+                            }
+                        }
+
+                        if let snippet = filePreview.previewSnippet, !snippet.isEmpty {
+                            Text(snippet)
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundStyle(ShiftProColors.ink)
+                                .lineLimit(6)
+                        }
+
+                        validationMessageView
+                    } header: {
+                        Text("File Preview")
+                    }
+
+                    Section {
+                        Button {
+                            if let url = selectedFileURL {
+                                performImport(from: url)
+                            }
+                        } label: {
+                            Label("Import Now", systemImage: "square.and.arrow.down")
+                        }
+                        .disabled(isImporting || !validationState.isValid)
+
+                        Button(role: .destructive) {
+                            clearSelection()
+                        } label: {
+                            Label("Clear Selection", systemImage: "xmark.circle")
+                        }
+                    }
                 }
 
                 // Result Display
@@ -145,9 +205,25 @@ struct ImportView: View {
         switch result {
         case .success(let urls):
             guard let url = urls.first else { return }
-            performImport(from: url)
+            preparePreview(from: url)
         case .failure(let error):
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func preparePreview(from url: URL) {
+        errorMessage = nil
+        importResult = nil
+        isValidating = true
+        selectedFileURL = url
+
+        Task {
+            let (preview, state) = await buildPreview(from: url)
+            await MainActor.run {
+                filePreview = preview
+                validationState = state
+                isValidating = false
+            }
         }
     }
 
@@ -179,6 +255,54 @@ struct ImportView: View {
         }
     }
 
+    private func clearSelection() {
+        selectedFileURL = nil
+        filePreview = nil
+        validationState = .idle
+    }
+
+    private func buildPreview(from url: URL) async -> (ImportFilePreview?, ValidationState) {
+        guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) else {
+            return (nil, .invalid(message: "Unable to read file attributes."))
+        }
+
+        let sizeBytes = (attributes[.size] as? NSNumber)?.int64Value ?? 0
+        if sizeBytes == 0 {
+            return (nil, .invalid(message: "The selected file is empty."))
+        }
+        if sizeBytes > 50 * 1024 * 1024 {
+            return (nil, .invalid(message: "File is larger than 50 MB. Please choose a smaller file."))
+        }
+
+        let previewSnippet = loadPreviewSnippet(from: url)
+        let displayName = url.lastPathComponent
+        let modifiedAt = attributes[.modificationDate] as? Date
+
+        let allowedExtensions = expectedExtensions(for: selectedFormat)
+        let extensionMatches = allowedExtensions.contains(url.pathExtension.lowercased())
+        if !extensionMatches {
+            return (
+                ImportFilePreview(
+                    displayName: displayName,
+                    sizeBytes: sizeBytes,
+                    modifiedAt: modifiedAt,
+                    previewSnippet: previewSnippet
+                ),
+                .invalid(message: "Selected file does not match the chosen format.")
+            )
+        }
+
+        return (
+            ImportFilePreview(
+                displayName: displayName,
+                sizeBytes: sizeBytes,
+                modifiedAt: modifiedAt,
+                previewSnippet: previewSnippet
+            ),
+            .valid(message: "Ready to import.")
+        )
+    }
+
     // MARK: - Helper Properties
 
     private var formatDescription: String {
@@ -200,6 +324,83 @@ struct ImportView: View {
             return [.json]
         case .ics:
             return [.calendarEvent]
+        }
+    }
+
+    private func expectedExtensions(for format: ImportManager.ImportFormat) -> [String] {
+        switch format {
+        case .csv:
+            return ["csv", "txt"]
+        case .json:
+            return ["json"]
+        case .ics:
+            return ["ics"]
+        }
+    }
+
+    private func loadPreviewSnippet(from url: URL) -> String? {
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return nil }
+        defer { try? handle.close() }
+        let data = try? handle.read(upToCount: 2048)
+        guard let data, !data.isEmpty else { return nil }
+        let raw = String(decoding: data, as: UTF8.self)
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        return trimmed
+            .components(separatedBy: .newlines)
+            .prefix(6)
+            .joined(separator: "\n")
+    }
+
+    private var validationMessageView: some View {
+        switch validationState {
+        case .idle:
+            return AnyView(EmptyView())
+        case .valid(let message):
+            return AnyView(
+                Label(message, systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(ShiftProColors.success)
+                    .font(ShiftProTypography.caption)
+            )
+        case .invalid(let message):
+            return AnyView(
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(ShiftProColors.warning)
+                    .font(ShiftProTypography.caption)
+            )
+        }
+    }
+}
+
+private struct ImportFilePreview {
+    let displayName: String
+    let sizeBytes: Int64
+    let modifiedAt: Date?
+    let previewSnippet: String?
+
+    var detailLine: String {
+        let size = ByteCountFormatter.string(fromByteCount: sizeBytes, countStyle: .file)
+        if let modifiedAt {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .short
+            return "\(size) • Updated \(formatter.string(from: modifiedAt))"
+        }
+        return size
+    }
+}
+
+private enum ValidationState {
+    case idle
+    case valid(message: String)
+    case invalid(message: String)
+
+    var isValid: Bool {
+        switch self {
+        case .valid:
+            return true
+        case .idle, .invalid:
+            return false
         }
     }
 }
