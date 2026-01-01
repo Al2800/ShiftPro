@@ -17,6 +17,8 @@ struct PatternPreviewView: View {
     @State private var isApplying = false
     @State private var showConfirmation = false
     @State private var showSuccess = false
+    @State private var showError = false
+    @State private var errorMessage = ""
 
     private let engine = PatternEngine()
 
@@ -86,6 +88,11 @@ struct PatternPreviewView: View {
             }
         } message: {
             Text("Your pattern has been created and \(previews.count) shifts have been scheduled.")
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage)
         }
     }
 
@@ -179,6 +186,8 @@ struct PatternPreviewView: View {
             showSuccess = true
         } catch {
             isApplying = false
+            errorMessage = "Failed to save pattern: \(error.localizedDescription)"
+            showError = true
         }
     }
 }
