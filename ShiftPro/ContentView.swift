@@ -15,6 +15,11 @@ struct ContentView: View {
                     showOnboarding = false
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: DataDeletionService.dataDeletedNotification)) { _ in
+                // Data was deleted, show onboarding again
+                hasOnboarded = false
+                showOnboarding = true
+            }
     }
 }
 

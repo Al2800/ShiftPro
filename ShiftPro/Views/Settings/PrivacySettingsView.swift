@@ -1,14 +1,18 @@
+import SwiftData
 import SwiftUI
 
 struct PrivacySettingsView: View {
+    @Environment(\.modelContext) private var modelContext
     @StateObject private var privacyManager = PrivacyManager()
 
     @State private var showAuditTrail = false
     @State private var showDeleteConfirmation = false
     @State private var showExportPicker = false
     @State private var showError = false
+    @State private var showDeletionSuccess = false
     @State private var errorMessage = ""
     @State private var exportURL: URL?
+    @State private var isDeleting = false
 
     var body: some View {
         Form {
@@ -38,6 +42,30 @@ struct PrivacySettingsView: View {
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("This will permanently delete all your shift data, settings, and privacy information. This action cannot be undone.")
+        }
+        .alert("Data Deleted", isPresented: $showDeletionSuccess) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("All your data has been permanently deleted. The app will now return to setup.")
+        }
+        .overlay {
+            if isDeleting {
+                ZStack {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+
+                    VStack(spacing: ShiftProSpacing.medium) {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                        Text("Deleting all data...")
+                            .font(ShiftProTypography.headline)
+                            .foregroundStyle(.white)
+                    }
+                    .padding(ShiftProSpacing.large)
+                    .background(ShiftProColors.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                }
+            }
         }
     }
 
@@ -185,18 +213,42 @@ struct PrivacySettingsView: View {
     }
 
     private func exportAllData() {
-        // TODO: Integrate with full data export from ExportManager
-        errorMessage = "Full data export will be implemented with ExportManager integration"
-        showError = true
-    }
-
-    private func handleDeleteAllData() {
         do {
-            try privacyManager.deleteAllUserData()
-            // TODO: Also delete SwiftData store and all app data
+            let exportManager = ExportManager(context: modelContext)
+            let fileURL = try exportManager.export(category: .fullBackup, format: .json)
+
+            exportURL = fileURL
+            showExportPicker = true
+
+            try privacyManager.logAudit(type: .dataExport, description: "Exported full data backup (GDPR portability)")
         } catch {
             errorMessage = error.localizedDescription
             showError = true
+        }
+    }
+
+    private func handleDeleteAllData() {
+        isDeleting = true
+
+        Task {
+            do {
+                // Perform comprehensive data deletion (SwiftData, UserDefaults, Keychain, caches)
+                _ = try await DataDeletionService.deleteAllData(modelContext: modelContext)
+
+                // Clear privacy manager data as final step (also logs the deletion event)
+                try privacyManager.deleteAllUserData()
+
+                await MainActor.run {
+                    isDeleting = false
+                    showDeletionSuccess = true
+                }
+            } catch {
+                await MainActor.run {
+                    isDeleting = false
+                    errorMessage = error.localizedDescription
+                    showError = true
+                }
+            }
         }
     }
 }
