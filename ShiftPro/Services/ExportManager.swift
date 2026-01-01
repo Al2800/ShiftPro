@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 /// Main coordinator for data export operations
 @MainActor
 final class ExportManager {
-    enum ExportFormat {
+    enum ExportFormat: CaseIterable, Hashable {
         case csv
         case pdf
         case ics

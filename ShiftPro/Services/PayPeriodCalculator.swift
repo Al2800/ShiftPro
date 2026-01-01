@@ -35,26 +35,24 @@ struct PayPeriodCalculator {
         case .weekly:
             let start = calendar.startOfWeek(for: date)
             let end = calendar.date(byAdding: .day, value: 6, to: start) ?? date
-            return PayPeriod(startDate: start, endDate: end)
+            return PayPeriod(startDate: start, endDate: calendar.endOfDay(for: end))
         case .biweekly:
             let reference = referenceDate ?? date
             let daysSinceReference = calendar.dateComponents([.day], from: reference, to: date).day ?? 0
             let periodIndex = daysSinceReference / 14
             let startDate = calendar.date(byAdding: .day, value: periodIndex * 14, to: reference) ?? date
             let endDate = calendar.date(byAdding: .day, value: 13, to: startDate) ?? date
-            return PayPeriod(startDate: startDate, endDate: endDate)
+            return PayPeriod(startDate: startDate, endDate: calendar.endOfDay(for: endDate))
         case .monthly:
             let start = calendar.startOfMonth(for: date)
             let end = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: start) ?? date
-            return PayPeriod(startDate: start, endDate: end)
+            return PayPeriod(startDate: start, endDate: calendar.endOfDay(for: end))
         }
     }
 
     func shifts(in period: PayPeriod, from shifts: [Shift]) -> [Shift] {
         shifts.filter { shift in
-            shift.deletedAt == nil &&
-            shift.scheduledStart >= period.startDate &&
-            shift.scheduledStart <= period.endDate
+            shift.deletedAt == nil && period.contains(date: shift.scheduledStart)
         }
     }
 
@@ -70,8 +68,14 @@ struct PayPeriodCalculator {
 
         let regularMinutes = max(0, paidMinutes - premiumMinutes)
         let estimatedPayCents: Int64? = baseRateCents.map { baseRate in
-            let hours = Double(paidMinutes) / 60.0
-            return Int64(Double(baseRate) * hours)
+            let total = shifts.reduce(0.0) { total, shift in
+                let minutes = shift.paidMinutes > 0
+                    ? shift.paidMinutes
+                    : max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
+                let hours = Double(minutes) / 60.0
+                return total + (Double(baseRate) * hours * shift.rateMultiplier)
+            }
+            return Int64(total.rounded())
         }
 
         return HoursCalculator.PeriodSummary(

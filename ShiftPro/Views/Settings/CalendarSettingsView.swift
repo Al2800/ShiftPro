@@ -12,7 +12,7 @@ struct CalendarSettingsView: View {
     private let calendarIdentifierKey = "ShiftPro.CalendarIdentifier"
 
     private var isAuthorized: Bool {
-        permissionManager.calendarStatus == .authorized
+        permissionManager.calendarStatus == .authorized || permissionManager.calendarStatus == .writeOnly
     }
 
     var body: some View {

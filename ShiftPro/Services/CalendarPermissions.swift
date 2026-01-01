@@ -13,7 +13,7 @@ final class CalendarPermissions: ObservableObject {
 
     var isAuthorized: Bool {
         switch status {
-        case .authorized, .fullAccess:
+        case .authorized, .fullAccess, .writeOnly:
             return true
         default:
             return false

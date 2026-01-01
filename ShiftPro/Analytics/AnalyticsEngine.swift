@@ -42,6 +42,10 @@ final class AnalyticsEngine: ObservableObject {
             group.addTask { await self.computeMonthlyMetrics() }
             group.addTask { await self.computeYearlyMetrics() }
         }
+
+        if weeklyMetrics != nil || monthlyMetrics != nil || yearlyMetrics != nil {
+            errorMessage = nil
+        }
         
         await generateInsights()
     }

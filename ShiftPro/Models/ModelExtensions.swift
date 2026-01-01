@@ -225,12 +225,12 @@ extension Shift {
     ) -> Predicate<Shift> {
         if includeDeleted {
             return #Predicate<Shift> { shift in
-                shift.scheduledStart >= startDate && shift.scheduledStart <= endDate
+                shift.scheduledStart < endDate && shift.scheduledEnd > startDate
             }
         } else {
             return #Predicate<Shift> { shift in
-                shift.scheduledStart >= startDate &&
-                shift.scheduledStart <= endDate &&
+                shift.scheduledStart < endDate &&
+                shift.scheduledEnd > startDate &&
                 shift.deletedAt == nil
             }
         }
@@ -243,8 +243,8 @@ extension Shift {
         let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
 
         return #Predicate<Shift> { shift in
-            shift.scheduledStart >= startOfToday &&
             shift.scheduledStart < endOfToday &&
+            shift.scheduledEnd > startOfToday &&
             shift.deletedAt == nil
         }
     }

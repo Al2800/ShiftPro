@@ -62,6 +62,28 @@ final class PayPeriod {
 
 // MARK: - Computed Properties
 extension PayPeriod {
+    private var effectiveEndDate: Date {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.hour, .minute, .second], from: endDate)
+        let isMidnight = (components.hour ?? 0) == 0
+            && (components.minute ?? 0) == 0
+            && (components.second ?? 0) == 0
+        return isMidnight ? calendar.endOfDay(for: endDate) : endDate
+    }
+
+    @discardableResult
+    func normalizeEndDateIfNeeded(calendar: Calendar = .current) -> Bool {
+        let components = calendar.dateComponents([.hour, .minute, .second], from: endDate)
+        let isMidnight = (components.hour ?? 0) == 0
+            && (components.minute ?? 0) == 0
+            && (components.second ?? 0) == 0
+        guard isMidnight else { return false }
+        let normalized = calendar.endOfDay(for: endDate)
+        guard normalized != endDate else { return false }
+        endDate = normalized
+        return true
+    }
+
     /// Whether this pay period is deleted
     var isDeleted: Bool {
         deletedAt != nil
@@ -110,14 +132,14 @@ extension PayPeriod {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d"
         let start = formatter.string(from: startDate)
-        let end = formatter.string(from: endDate)
+        let end = formatter.string(from: effectiveEndDate)
         return "\(start) - \(end)"
     }
 
     /// Period duration in days
     var durationDays: Int {
         let calendar = Calendar.current
-        let days = calendar.dateComponents([.day], from: startDate, to: endDate).day ?? 0
+        let days = calendar.dateComponents([.day], from: startDate, to: effectiveEndDate).day ?? 0
         return days + 1 // Include both start and end dates
     }
 
@@ -144,12 +166,12 @@ extension PayPeriod {
     /// Whether this is the current pay period
     var isCurrent: Bool {
         let now = Date()
-        return now >= startDate && now <= endDate
+        return now >= startDate && now <= effectiveEndDate
     }
 
     /// Whether this is a past pay period
     var isPast: Bool {
-        endDate < Date()
+        effectiveEndDate < Date()
     }
 
     /// Whether this is a future pay period
@@ -163,7 +185,7 @@ extension PayPeriod {
         guard !isFuture else { return 0.0 }
 
         let now = Date()
-        let totalDuration = endDate.timeIntervalSince(startDate)
+        let totalDuration = effectiveEndDate.timeIntervalSince(startDate)
         let elapsed = now.timeIntervalSince(startDate)
         return min(1.0, max(0.0, elapsed / totalDuration))
     }
@@ -227,7 +249,7 @@ extension PayPeriod {
 
     /// Checks if a date falls within this pay period
     func contains(date: Date) -> Bool {
-        date >= startDate && date <= endDate
+        date >= startDate && date <= effectiveEndDate
     }
 
     /// Adds a shift to this pay period
@@ -264,7 +286,7 @@ extension PayPeriod {
         let startOfWeek = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now))!
         let endOfWeek = calendar.date(byAdding: .day, value: 6, to: startOfWeek)!
 
-        return PayPeriod(startDate: startOfWeek, endDate: endOfWeek)
+        return PayPeriod(startDate: startOfWeek, endDate: calendar.endOfDay(for: endOfWeek))
     }
 
     /// Creates a pay period for current bi-weekly period
@@ -278,7 +300,7 @@ extension PayPeriod {
         let startDate = calendar.date(byAdding: .day, value: periodIndex * 14, to: referenceDate)!
         let endDate = calendar.date(byAdding: .day, value: 13, to: startDate)!
 
-        return PayPeriod(startDate: startDate, endDate: endDate)
+        return PayPeriod(startDate: startDate, endDate: calendar.endOfDay(for: endDate))
     }
 
     /// Creates a pay period for current month
@@ -288,7 +310,7 @@ extension PayPeriod {
         let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now))!
         let endOfMonth = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: startOfMonth)!
 
-        return PayPeriod(startDate: startOfMonth, endDate: endOfMonth)
+        return PayPeriod(startDate: startOfMonth, endDate: calendar.endOfDay(for: endOfMonth))
     }
 
     /// Creates a pay period for the current period based on type

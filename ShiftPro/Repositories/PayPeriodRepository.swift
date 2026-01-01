@@ -24,10 +24,11 @@ final class PayPeriodRepository: AbstractRepository {
     /// Fetches the current pay period (if any)
     func fetchCurrent() throws -> PayPeriod? {
         let now = Date()
+        let dayStart = Calendar.current.startOfDay(for: now)
         let predicate = #Predicate<PayPeriod> { period in
             period.deletedAt == nil &&
             period.startDate <= now &&
-            period.endDate >= now
+            period.endDate >= dayStart
         }
         let periods = try fetch(predicate: predicate, sortBy: [])
         return periods.first
@@ -113,10 +114,11 @@ final class PayPeriodRepository: AbstractRepository {
     /// Finds the appropriate pay period for a shift based on its date
     func findPeriodForShift(_ shift: Shift) throws -> PayPeriod? {
         let shiftDate = shift.scheduledStart
+        let dayStart = Calendar.current.startOfDay(for: shiftDate)
         let predicate = #Predicate<PayPeriod> { period in
             period.deletedAt == nil &&
             period.startDate <= shiftDate &&
-            period.endDate >= shiftDate
+            period.endDate >= dayStart
         }
         let periods = try fetch(predicate: predicate, sortBy: [])
         return periods.first
@@ -154,7 +156,7 @@ final class PayPeriodRepository: AbstractRepository {
             components.weekday = 2 // Monday
             let weekStart = calendar.date(from: components) ?? startOfDay
             let weekEnd = calendar.date(byAdding: .day, value: 6, to: weekStart) ?? startOfDay
-            return (weekStart, weekEnd)
+            return (weekStart, calendar.endOfDay(for: weekEnd))
 
         case .biweekly:
             var components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: startOfDay)
@@ -166,7 +168,7 @@ final class PayPeriodRepository: AbstractRepository {
                 ? calendar.date(byAdding: .day, value: -7, to: weekStart) ?? weekStart
                 : weekStart
             let biweeklyEnd = calendar.date(byAdding: .day, value: 13, to: biweeklyStart) ?? startOfDay
-            return (biweeklyStart, biweeklyEnd)
+            return (biweeklyStart, calendar.endOfDay(for: biweeklyEnd))
 
         case .monthly:
             var components = calendar.dateComponents([.year, .month], from: startOfDay)
@@ -174,7 +176,7 @@ final class PayPeriodRepository: AbstractRepository {
             components.month! += 1
             components.day = 0
             let monthEnd = calendar.date(from: components) ?? startOfDay
-            return (monthStart, monthEnd)
+            return (monthStart, calendar.endOfDay(for: monthEnd))
         }
     }
 }

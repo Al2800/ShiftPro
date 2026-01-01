@@ -41,6 +41,7 @@ enum PermissionStatus: String {
     case authorized
     case denied
     case restricted
+    case writeOnly
 
     init(authorizationStatus: EKAuthorizationStatus) {
         switch authorizationStatus {
@@ -50,7 +51,9 @@ enum PermissionStatus: String {
             self = .authorized
         case .restricted:
             self = .restricted
-        case .denied, .writeOnly:
+        case .writeOnly:
+            self = .writeOnly
+        case .denied:
             self = .denied
         @unknown default:
             self = .notDetermined
@@ -80,6 +83,8 @@ enum PermissionStatus: String {
             return "Denied"
         case .restricted:
             return "Restricted"
+        case .writeOnly:
+            return "Write Only"
         }
     }
 
@@ -87,6 +92,8 @@ enum PermissionStatus: String {
         switch self {
         case .authorized:
             return ShiftProColors.success
+        case .writeOnly:
+            return ShiftProColors.warning
         case .denied:
             return ShiftProColors.danger
         case .restricted:

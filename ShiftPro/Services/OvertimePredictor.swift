@@ -18,8 +18,7 @@ struct OvertimePredictor {
     func forecast(for shifts: [Shift], within period: PayPeriod, thresholdHours: Double) -> OvertimeForecast {
         let inPeriod = shifts.filter { shift in
             shift.deletedAt == nil &&
-            shift.scheduledStart >= period.startDate &&
-            shift.scheduledStart <= period.endDate
+            period.contains(date: shift.scheduledStart)
         }
 
         let completedMinutes = inPeriod.reduce(0) { total, shift in

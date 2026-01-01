@@ -13,11 +13,17 @@ struct OptimizedQueries {
     ) throws -> [Shift] {
         let startDate = period.startDate
         let endDate = period.endDate
+        let calendar = Calendar.current
+        let endComponents = calendar.dateComponents([.hour, .minute, .second], from: endDate)
+        let isMidnight = (endComponents.hour ?? 0) == 0
+            && (endComponents.minute ?? 0) == 0
+            && (endComponents.second ?? 0) == 0
+        let normalizedEnd = isMidnight ? calendar.endOfDay(for: endDate) : endDate
 
         let predicate = #Predicate<Shift> { shift in
             shift.deletedAt == nil &&
-            shift.scheduledStart >= startDate &&
-            shift.scheduledStart < endDate
+            shift.scheduledStart < normalizedEnd &&
+            shift.scheduledEnd > startDate
         }
 
         var descriptor = FetchDescriptor(
@@ -88,11 +94,12 @@ struct OptimizedQueries {
     /// Fetch current pay period
     static func currentPayPeriod(context: ModelContext) throws -> PayPeriod? {
         let now = Date()
+        let dayStart = Calendar.current.startOfDay(for: now)
 
         let predicate = #Predicate<PayPeriod> { period in
             period.deletedAt == nil &&
             period.startDate <= now &&
-            period.endDate >= now
+            period.endDate >= dayStart
         }
 
         var descriptor = FetchDescriptor(

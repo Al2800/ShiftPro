@@ -26,14 +26,31 @@ final class HoursCalculator {
     }
 
     func calculateSummary(for shifts: [Shift], baseRateCents: Int64?) -> PeriodSummary {
-        let paidMinutes = shifts.reduce(0) { $0 + $1.paidMinutes }
-        let premiumMinutes = shifts.reduce(0) { $0 + $1.premiumMinutes }
+        let paidMinutes = shifts.reduce(0) { total, shift in
+            let minutes = shift.paidMinutes > 0
+                ? shift.paidMinutes
+                : max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
+            return total + minutes
+        }
+        let premiumMinutes = shifts.reduce(0) { total, shift in
+            guard shift.rateMultiplier > 1.0 else { return total }
+            let minutes = shift.paidMinutes > 0
+                ? shift.paidMinutes
+                : max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
+            return total + minutes
+        }
         let regularMinutes = max(0, paidMinutes - premiumMinutes)
 
         var estimatedPay: Int64?
         if let baseRateCents {
-            let hours = Double(paidMinutes) / 60.0
-            estimatedPay = Int64(Double(baseRateCents) * hours)
+            let total = shifts.reduce(0.0) { total, shift in
+                let minutes = shift.paidMinutes > 0
+                    ? shift.paidMinutes
+                    : max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
+                let hours = Double(minutes) / 60.0
+                return total + (Double(baseRateCents) * hours * shift.rateMultiplier)
+            }
+            estimatedPay = Int64(total.rounded())
         }
 
         return PeriodSummary(

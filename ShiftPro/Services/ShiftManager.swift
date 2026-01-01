@@ -244,9 +244,10 @@ final class ShiftManager {
         } else {
             // Create ad-hoc shift
             let now = Date()
+            let end = Calendar.current.date(byAdding: .hour, value: 8, to: now) ?? now
             let shift = try await createShift(
                 scheduledStart: now,
-                scheduledEnd: Calendar.current.date(byAdding: .hour, value: 8, to: now)!,
+                scheduledEnd: end,
                 isAdditionalShift: true
             )
             try await clockIn(shift: shift, at: now)
@@ -263,8 +264,8 @@ final class ShiftManager {
     /// Fetches shifts for a specific month
     func shiftsForMonth(containing date: Date) throws -> [Shift] {
         let calendar = Calendar.current
-        let start = calendar.date(from: calendar.dateComponents([.year, .month], from: date))!
-        let end = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: start)!
+        let start = calendar.date(from: calendar.dateComponents([.year, .month], from: date)) ?? date
+        let end = calendar.date(byAdding: .month, value: 1, to: start) ?? start
         return try shifts(from: start, to: end)
     }
 

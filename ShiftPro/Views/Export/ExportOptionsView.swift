@@ -20,7 +20,7 @@ struct ExportOptionsView: View {
     @State private var errorMessage: String?
     @State private var showPaywall: Bool = false
 
-    enum ExportCategory {
+    enum ExportCategory: CaseIterable, Hashable {
         case shiftReport
         case hoursSummary
         case payrollReport
@@ -52,7 +52,7 @@ struct ExportOptionsView: View {
                     // Category Selection
                     Section {
                     Picker("Export Type", selection: $selectedCategory) {
-                        ForEach([ExportCategory.shiftReport, .hoursSummary, .payrollReport], id: \.self) { category in
+                        ForEach(ExportCategory.allCases, id: \.self) { category in
                             VStack(alignment: .leading) {
                                 Text(category.displayName)
                                     .font(ShiftProTypography.body)

@@ -29,10 +29,16 @@ final class CalendarIntegrationService: ObservableObject {
 
     func requestAccess() async -> Bool {
         do {
+            let mode = CalendarSyncSettings.load().mode
             let granted: Bool
             if #available(iOS 17.0, *) {
-                granted = try await eventStore.requestFullAccessToEvents()
-                authorizationStatus = granted ? .fullAccess : .denied
+                if mode == .exportOnly {
+                    granted = try await eventStore.requestWriteOnlyAccessToEvents()
+                    authorizationStatus = granted ? .writeOnly : .denied
+                } else {
+                    granted = try await eventStore.requestFullAccessToEvents()
+                    authorizationStatus = granted ? .fullAccess : .denied
+                }
             } else {
                 granted = try await eventStore.requestAccess(to: .event)
                 authorizationStatus = granted ? .authorized : .denied
@@ -44,10 +50,13 @@ final class CalendarIntegrationService: ObservableObject {
         }
     }
 
-    private func ensureAuthorized() throws {
+    private func ensureAuthorized(for mode: CalendarSyncMode) throws {
         switch authorizationStatus {
         case .authorized, .fullAccess:
             return
+        case .writeOnly:
+            if mode == .exportOnly { return }
+            fallthrough
         default:
             throw DataError.permissionDenied
         }
@@ -91,7 +100,7 @@ final class CalendarIntegrationService: ObservableObject {
         guard settings.isEnabled else { return }
 
         refreshAuthorizationStatus()
-        try ensureAuthorized()
+        try ensureAuthorized(for: settings.mode)
 
         let calendar = try ensureShiftCalendar()
         let shifts = try shiftRepository.fetchShifts(in: dateRange)
@@ -114,7 +123,7 @@ final class CalendarIntegrationService: ObservableObject {
         guard settings.isEnabled else { return }
 
         refreshAuthorizationStatus()
-        try ensureAuthorized()
+        try ensureAuthorized(for: settings.mode)
 
         let calendar = try ensureShiftCalendar()
         try syncShift(shift, calendar: calendar, settings: settings)
@@ -189,8 +198,9 @@ final class CalendarIntegrationService: ObservableObject {
     }
 
     func removeShift(_ shift: Shift) throws {
+        let settings = CalendarSyncSettings.load()
         refreshAuthorizationStatus()
-        try ensureAuthorized()
+        try ensureAuthorized(for: settings.mode)
 
         guard let calendarEvent = shift.calendarEvent,
               !calendarEvent.eventIdentifier.isEmpty,

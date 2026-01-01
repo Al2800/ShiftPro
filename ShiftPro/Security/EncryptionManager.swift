@@ -40,8 +40,11 @@ final class EncryptionManager {
 
         // Generate random salt
         var salt = Data(count: 16)
-        _ = salt.withUnsafeMutableBytes { buffer in
+        let saltStatus = salt.withUnsafeMutableBytes { buffer in
             SecRandomCopyBytes(kSecRandomDefault, 16, buffer.baseAddress!)
+        }
+        guard saltStatus == errSecSuccess else {
+            throw EncryptionError.encryptionFailed
         }
 
         // Derive key from password using PBKDF2
@@ -189,4 +192,3 @@ final class EncryptionManager {
         return newKey
     }
 }
-

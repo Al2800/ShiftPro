@@ -134,8 +134,9 @@ final class WatchConnectivityManager: NSObject, ObservableObject {
             sortBy: [SortDescriptor(\.startDate, order: .reverse)]
         )
         
+        let dayStart = Calendar.current.startOfDay(for: now)
         guard let allPeriods = try? modelContext.fetch(periodDescriptor),
-              let period = allPeriods.first(where: { $0.startDate <= now && $0.endDate >= now }) else {
+              let period = allPeriods.first(where: { $0.startDate <= now && $0.endDate >= dayStart }) else {
             return nil
         }
         
@@ -152,8 +153,7 @@ final class WatchConnectivityManager: NSObject, ObservableObject {
         
         // Filter shifts in-memory for the pay period
         let shifts = allShifts.filter { shift in
-            shift.scheduledStart >= period.startDate &&
-            shift.scheduledStart <= period.endDate
+            period.contains(date: shift.scheduledStart)
         }
         
         let totalMinutes = shifts.reduce(0) { $0 + $1.paidMinutes }

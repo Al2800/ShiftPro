@@ -18,8 +18,10 @@ final class ShiftRepository: AbstractRepository {
         in dateRange: DateInterval,
         includeDeleted: Bool = false
     ) throws -> [Shift] {
+        let rangeStart = dateRange.start
+        let rangeEnd = dateRange.end
         let predicate = #Predicate<Shift> { shift in
-            shift.scheduledStart >= dateRange.start && shift.scheduledStart <= dateRange.end
+            shift.scheduledStart < rangeEnd && shift.scheduledEnd > rangeStart
         }
         var descriptor = FetchDescriptor<Shift>(predicate: predicate)
         descriptor.sortBy = [SortDescriptor(\.scheduledStart, order: .forward)]
