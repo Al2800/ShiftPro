@@ -30,10 +30,13 @@ enum AccessibilityIdentifiers {
     static let settingsSubscription = "settings.subscription"
     static let settingsCalendar = "settings.calendar"
     static let settingsProfile = "settings.profile"
+    static let settingsSecurity = "settings.security"
+    static let settingsPrivacy = "settings.privacy"
 
     // MARK: - Tab Bar
     static let tabDashboard = "tab.dashboard"
     static let tabSchedule = "tab.schedule"
     static let tabHours = "tab.hours"
+    static let tabPatterns = "tab.patterns"
     static let tabSettings = "tab.settings"
 }

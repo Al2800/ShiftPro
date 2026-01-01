@@ -39,6 +39,8 @@ struct HoursDashboard: View {
                 overtimeCard
 
                 recentPeriodsCard
+
+                dataActionsCard
             }
             .padding(.horizontal, ShiftProSpacing.medium)
             .padding(.vertical, ShiftProSpacing.large)
@@ -56,15 +58,24 @@ struct HoursDashboard: View {
         profiles.first
     }
 
+    private var storedCurrentPeriod: PayPeriod? {
+        payPeriods.first(where: { $0.isCurrent })
+    }
+
     private var currentPeriod: PayPeriod {
-        if let stored = payPeriods.first(where: { $0.isCurrent }) {
-            return stored
-        }
+        if let stored = storedCurrentPeriod { return stored }
         return calculator.period(for: Date(), type: profile?.payPeriodType ?? .biweekly, referenceDate: profile?.startDate)
     }
 
     private var periodShifts: [Shift] {
         calculator.shifts(in: currentPeriod, from: shifts)
+    }
+
+    private var exportPeriod: PayPeriod {
+        if let stored = storedCurrentPeriod { return stored }
+        let derived = calculator.period(for: Date(), type: profile?.payPeriodType ?? .biweekly, referenceDate: profile?.startDate)
+        derived.shifts = periodShifts
+        return derived
     }
 
     private var summary: HoursCalculator.PeriodSummary {
@@ -171,10 +182,15 @@ struct HoursDashboard: View {
             }
 
             if rateData.isEmpty {
-                Text("No paid hours recorded yet.")
-                    .font(ShiftProTypography.caption)
-                    .foregroundStyle(ShiftProColors.inkSubtle)
-                    .frame(maxWidth: .infinity, minHeight: 120)
+                VStack(spacing: ShiftProSpacing.small) {
+                    Image(systemName: "chart.pie")
+                        .font(.system(size: 32))
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                    Text("No hours recorded")
+                        .font(ShiftProTypography.subheadline)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                }
+                .frame(maxWidth: .infinity, minHeight: 120)
             } else {
                 RateBreakdownChart(rateData: rateData, style: rateChartStyle)
             }
@@ -226,32 +242,121 @@ struct HoursDashboard: View {
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.ink)
 
-            ForEach(payPeriods.prefix(4), id: \.id) { period in
-                HStack {
-                    VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
-                        Text(period.dateRangeFormatted)
-                            .font(ShiftProTypography.body)
-                            .foregroundStyle(ShiftProColors.ink)
-                        Text("\(period.paidMinutes.minutesToHoursFormatted) • \(period.shiftCount) shifts")
-                            .font(ShiftProTypography.caption)
-                            .foregroundStyle(ShiftProColors.inkSubtle)
-                    }
-                    Spacer()
-                    if period.isComplete {
-                        Image(systemName: "checkmark.seal.fill")
-                            .foregroundStyle(ShiftProColors.success)
-                    }
+            if payPeriods.isEmpty {
+                VStack(spacing: ShiftProSpacing.small) {
+                    Image(systemName: "calendar.badge.clock")
+                        .font(.system(size: 32))
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                    Text("No pay periods yet")
+                        .font(ShiftProTypography.subheadline)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                    Text("Complete shifts to build your history")
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
                 }
-                .padding(.vertical, ShiftProSpacing.extraExtraSmall)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, ShiftProSpacing.medium)
+            } else {
+                ForEach(payPeriods.prefix(4), id: \.id) { period in
+                    HStack {
+                        VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
+                            Text(period.dateRangeFormatted)
+                                .font(ShiftProTypography.body)
+                                .foregroundStyle(ShiftProColors.ink)
+                            Text("\(period.paidMinutes.minutesToHoursFormatted) • \(period.shiftCount) shifts")
+                                .font(ShiftProTypography.caption)
+                                .foregroundStyle(ShiftProColors.inkSubtle)
+                        }
+                        Spacer()
+                        if period.isComplete {
+                            Image(systemName: "checkmark.seal.fill")
+                                .foregroundStyle(ShiftProColors.success)
+                        }
+                    }
+                    .padding(.vertical, ShiftProSpacing.extraExtraSmall)
 
-                if period.id != payPeriods.prefix(4).last?.id {
-                    Divider()
+                    if period.id != payPeriods.prefix(4).last?.id {
+                        Divider()
+                    }
                 }
             }
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private var dataActionsCard: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+            Text("More")
+                .font(ShiftProTypography.headline)
+                .foregroundStyle(ShiftProColors.ink)
+
+            VStack(spacing: 0) {
+                NavigationLink {
+                    AnalyticsDashboard()
+                } label: {
+                    actionRow(
+                        title: "Analytics",
+                        subtitle: "Insights and trends",
+                        systemImage: "chart.bar.xaxis"
+                    )
+                }
+
+                Divider()
+
+                NavigationLink {
+                    ExportOptionsView(period: exportPeriod)
+                } label: {
+                    actionRow(
+                        title: "Export",
+                        subtitle: "Share reports and summaries",
+                        systemImage: "square.and.arrow.up"
+                    )
+                }
+
+                Divider()
+
+                NavigationLink {
+                    ImportView()
+                } label: {
+                    actionRow(
+                        title: "Import",
+                        subtitle: "Bring in shifts and backups",
+                        systemImage: "square.and.arrow.down"
+                    )
+                }
+            }
+            .background(ShiftProColors.surfaceElevated)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
+        .padding(ShiftProSpacing.medium)
+        .background(ShiftProColors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private func actionRow(title: String, subtitle: String, systemImage: String) -> some View {
+        HStack(spacing: ShiftProSpacing.medium) {
+            Image(systemName: systemImage)
+                .foregroundStyle(ShiftProColors.accent)
+                .font(.system(size: 18, weight: .semibold))
+
+            VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
+                Text(title)
+                    .font(ShiftProTypography.body)
+                    .foregroundStyle(ShiftProColors.ink)
+                Text(subtitle)
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .foregroundStyle(ShiftProColors.inkSubtle)
+        }
+        .padding(.vertical, ShiftProSpacing.small)
+        .padding(.horizontal, ShiftProSpacing.small)
     }
 
     private func metricView(title: String, value: String) -> some View {

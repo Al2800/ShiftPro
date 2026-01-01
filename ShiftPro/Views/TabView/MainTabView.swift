@@ -6,6 +6,7 @@ struct MainTabView: View {
             NavigationStack {
                 DashboardView()
             }
+            .accessibilityIdentifier(AccessibilityIdentifiers.tabDashboard)
             .tabItem {
                 Label("Dashboard", systemImage: "gauge")
             }
@@ -13,6 +14,7 @@ struct MainTabView: View {
             NavigationStack {
                 ScheduleView()
             }
+            .accessibilityIdentifier(AccessibilityIdentifiers.tabSchedule)
             .tabItem {
                 Label("Schedule", systemImage: "calendar")
             }
@@ -20,13 +22,23 @@ struct MainTabView: View {
             NavigationStack {
                 HoursView()
             }
+            .accessibilityIdentifier(AccessibilityIdentifiers.tabHours)
             .tabItem {
                 Label("Hours", systemImage: "clock")
             }
 
             NavigationStack {
+                PatternLibraryView()
+            }
+            .accessibilityIdentifier(AccessibilityIdentifiers.tabPatterns)
+            .tabItem {
+                Label("Patterns", systemImage: "repeat")
+            }
+
+            NavigationStack {
                 SettingsView()
             }
+            .accessibilityIdentifier(AccessibilityIdentifiers.tabSettings)
             .tabItem {
                 Label("Settings", systemImage: "gearshape")
             }
