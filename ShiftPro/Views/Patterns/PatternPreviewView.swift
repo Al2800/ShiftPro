@@ -9,8 +9,11 @@ struct PatternPreviewView: View {
 
     let definition: PatternDefinition
     var onPatternApplied: (() -> Void)?
+    var initialStartDate: Date?
+    var isPreviewOnly: Bool = false
 
     @State private var startDate = Date()
+    @State private var hasInitialized = false
     @State private var isApplying = false
     @State private var showConfirmation = false
     @State private var showSuccess = false
@@ -50,12 +53,20 @@ struct PatternPreviewView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 }
 
-                applyButton
+                if !isPreviewOnly {
+                    applyButton
+                }
             }
             .padding(ShiftProSpacing.medium)
         }
         .background(ShiftProColors.background.ignoresSafeArea())
         .navigationTitle("Preview")
+        .onAppear {
+            if !hasInitialized, let initial = initialStartDate {
+                startDate = initial
+                hasInitialized = true
+            }
+        }
         .confirmationDialog(
             "Use This Pattern?",
             isPresented: $showConfirmation,
@@ -89,23 +100,34 @@ struct PatternPreviewView: View {
         }
     }
 
+    @ViewBuilder
     private var startDateSection: some View {
         VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             Text("Start Date")
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.ink)
 
-            DatePicker(
-                "Pattern Start",
-                selection: $startDate,
-                in: Date()...,
-                displayedComponents: .date
-            )
-            .datePickerStyle(.graphical)
-            .tint(ShiftProColors.accent)
-            .padding(ShiftProSpacing.small)
-            .background(ShiftProColors.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            if isPreviewOnly {
+                Text(startDate.shiftDateFormatted)
+                    .font(ShiftProTypography.body)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+                    .padding(ShiftProSpacing.medium)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(ShiftProColors.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            } else {
+                DatePicker(
+                    "Pattern Start",
+                    selection: $startDate,
+                    in: Date()...,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(.graphical)
+                .tint(ShiftProColors.accent)
+                .padding(ShiftProSpacing.small)
+                .background(ShiftProColors.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
         }
     }
 
@@ -140,6 +162,9 @@ struct PatternPreviewView: View {
         let pattern = engine.buildPattern(from: definition, owner: profile)
         pattern.cycleStartDate = startDate
         modelContext.insert(pattern)
+        for rotationDay in pattern.rotationDays {
+            modelContext.insert(rotationDay)
+        }
 
         let calendar = Calendar.current
         let endDate = calendar.date(byAdding: .month, value: 2, to: startDate) ?? startDate

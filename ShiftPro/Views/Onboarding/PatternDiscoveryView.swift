@@ -110,14 +110,18 @@ struct PatternDiscoveryView: View {
         .padding(.horizontal, ShiftProSpacing.large)
         .sheet(isPresented: $showPreview) {
             NavigationStack {
-                PatternPreviewView(definition: data.selectedPatternDefinition())
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") {
-                                showPreview = false
-                            }
+                PatternPreviewView(
+                    definition: data.selectedPatternDefinition(),
+                    initialStartDate: data.patternStartDate,
+                    isPreviewOnly: true
+                )
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") {
+                            showPreview = false
                         }
                     }
+                }
             }
         }
         .sheet(isPresented: $showPatternLibrary) {
