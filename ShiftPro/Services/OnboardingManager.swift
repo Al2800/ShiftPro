@@ -27,8 +27,7 @@ final class OnboardingManager: ObservableObject {
     }
 
     func next() {
-        guard let nextStep = step.next else { return }
-        step = nextStep
+        advance(clearSkipped: true)
     }
 
     func back() {
@@ -39,7 +38,7 @@ final class OnboardingManager: ObservableObject {
     func skip() {
         guard step.isSkippable else { return }
         skippedSteps.insert(step)
-        next()
+        advance(clearSkipped: false)
     }
 
     func reset() {
@@ -106,6 +105,14 @@ final class OnboardingManager: ObservableObject {
         }
     }
 
+    private func advance(clearSkipped: Bool) {
+        guard let nextStep = step.next else { return }
+        if clearSkipped {
+            skippedSteps.remove(step)
+        }
+        step = nextStep
+    }
+
     private func restoreProgress() {
         guard let progress = OnboardingProgressStore.load() else { return }
         step = progress.step
@@ -158,7 +165,12 @@ enum OnboardingStep: String, CaseIterable, Codable {
     }
 
     var requirementLabel: String {
-        isSkippable ? "Optional" : "Required"
+        switch self {
+        case .welcome, .completion:
+            return ""
+        default:
+            return isSkippable ? "Optional" : "Required"
+        }
     }
 
     var title: String {

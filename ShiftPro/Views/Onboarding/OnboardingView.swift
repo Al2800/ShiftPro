@@ -42,9 +42,11 @@ struct OnboardingView: View {
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.fog)
 
-            Text(manager.step.requirementLabel)
-                .font(ShiftProTypography.caption)
-                .foregroundStyle(ShiftProColors.fog)
+            if !manager.step.requirementLabel.isEmpty {
+                Text(manager.step.requirementLabel)
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.fog)
+            }
 
             ProgressView(value: manager.progress)
                 .tint(ShiftProColors.accent)

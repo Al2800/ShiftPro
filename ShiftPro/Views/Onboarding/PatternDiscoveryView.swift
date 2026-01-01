@@ -94,6 +94,7 @@ struct PatternDiscoveryView: View {
                 DatePicker(
                     "Pattern starts",
                     selection: $data.patternStartDate,
+                    in: Date()...,
                     displayedComponents: .date
                 )
                 .datePickerStyle(.compact)
