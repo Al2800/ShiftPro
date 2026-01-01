@@ -15,6 +15,7 @@ final class NotificationSettings {
     var quietHoursEndMinutes: Int
     var createdAt: Date
     var updatedAt: Date
+    var lastScheduledAt: Date?
 
     @Relationship(deleteRule: .nullify)
     var owner: UserProfile?
@@ -31,6 +32,7 @@ final class NotificationSettings {
         quietHoursEndMinutes: Int = 6 * 60,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
+        lastScheduledAt: Date? = nil,
         owner: UserProfile? = nil
     ) {
         self.id = id
@@ -44,6 +46,7 @@ final class NotificationSettings {
         self.quietHoursEndMinutes = quietHoursEndMinutes
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.lastScheduledAt = lastScheduledAt
         self.owner = owner
     }
 }

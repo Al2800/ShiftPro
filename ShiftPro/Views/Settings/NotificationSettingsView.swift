@@ -49,6 +49,10 @@ private struct NotificationSettingsForm: View {
     let shifts: [Shift]
     @Binding var isScheduling: Bool
 
+    private var isAuthorized: Bool {
+        permissionManager.notificationStatus == .authorized
+    }
+
     var body: some View {
         Form {
             Section("Status") {
@@ -59,36 +63,65 @@ private struct NotificationSettingsForm: View {
                         .foregroundStyle(permissionManager.notificationStatus.color)
                 }
 
-                Button("Request Access") {
-                    Task {
-                        _ = await permissionManager.requestNotificationAccess()
-                        await permissionManager.refreshStatuses()
+                if !isAuthorized {
+                    Button("Request Access") {
+                        Task {
+                            _ = await permissionManager.requestNotificationAccess()
+                            await permissionManager.refreshStatuses()
+                        }
                     }
                 }
-                .disabled(permissionManager.notificationStatus == .authorized)
+
+                if let lastScheduled = settings.lastScheduledAt {
+                    HStack {
+                        Text("Last Updated")
+                        Spacer()
+                        Text(lastScheduled, style: .relative)
+                            .foregroundStyle(ShiftProColors.inkSubtle)
+                    }
+                }
             }
 
-            Section("Shift Reminders") {
+            Section {
                 Toggle("Start reminders", isOn: $settings.shiftStartReminderEnabled)
-                Picker("Reminder lead time", selection: $settings.shiftStartReminderMinutes) {
-                    Text("15 minutes").tag(15)
-                    Text("30 minutes").tag(30)
-                    Text("1 hour").tag(60)
-                    Text("2 hours").tag(120)
+                    .disabled(!isAuthorized)
+
+                if settings.shiftStartReminderEnabled {
+                    Picker("Reminder lead time", selection: $settings.shiftStartReminderMinutes) {
+                        Text("15 minutes").tag(15)
+                        Text("30 minutes").tag(30)
+                        Text("1 hour").tag(60)
+                        Text("2 hours").tag(120)
+                    }
+                    .disabled(!isAuthorized)
                 }
 
                 Toggle("End-of-shift summary", isOn: $settings.shiftEndSummaryEnabled)
+                    .disabled(!isAuthorized)
+            } header: {
+                Text("Shift Reminders")
+            } footer: {
+                if !isAuthorized {
+                    Text("Grant notification permission above to enable reminders.")
+                        .foregroundStyle(ShiftProColors.warning)
+                }
             }
 
             Section("Overtime") {
                 Toggle("Overtime warnings", isOn: $settings.overtimeWarningEnabled)
-                Stepper(value: $settings.overtimeWarningThresholdHours, in: 20...80, step: 1) {
-                    Text("Warn at \(Int(settings.overtimeWarningThresholdHours)) hours")
+                    .disabled(!isAuthorized)
+
+                if settings.overtimeWarningEnabled {
+                    Stepper(value: $settings.overtimeWarningThresholdHours, in: 20...80, step: 1) {
+                        Text("Warn at \(Int(settings.overtimeWarningThresholdHours)) hours")
+                    }
+                    .disabled(!isAuthorized)
                 }
             }
 
             Section("Weekly Summary") {
                 Toggle("Weekly recap", isOn: $settings.weeklySummaryEnabled)
+                    .disabled(!isAuthorized)
             }
 
             Section("Quiet Hours") {
@@ -97,11 +130,14 @@ private struct NotificationSettingsForm: View {
                     selection: quietHoursBinding(isStart: true),
                     displayedComponents: .hourAndMinute
                 )
+                .disabled(!isAuthorized)
+
                 DatePicker(
                     "Quiet hours end",
                     selection: quietHoursBinding(isStart: false),
                     displayedComponents: .hourAndMinute
                 )
+                .disabled(!isAuthorized)
             }
 
             Section {
@@ -116,12 +152,19 @@ private struct NotificationSettingsForm: View {
                         for request in requests {
                             try? await center.add(request)
                         }
+                        settings.lastScheduledAt = Date()
+                        settings.markUpdated()
                         isScheduling = false
                     }
                 }
-                .disabled(isScheduling)
+                .disabled(isScheduling || !isAuthorized)
             } footer: {
-                Text("Changes apply to future shifts. Notifications respect system Focus and quiet hours.")
+                if isAuthorized {
+                    Text("Changes apply to future shifts. Notifications respect system Focus and quiet hours.")
+                } else {
+                    Text("Enable notification permission to schedule reminders for your shifts.")
+                        .foregroundStyle(ShiftProColors.warning)
+                }
             }
         }
     }
