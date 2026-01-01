@@ -42,6 +42,10 @@ struct OnboardingView: View {
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.fog)
 
+            Text(manager.step.requirementLabel)
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(ShiftProColors.fog)
+
             ProgressView(value: manager.progress)
                 .tint(ShiftProColors.accent)
                 .padding(.horizontal, ShiftProSpacing.large)
@@ -74,6 +78,12 @@ struct OnboardingView: View {
 
     private var navigationControls: some View {
         VStack(spacing: 12) {
+            if manager.step == .completion, manager.hasSkippedOptionalSteps {
+                Text("You can finish optional setup later in Settings.")
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.fog)
+            }
+
             Button(action: primaryAction) {
                 Text(isSaving ? "Saving..." : primaryButtonTitle)
                     .font(ShiftProTypography.headline)
@@ -87,7 +97,7 @@ struct OnboardingView: View {
             }
             .padding(.horizontal, ShiftProSpacing.large)
             .accessibilityIdentifier("onboarding.primary")
-            .disabled(isSaving)
+            .disabled(isSaving || !manager.canProceed)
 
             HStack(spacing: 16) {
                 Button("Back") { manager.back() }
@@ -101,6 +111,12 @@ struct OnboardingView: View {
             }
             .font(ShiftProTypography.caption)
             .foregroundStyle(ShiftProColors.fog)
+
+            if let message = manager.validationMessage {
+                Text(message)
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.warning)
+            }
         }
     }
 

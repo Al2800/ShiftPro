@@ -4,8 +4,22 @@ import SwiftData
 
 @MainActor
 final class OnboardingManager: ObservableObject {
-    @Published var step: OnboardingStep = .welcome
-    @Published var data = OnboardingData()
+    @Published var step: OnboardingStep = .welcome {
+        didSet { persistProgress() }
+    }
+    @Published var data = OnboardingData() {
+        didSet { persistProgress() }
+    }
+    @Published private(set) var skippedSteps: Set<OnboardingStep> = [] {
+        didSet { persistProgress() }
+    }
+
+    private var hasRestoredProgress = false
+
+    init() {
+        restoreProgress()
+        hasRestoredProgress = true
+    }
 
     var progress: Double {
         let total = Double(OnboardingStep.allCases.count - 1)
@@ -24,12 +38,15 @@ final class OnboardingManager: ObservableObject {
 
     func skip() {
         guard step.isSkippable else { return }
+        skippedSteps.insert(step)
         next()
     }
 
     func reset() {
         step = .welcome
         data = OnboardingData()
+        skippedSteps = []
+        OnboardingProgressStore.clear()
     }
 
     // MARK: - Persistence
@@ -38,10 +55,75 @@ final class OnboardingManager: ObservableObject {
     /// Call this when user completes onboarding (taps "Start Using ShiftPro").
     func persist(context: ModelContext) throws {
         try OnboardingPersistenceService(context: context).persist(data: data)
+        OnboardingProgressStore.clear()
+    }
+
+    // MARK: - Progress
+
+    var hasSkippedOptionalSteps: Bool {
+        !skippedSteps.isEmpty
+    }
+
+    func isStepSkipped(_ step: OnboardingStep) -> Bool {
+        skippedSteps.contains(step)
+    }
+
+    // MARK: - Validation
+
+    struct ValidationResult {
+        let isValid: Bool
+        let message: String?
+    }
+
+    var canProceed: Bool {
+        validation(for: step).isValid
+    }
+
+    var validationMessage: String? {
+        validation(for: step).message
+    }
+
+    private func validation(for step: OnboardingStep) -> ValidationResult {
+        switch step {
+        case .profile:
+            if data.startDate > Date().addingTimeInterval(60 * 60 * 24 * 365) {
+                return ValidationResult(
+                    isValid: false,
+                    message: "Start date looks too far in the future."
+                )
+            }
+            return ValidationResult(isValid: true, message: nil)
+        case .payPeriod:
+            if data.regularHours <= 0 {
+                return ValidationResult(isValid: false, message: "Add at least 1 regular hour.")
+            }
+            if data.baseRate < 0 {
+                return ValidationResult(isValid: false, message: "Base rate can’t be negative.")
+            }
+            return ValidationResult(isValid: true, message: nil)
+        default:
+            return ValidationResult(isValid: true, message: nil)
+        }
+    }
+
+    private func restoreProgress() {
+        guard let progress = OnboardingProgressStore.load() else { return }
+        step = progress.step
+        data = progress.data
+        skippedSteps = Set(progress.skippedSteps)
+    }
+
+    private func persistProgress() {
+        guard hasRestoredProgress else { return }
+        OnboardingProgressStore.save(
+            step: step,
+            data: data,
+            skippedSteps: Array(skippedSteps)
+        )
     }
 }
 
-enum OnboardingStep: CaseIterable {
+enum OnboardingStep: String, CaseIterable, Codable {
     case welcome
     case permissions
     case profile
@@ -75,6 +157,10 @@ enum OnboardingStep: CaseIterable {
         }
     }
 
+    var requirementLabel: String {
+        isSkippable ? "Optional" : "Required"
+    }
+
     var title: String {
         switch self {
         case .welcome:
@@ -95,7 +181,7 @@ enum OnboardingStep: CaseIterable {
     }
 }
 
-struct OnboardingData {
+struct OnboardingData: Codable {
     var employeeId: String = ""
     var workplace: String = ""
     var jobTitle: String = ""
@@ -104,11 +190,12 @@ struct OnboardingData {
     var regularHours: Double = 40
     var baseRate: Double = 25
     var selectedPattern: ShiftPatternOption = .eightHour
+    var patternStartDate: Date = Date()
     var wantsCalendarSync: Bool = true
     var wantsNotifications: Bool = true
 }
 
-enum PayPeriodOption: String, CaseIterable, Identifiable {
+enum PayPeriodOption: String, CaseIterable, Identifiable, Codable {
     case weekly
     case biweekly
     case monthly
@@ -138,7 +225,7 @@ enum PayPeriodOption: String, CaseIterable, Identifiable {
     }
 }
 
-enum ShiftPatternOption: String, CaseIterable, Identifiable {
+enum ShiftPatternOption: String, CaseIterable, Identifiable, Codable {
     case eightHour
     case twelveHour
     case fourOnFourOff

@@ -11,7 +11,7 @@ struct ContentView: View {
                     hasOnboarded = true
                     showOnboarding = false
                 } else {
-                    showOnboarding = !hasOnboarded
+                    showOnboarding = !hasOnboarded || OnboardingProgressStore.hasProgress
                 }
             }
             .fullScreenCover(isPresented: $showOnboarding) {

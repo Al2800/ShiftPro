@@ -46,6 +46,7 @@ final class DataDeletionService {
     private static let userDefaultsKeys: [String] = [
         "hasOnboarded",
         "onboardingVersion",
+        "onboardingProgress",
         "selectedCalendarIdentifier",
         "calendarSyncSettings",
         "entitlementCache",
