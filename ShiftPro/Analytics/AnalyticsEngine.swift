@@ -10,6 +10,7 @@ final class AnalyticsEngine: ObservableObject {
     @Published private(set) var yearlyMetrics: YearlyMetrics?
     @Published private(set) var insights: [AnalyticsInsight] = []
     @Published private(set) var isLoading = false
+    @Published private(set) var errorMessage: String?
     
     private var modelContext: ModelContext?
     private var cancellables = Set<AnyCancellable>()
@@ -23,8 +24,18 @@ final class AnalyticsEngine: ObservableObject {
     // MARK: - Metrics Computation
     
     func refreshAllMetrics() async {
+        errorMessage = nil
         isLoading = true
         defer { isLoading = false }
+
+        guard modelContext != nil else {
+            errorMessage = "Analytics data is unavailable right now."
+            weeklyMetrics = nil
+            monthlyMetrics = nil
+            yearlyMetrics = nil
+            insights = []
+            return
+        }
         
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.computeWeeklyMetrics() }
@@ -43,27 +54,33 @@ final class AnalyticsEngine: ObservableObject {
         let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now))!
         let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart)!
         
-        // Fetch shifts for this week
-        let shifts = fetchShifts(from: weekStart, to: weekEnd, context: context)
+        do {
+            // Fetch shifts for this week
+            let shifts = try fetchShifts(from: weekStart, to: weekEnd, context: context)
+            
+            // Also fetch previous week for comparison
+            let prevWeekStart = calendar.date(byAdding: .day, value: -7, to: weekStart)!
+            let prevShifts = try fetchShifts(from: prevWeekStart, to: weekStart, context: context)
+            
+            let currentHours = computeHours(from: shifts)
+            let previousHours = computeHours(from: prevShifts)
+            
+            weeklyMetrics = WeeklyMetrics(
+                periodStart: weekStart,
+                periodEnd: weekEnd,
+                totalHours: currentHours.total,
+                regularHours: currentHours.regular,
+                premiumHours: currentHours.premium,
+                shiftCount: shifts.count,
+                averageShiftDuration: shifts.isEmpty ? 0 : currentHours.total / Double(shifts.count),
+                comparedToPrevious: previousHours.total > 0 ? (currentHours.total - previousHours.total) / previousHours.total : 0,
+                byDay: computeHoursByDay(shifts: shifts, weekStart: weekStart)
+            )
+        } catch {
+            weeklyMetrics = nil
+            errorMessage = "We couldn't load weekly analytics."
+        }
         
-        // Also fetch previous week for comparison
-        let prevWeekStart = calendar.date(byAdding: .day, value: -7, to: weekStart)!
-        let prevShifts = fetchShifts(from: prevWeekStart, to: weekStart, context: context)
-        
-        let currentHours = computeHours(from: shifts)
-        let previousHours = computeHours(from: prevShifts)
-        
-        weeklyMetrics = WeeklyMetrics(
-            periodStart: weekStart,
-            periodEnd: weekEnd,
-            totalHours: currentHours.total,
-            regularHours: currentHours.regular,
-            premiumHours: currentHours.premium,
-            shiftCount: shifts.count,
-            averageShiftDuration: shifts.isEmpty ? 0 : currentHours.total / Double(shifts.count),
-            comparedToPrevious: previousHours.total > 0 ? (currentHours.total - previousHours.total) / previousHours.total : 0,
-            byDay: computeHoursByDay(shifts: shifts, weekStart: weekStart)
-        )
     }
     
     func computeMonthlyMetrics() async {
@@ -74,25 +91,30 @@ final class AnalyticsEngine: ObservableObject {
         let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now))!
         let monthEnd = calendar.date(byAdding: .month, value: 1, to: monthStart)!
         
-        let shifts = fetchShifts(from: monthStart, to: monthEnd, context: context)
-        let prevMonthStart = calendar.date(byAdding: .month, value: -1, to: monthStart)!
-        let prevShifts = fetchShifts(from: prevMonthStart, to: monthStart, context: context)
-        
-        let currentHours = computeHours(from: shifts)
-        let previousHours = computeHours(from: prevShifts)
-        
-        monthlyMetrics = MonthlyMetrics(
-            periodStart: monthStart,
-            periodEnd: monthEnd,
-            totalHours: currentHours.total,
-            regularHours: currentHours.regular,
-            premiumHours: currentHours.premium,
-            overtimeHours: currentHours.overtime,
-            shiftCount: shifts.count,
-            averageShiftDuration: shifts.isEmpty ? 0 : currentHours.total / Double(shifts.count),
-            comparedToPrevious: previousHours.total > 0 ? (currentHours.total - previousHours.total) / previousHours.total : 0,
-            byWeek: computeHoursByWeek(shifts: shifts, monthStart: monthStart)
-        )
+        do {
+            let shifts = try fetchShifts(from: monthStart, to: monthEnd, context: context)
+            let prevMonthStart = calendar.date(byAdding: .month, value: -1, to: monthStart)!
+            let prevShifts = try fetchShifts(from: prevMonthStart, to: monthStart, context: context)
+            
+            let currentHours = computeHours(from: shifts)
+            let previousHours = computeHours(from: prevShifts)
+            
+            monthlyMetrics = MonthlyMetrics(
+                periodStart: monthStart,
+                periodEnd: monthEnd,
+                totalHours: currentHours.total,
+                regularHours: currentHours.regular,
+                premiumHours: currentHours.premium,
+                overtimeHours: currentHours.overtime,
+                shiftCount: shifts.count,
+                averageShiftDuration: shifts.isEmpty ? 0 : currentHours.total / Double(shifts.count),
+                comparedToPrevious: previousHours.total > 0 ? (currentHours.total - previousHours.total) / previousHours.total : 0,
+                byWeek: computeHoursByWeek(shifts: shifts, monthStart: monthStart)
+            )
+        } catch {
+            monthlyMetrics = nil
+            errorMessage = "We couldn't load monthly analytics."
+        }
     }
     
     func computeYearlyMetrics() async {
@@ -103,24 +125,29 @@ final class AnalyticsEngine: ObservableObject {
         let yearStart = calendar.date(from: calendar.dateComponents([.year], from: now))!
         let yearEnd = calendar.date(byAdding: .year, value: 1, to: yearStart)!
         
-        let shifts = fetchShifts(from: yearStart, to: yearEnd, context: context)
-        let prevYearStart = calendar.date(byAdding: .year, value: -1, to: yearStart)!
-        let prevShifts = fetchShifts(from: prevYearStart, to: yearStart, context: context)
-        
-        let currentHours = computeHours(from: shifts)
-        let previousHours = computeHours(from: prevShifts)
-        
-        yearlyMetrics = YearlyMetrics(
-            year: calendar.component(.year, from: now),
-            totalHours: currentHours.total,
-            regularHours: currentHours.regular,
-            premiumHours: currentHours.premium,
-            overtimeHours: currentHours.overtime,
-            shiftCount: shifts.count,
-            averageShiftDuration: shifts.isEmpty ? 0 : currentHours.total / Double(shifts.count),
-            comparedToPrevious: previousHours.total > 0 ? (currentHours.total - previousHours.total) / previousHours.total : 0,
-            byMonth: computeHoursByMonth(shifts: shifts, yearStart: yearStart)
-        )
+        do {
+            let shifts = try fetchShifts(from: yearStart, to: yearEnd, context: context)
+            let prevYearStart = calendar.date(byAdding: .year, value: -1, to: yearStart)!
+            let prevShifts = try fetchShifts(from: prevYearStart, to: yearStart, context: context)
+            
+            let currentHours = computeHours(from: shifts)
+            let previousHours = computeHours(from: prevShifts)
+            
+            yearlyMetrics = YearlyMetrics(
+                year: calendar.component(.year, from: now),
+                totalHours: currentHours.total,
+                regularHours: currentHours.regular,
+                premiumHours: currentHours.premium,
+                overtimeHours: currentHours.overtime,
+                shiftCount: shifts.count,
+                averageShiftDuration: shifts.isEmpty ? 0 : currentHours.total / Double(shifts.count),
+                comparedToPrevious: previousHours.total > 0 ? (currentHours.total - previousHours.total) / previousHours.total : 0,
+                byMonth: computeHoursByMonth(shifts: shifts, yearStart: yearStart)
+            )
+        } catch {
+            yearlyMetrics = nil
+            errorMessage = "We couldn't load yearly analytics."
+        }
     }
     
     // MARK: - Insights Generation
@@ -129,7 +156,7 @@ final class AnalyticsEngine: ObservableObject {
         var newInsights: [AnalyticsInsight] = []
         
         // Overtime pattern insight
-        if let monthly = monthlyMetrics, monthly.overtimeHours > monthly.totalHours * 0.2 {
+        if let monthly = monthlyMetrics, monthly.totalHours > 0, monthly.overtimeHours > monthly.totalHours * 0.2 {
             let otHours = String(format: "%.1f", monthly.overtimeHours)
             let otPercent = Int(monthly.overtimeHours / monthly.totalHours * 100)
             newInsights.append(AnalyticsInsight(
@@ -171,7 +198,7 @@ final class AnalyticsEngine: ObservableObject {
         }
         
         // Premium rate insight
-        if let monthly = monthlyMetrics, monthly.premiumHours > 0 {
+        if let monthly = monthlyMetrics, monthly.totalHours > 0, monthly.premiumHours > 0 {
             let premiumPercent = monthly.premiumHours / monthly.totalHours * 100
             newInsights.append(AnalyticsInsight(
                 id: UUID(),
@@ -188,7 +215,7 @@ final class AnalyticsEngine: ObservableObject {
     
     // MARK: - Helper Methods
     
-    private func fetchShifts(from start: Date, to end: Date, context: ModelContext) -> [Shift] {
+    private func fetchShifts(from start: Date, to end: Date, context: ModelContext) throws -> [Shift] {
         let descriptor = FetchDescriptor<Shift>(
             predicate: #Predicate<Shift> { shift in
                 shift.deletedAt == nil &&
@@ -197,7 +224,7 @@ final class AnalyticsEngine: ObservableObject {
             },
             sortBy: [SortDescriptor(\.scheduledStart, order: .forward)]
         )
-        return (try? context.fetch(descriptor)) ?? []
+        return try context.fetch(descriptor)
     }
     
     private func computeHours(from shifts: [Shift]) -> HoursBreakdown {
@@ -217,6 +244,7 @@ final class AnalyticsEngine: ObservableObject {
     }
     
     private func computeHoursByDay(shifts: [Shift], weekStart: Date) -> [DayHours] {
+        guard !shifts.isEmpty else { return [] }
         let calendar = Calendar.current
         var byDay: [Int: Double] = [:]
         

@@ -7,6 +7,8 @@ struct AnalyticsDashboard: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var analyticsEngine = AnalyticsEngine()
     @State private var selectedPeriod: AnalyticsPeriod = .week
+    @State private var showingAddShift = false
+    @State private var showingImport = false
 
     var body: some View {
         ScrollView {
@@ -16,6 +18,8 @@ struct AnalyticsDashboard: View {
                 if analyticsEngine.isLoading {
                     ProgressView("Analyzing data...")
                         .padding()
+                } else if let errorMessage = analyticsEngine.errorMessage {
+                    errorState(message: errorMessage)
                 } else if !hasAnyData {
                     emptyState
                 } else {
@@ -31,19 +35,25 @@ struct AnalyticsDashboard: View {
         .background(ShiftProColors.background)
         .task {
             analyticsEngine.configure(with: modelContext)
-            await analyticsEngine.refreshAllMetrics()
+            await refreshAnalytics()
         }
         .onChange(of: selectedPeriod) { _, _ in
             Task {
-                await analyticsEngine.refreshAllMetrics()
+                await refreshAnalytics()
             }
+        }
+        .sheet(isPresented: $showingAddShift) {
+            ShiftFormView()
+        }
+        .sheet(isPresented: $showingImport) {
+            ImportView()
         }
     }
 
     private var hasAnyData: Bool {
-        analyticsEngine.weeklyMetrics != nil ||
-        analyticsEngine.monthlyMetrics != nil ||
-        analyticsEngine.yearlyMetrics != nil
+        (analyticsEngine.weeklyMetrics?.shiftCount ?? 0) > 0 ||
+        (analyticsEngine.monthlyMetrics?.shiftCount ?? 0) > 0 ||
+        (analyticsEngine.yearlyMetrics?.shiftCount ?? 0) > 0
     }
 
     private var emptyState: some View {
@@ -60,6 +70,32 @@ struct AnalyticsDashboard: View {
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(ShiftProColors.inkSubtle)
                 .multilineTextAlignment(.center)
+
+            callToActionButtons
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, ShiftProSpacing.extraLarge)
+    }
+
+    private func errorState(message: String) -> some View {
+        VStack(spacing: ShiftProSpacing.medium) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 40))
+                .foregroundStyle(ShiftProColors.warning)
+
+            Text("Analytics Unavailable")
+                .font(ShiftProTypography.headline)
+                .foregroundStyle(ShiftProColors.ink)
+
+            Text(message)
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(ShiftProColors.inkSubtle)
+                .multilineTextAlignment(.center)
+
+            Button("Try Again") {
+                Task { await refreshAnalytics() }
+            }
+            .font(ShiftProTypography.subheadline)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, ShiftProSpacing.extraLarge)
@@ -85,41 +121,48 @@ struct AnalyticsDashboard: View {
                 .foregroundStyle(ShiftProColors.ink)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: ShiftProSpacing.medium) {
-                metricCard(
-                    title: "Total Hours",
-                    value: currentMetrics?.totalHours ?? 0,
-                    format: "%.1f",
-                    icon: "clock.fill",
-                    color: ShiftProColors.accent
-                )
+            if let metrics = currentMetrics, metrics.shiftCount > 0 {
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: ShiftProSpacing.medium) {
+                    metricCard(
+                        title: "Total Hours",
+                        value: metrics.totalHours,
+                        format: "%.1f",
+                        icon: "clock.fill",
+                        color: ShiftProColors.accent
+                    )
 
-                metricCard(
-                    title: "Shifts",
-                    value: Double(currentMetrics?.shiftCount ?? 0),
-                    format: "%.0f",
-                    icon: "calendar",
-                    color: ShiftProColors.success
-                )
+                    metricCard(
+                        title: "Shifts",
+                        value: Double(metrics.shiftCount),
+                        format: "%.0f",
+                        icon: "calendar",
+                        color: ShiftProColors.success
+                    )
 
-                metricCard(
-                    title: "Avg Duration",
-                    value: currentMetrics?.averageShiftDuration ?? 0,
-                    format: "%.1fh",
-                    icon: "timer",
-                    color: ShiftProColors.warning
-                )
+                    metricCard(
+                        title: "Avg Duration",
+                        value: metrics.averageShiftDuration,
+                        format: "%.1fh",
+                        icon: "timer",
+                        color: ShiftProColors.warning
+                    )
 
-                metricCard(
-                    title: "Premium Hours",
-                    value: currentMetrics?.premiumHours ?? 0,
-                    format: "%.1f",
-                    icon: "star.fill",
-                    color: ShiftProColors.accentMuted
-                )
+                    metricCard(
+                        title: "Premium Hours",
+                        value: metrics.premiumHours,
+                        format: "%.1f",
+                        icon: "star.fill",
+                        color: ShiftProColors.accentMuted
+                    )
+                }
+            } else {
+                Text("No shifts in this period yet.")
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .padding(ShiftProSpacing.medium)
@@ -158,10 +201,15 @@ struct AnalyticsDashboard: View {
                 .foregroundStyle(ShiftProColors.ink)
 
             if analyticsEngine.insights.isEmpty {
-                Text("No insights available yet. Keep tracking your shifts!")
-                    .font(ShiftProTypography.subheadline)
-                    .foregroundStyle(ShiftProColors.inkSubtle)
-                    .padding(ShiftProSpacing.medium)
+                VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
+                    Text("No insights yet.")
+                        .font(ShiftProTypography.subheadline)
+                        .foregroundStyle(ShiftProColors.ink)
+                    Text("Track a few more shifts to unlock personalized insights.")
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                }
+                .padding(ShiftProSpacing.medium)
             } else {
                 ForEach(analyticsEngine.insights) { insight in
                     InsightCard(insight: insight)
@@ -181,13 +229,17 @@ struct AnalyticsDashboard: View {
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.ink)
 
-            if let metrics = currentMetrics {
+            if let metrics = currentMetrics, metrics.shiftCount > 0 {
                 let change = metrics.comparedToPrevious
                 TrendIndicator(
                     title: "vs Previous Period",
                     change: change,
                     isPositive: change >= 0
                 )
+            } else {
+                Text("Add shifts to start tracking trends.")
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
             }
         }
         .padding(ShiftProSpacing.medium)
@@ -263,9 +315,28 @@ struct AnalyticsDashboard: View {
             Text("No data for this period")
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(ShiftProColors.inkSubtle)
+            Button("Add Shift") {
+                showingAddShift = true
+            }
+            .font(ShiftProTypography.caption)
+            .foregroundStyle(ShiftProColors.accent)
         }
         .frame(maxWidth: .infinity)
         .frame(height: 200)
+    }
+
+    private var callToActionButtons: some View {
+        VStack(spacing: ShiftProSpacing.small) {
+            QuickActionButton(title: "Add Shift", systemImage: "plus.circle.fill") {
+                showingAddShift = true
+            }
+
+            Button("Import Shifts") {
+                showingImport = true
+            }
+            .font(ShiftProTypography.caption)
+            .foregroundStyle(ShiftProColors.accent)
+        }
     }
     
     // MARK: - Computed Properties
@@ -300,6 +371,10 @@ struct AnalyticsDashboard: View {
                 comparedToPrevious: yearlyMetrics.comparedToPrevious
             )
         }
+    }
+
+    private func refreshAnalytics() async {
+        await analyticsEngine.refreshAllMetrics()
     }
 }
 
