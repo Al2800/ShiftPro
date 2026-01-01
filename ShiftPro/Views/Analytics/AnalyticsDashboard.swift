@@ -57,24 +57,15 @@ struct AnalyticsDashboard: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: ShiftProSpacing.medium) {
-            Image(systemName: "chart.bar.xaxis")
-                .font(.system(size: 48))
-                .foregroundStyle(ShiftProColors.inkSubtle)
-
-            Text("No Analytics Data")
-                .font(ShiftProTypography.headline)
-                .foregroundStyle(ShiftProColors.ink)
-
-            Text("Complete some shifts to see your analytics and insights")
-                .font(ShiftProTypography.caption)
-                .foregroundStyle(ShiftProColors.inkSubtle)
-                .multilineTextAlignment(.center)
-
-            callToActionButtons
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, ShiftProSpacing.extraLarge)
+        EmptyStateView(
+            icon: "chart.bar.xaxis",
+            title: "No analytics data",
+            subtitle: "Complete some shifts to see your analytics and insights",
+            actionTitle: "Add Shift",
+            action: { showingAddShift = true },
+            secondaryActionTitle: "Import Shifts",
+            secondaryAction: { showingImport = true }
+        )
     }
 
     private func errorState(message: String) -> some View {
@@ -325,20 +316,6 @@ struct AnalyticsDashboard: View {
         .frame(height: 200)
     }
 
-    private var callToActionButtons: some View {
-        VStack(spacing: ShiftProSpacing.small) {
-            QuickActionButton(title: "Add Shift", systemImage: "plus.circle.fill") {
-                showingAddShift = true
-            }
-
-            Button("Import Shifts") {
-                showingImport = true
-            }
-            .font(ShiftProTypography.caption)
-            .foregroundStyle(ShiftProColors.accent)
-        }
-    }
-    
     // MARK: - Computed Properties
     
     private var currentMetrics: MetricsSnapshot? {

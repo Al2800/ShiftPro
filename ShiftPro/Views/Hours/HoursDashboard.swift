@@ -12,6 +12,8 @@ struct HoursDashboard: View {
     private var profiles: [UserProfile]
 
     @State private var rateChartStyle: RateBreakdownChart.ChartStyle = .pie
+    @State private var showingAddShift = false
+    @State private var showingImport = false
 
     private let calculator = PayPeriodCalculator()
     private let overtimePredictor = OvertimePredictor()
@@ -19,28 +21,33 @@ struct HoursDashboard: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
-                heroCard
+                if shifts.isEmpty {
+                    emptyState
+                    dataActionsCard
+                } else {
+                    heroCard
 
-                NavigationLink {
-                    PayPeriodDetailView(
-                        period: currentPeriod,
-                        shifts: periodShifts,
-                        baseRateCents: profile?.baseRateCents
-                    )
-                } label: {
-                    summaryCard
+                    NavigationLink {
+                        PayPeriodDetailView(
+                            period: currentPeriod,
+                            shifts: periodShifts,
+                            baseRateCents: profile?.baseRateCents
+                        )
+                    } label: {
+                        summaryCard
+                    }
+                    .buttonStyle(.plain)
+
+                    chartCard
+
+                    rateBreakdownCard
+
+                    overtimeCard
+
+                    recentPeriodsCard
+
+                    dataActionsCard
                 }
-                .buttonStyle(.plain)
-
-                chartCard
-
-                rateBreakdownCard
-
-                overtimeCard
-
-                recentPeriodsCard
-
-                dataActionsCard
             }
             .padding(.horizontal, ShiftProSpacing.medium)
             .padding(.vertical, ShiftProSpacing.large)
@@ -51,6 +58,12 @@ struct HoursDashboard: View {
             NavigationLink("Rates") {
                 RateMultiplierView()
             }
+        }
+        .sheet(isPresented: $showingAddShift) {
+            ShiftFormView()
+        }
+        .sheet(isPresented: $showingImport) {
+            ImportView()
         }
     }
 
@@ -94,6 +107,18 @@ struct HoursDashboard: View {
     private var overtimeForecast: OvertimeForecast {
         let threshold = Double(profile?.regularHoursPerPay ?? 80)
         return overtimePredictor.forecast(for: periodShifts, within: currentPeriod, thresholdHours: threshold)
+    }
+
+    private var emptyState: some View {
+        EmptyStateView(
+            icon: "clock.badge.questionmark",
+            title: "No hours tracked yet",
+            subtitle: "Add your first shift to see hours, pay, and overtime forecasts.",
+            actionTitle: "Add Shift",
+            action: { showingAddShift = true },
+            secondaryActionTitle: "Import Shifts",
+            secondaryAction: { showingImport = true }
+        )
     }
 
     private var heroCard: some View {
