@@ -149,3 +149,58 @@ git push                # Push to remote
 - Always `bd sync` before ending session
 
 <!-- end-bv-agent-instructions -->
+
+
+---
+
+## Commit Discipline (Multi-Agent)
+
+When multiple agents share the same working tree, commit discipline prevents confusion.
+
+### Core Rules
+
+1. **Commit frequently, not just at task end**
+   - Commit after each logical change (file created, function added, bug fixed)
+   - Other agents see progress, not mystery uncommitted files
+
+2. **Pull before editing any file you didn't create**
+   ```bash
+   git pull --rebase
+   ```
+
+3. **All work on main branch**
+   - No feature branches, no worktrees
+   - Use advisory file reservations via agent-mail to avoid conflicts
+
+4. **Conventional commit format**
+   ```
+   type(scope): description
+   
+   [optional body]
+   
+   Refs: <bead-id>
+   ```
+   Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`
+
+5. **Push immediately after committing**
+   - Don't leave commits sitting locally
+   - Other agents need to see your changes
+
+### If You See Uncommitted Changes You Didn't Make
+
+- Check `git log` to see recent commits
+- Check agent-mail for who's working on what
+- Ask before modifying files with uncommitted changes from others
+
+### Commit Prompts
+
+See `command_palette.md` for detailed commit prompts:
+- `git_commit` - Detailed multi-file commit
+- `git_commit_wip` - Quick WIP checkpoint
+- `git_selective_commit` - Group changes by area
+- `git_error_checkpoint` - Record lint/type error counts
+
+### Full Git Workflow Guide
+
+For comprehensive multi-agent git patterns, commit agent setup, and troubleshooting:
+→ [git-multi-agent-workflow.md](~/clawd/docs/git-multi-agent-workflow.md)

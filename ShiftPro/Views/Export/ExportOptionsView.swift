@@ -47,9 +47,10 @@ struct ExportOptionsView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                // Category Selection
-                Section {
+            ZStack {
+                Form {
+                    // Category Selection
+                    Section {
                     Picker("Export Type", selection: $selectedCategory) {
                         ForEach([ExportCategory.shiftReport, .hoursSummary, .payrollReport], id: \.self) { category in
                             VStack(alignment: .leading) {
@@ -69,32 +70,14 @@ struct ExportOptionsView: View {
 
                 // Format Selection
                 Section {
-                    Picker("Format", selection: $selectedFormat) {
-                        Text("CSV (Spreadsheet)").tag(ExportManager.ExportFormat.csv)
-                        Text("PDF (Document)").tag(ExportManager.ExportFormat.pdf)
-                            .disabled(!entitlementManager.hasAccess(to: .fullExport))
-                    }
-                    .pickerStyle(.segmented)
-                    .onChange(of: selectedFormat) { newValue in
-                        if newValue == .pdf && !entitlementManager.hasAccess(to: .fullExport) {
-                            selectedFormat = .csv
-                            showPaywall = true
-                        }
+                    ForEach([ExportManager.ExportFormat.csv, .pdf], id: \.self) { format in
+                        formatRow(format)
                     }
                 } header: {
                     Text("File Format")
                 } footer: {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(formatDescription)
-                            .font(ShiftProTypography.caption)
-
-                        if !entitlementManager.hasAccess(to: .fullExport) {
-                            Button("Upgrade to unlock PDF exports") {
-                                showPaywall = true
-                            }
-                            .font(ShiftProTypography.caption)
-                        }
-                    }
+                    Text(formatDescription)
+                        .font(ShiftProTypography.caption)
                 }
 
                 // Security Options
@@ -143,10 +126,51 @@ struct ExportOptionsView: View {
                 // Error Display
                 if let errorMessage = errorMessage {
                     Section {
-                        Text(errorMessage)
-                            .foregroundStyle(ShiftProColors.danger)
-                            .font(ShiftProTypography.caption)
+                        HStack(spacing: ShiftProSpacing.small) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(ShiftProColors.danger)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Export Failed")
+                                    .font(ShiftProTypography.body)
+                                    .foregroundStyle(ShiftProColors.danger)
+                                Text(errorMessage)
+                                    .font(ShiftProTypography.caption)
+                                    .foregroundStyle(ShiftProColors.inkSubtle)
+                            }
+                        }
+
+                        Button("Try Again") {
+                            self.errorMessage = nil
+                            performExport()
+                        }
+                        .foregroundStyle(ShiftProColors.accent)
                     }
+                }
+                }
+
+                // Progress Overlay
+                if isExporting {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+
+                    VStack(spacing: ShiftProSpacing.medium) {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                            .tint(.white)
+
+                        Text("Generating Export...")
+                            .font(ShiftProTypography.headline)
+                            .foregroundStyle(.white)
+
+                        Text("This may take a moment")
+                            .font(ShiftProTypography.caption)
+                            .foregroundStyle(.white.opacity(0.8))
+                    }
+                    .padding(ShiftProSpacing.extraLarge)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(ShiftProColors.midnight.opacity(0.9))
+                    )
                 }
             }
             .navigationTitle("Export Data")
@@ -222,6 +246,64 @@ struct ExportOptionsView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Format Row
+
+    private func formatRow(_ format: ExportManager.ExportFormat) -> some View {
+        let isPremiumLocked = format == .pdf && !entitlementManager.hasAccess(to: .fullExport)
+        let isSelected = selectedFormat == format
+
+        return Button {
+            if isPremiumLocked {
+                showPaywall = true
+            } else {
+                selectedFormat = format
+            }
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: ShiftProSpacing.small) {
+                        Text(format == .csv ? "CSV (Spreadsheet)" : "PDF (Document)")
+                            .font(ShiftProTypography.body)
+                            .foregroundStyle(isPremiumLocked ? ShiftProColors.inkSubtle : ShiftProColors.ink)
+
+                        if isPremiumLocked {
+                            Text("PREMIUM")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    Capsule()
+                                        .fill(ShiftProColors.accent)
+                                )
+                        }
+                    }
+
+                    Text(format == .csv
+                         ? "Excel, Google Sheets compatible"
+                         : "Professional document format")
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                }
+
+                Spacer()
+
+                if isSelected && !isPremiumLocked {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(ShiftProColors.accent)
+                } else if isPremiumLocked {
+                    Image(systemName: "lock.fill")
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                } else {
+                    Image(systemName: "circle")
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                }
+            }
+            .padding(.vertical, ShiftProSpacing.extraSmall)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Helper Properties
