@@ -119,6 +119,8 @@ final class CalendarIntegrationService: ObservableObject {
         let calendar = try ensureShiftCalendar()
         try syncShift(shift, calendar: calendar, settings: settings)
         lastSyncDate = Date()
+        var updatedSettings = settings
+        updatedSettings.markSynced()
     }
 
     private func syncShift(_ shift: Shift, calendar: EKCalendar, settings: CalendarSyncSettings) throws {

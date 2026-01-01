@@ -29,7 +29,9 @@ struct CalendarSettingsView: View {
                 if !isAuthorized {
                     Button("Request Access") {
                         Task {
-                            _ = await permissionManager.requestCalendarAccess()
+                            await permissionManager.requestCalendarAccess()
+                            await permissionManager.refreshStatuses()
+                            loadCalendars()
                         }
                     }
                 }
@@ -120,9 +122,14 @@ struct CalendarSettingsView: View {
         .navigationTitle("Calendar")
         .task {
             await permissionManager.refreshStatuses()
+            loadCalendars()
         }
         .onChange(of: settings) { _, newValue in
             newValue.save()
+        }
+        .onChange(of: selectedCalendarIdentifier) { newValue in
+            guard !newValue.isEmpty else { return }
+            UserDefaults.standard.set(newValue, forKey: calendarIdentifierKey)
         }
         .confirmationDialog(
             "Enable Two-Way Sync?",
@@ -137,6 +144,22 @@ struct CalendarSettingsView: View {
             }
         } message: {
             Text("Two-way sync allows changes made in your calendar app to update your shifts in ShiftPro. This means editing or deleting events in your calendar will affect your shift records.\n\nAre you sure you want to enable this?")
+        }
+    }
+
+    private func loadCalendars() {
+        guard isAuthorized else {
+            calendars = []
+            return
+        }
+        calendars = eventStore.calendars(for: .event)
+            .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+        let knownIdentifiers = Set(calendars.map(\.calendarIdentifier))
+        if selectedCalendarIdentifier.isEmpty || !knownIdentifiers.contains(selectedCalendarIdentifier) {
+            selectedCalendarIdentifier = UserDefaults.standard.string(forKey: calendarIdentifierKey)
+                ?? eventStore.defaultCalendarForNewEvents?.calendarIdentifier
+                ?? calendars.first?.calendarIdentifier
+                ?? ""
         }
     }
 
