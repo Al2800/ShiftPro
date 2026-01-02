@@ -47,8 +47,8 @@ final class DataDeletionService {
         "hasOnboarded",
         "onboardingVersion",
         "onboardingProgress",
-        "selectedCalendarIdentifier",
-        "calendarSyncSettings",
+        CalendarSyncSettings.storageKey,
+        "ShiftPro.CalendarIdentifier",
         "entitlementCache",
         "cachedWatchData"
     ]
@@ -283,7 +283,7 @@ final class DataDeletionService {
     /// - Returns: true if the calendar was deleted or didn't exist, false if deletion failed
     static func deleteShiftProCalendar() -> Bool {
         let eventStore = EKEventStore()
-        let calendarIdentifierKey = "selectedCalendarIdentifier"
+        let calendarIdentifierKey = "ShiftPro.CalendarIdentifier"
 
         guard let identifier = UserDefaults.standard.string(forKey: calendarIdentifierKey),
               let calendar = eventStore.calendar(withIdentifier: identifier) else {

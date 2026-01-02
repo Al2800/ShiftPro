@@ -235,6 +235,16 @@ struct ImportView: View {
         let capturedContext = context
         Task {
             do {
+                let accessGranted = url.startAccessingSecurityScopedResource()
+                defer {
+                    if accessGranted {
+                        url.stopAccessingSecurityScopedResource()
+                    }
+                }
+                guard accessGranted else {
+                    throw ImportManager.ImportError.importFailed("Unable to access the selected file.")
+                }
+
                 let importManager = await ImportManager(context: capturedContext)
                 let result = try await importManager.importData(
                     from: url,
@@ -262,6 +272,17 @@ struct ImportView: View {
     }
 
     private func buildPreview(from url: URL) async -> (ImportFilePreview?, ValidationState) {
+        let accessGranted = url.startAccessingSecurityScopedResource()
+        defer {
+            if accessGranted {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        guard accessGranted else {
+            return (nil, .invalid(message: "Unable to access the selected file."))
+        }
+
         guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path) else {
             return (nil, .invalid(message: "Unable to read file attributes."))
         }

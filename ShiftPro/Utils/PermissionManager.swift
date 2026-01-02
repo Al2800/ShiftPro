@@ -18,8 +18,21 @@ final class PermissionManager: ObservableObject {
 
     func requestCalendarAccess() async {
         do {
-            let granted = try await eventStore.requestFullAccessToEvents()
-            calendarStatus = granted ? .authorized : .denied
+            let granted: Bool
+            if #available(iOS 17.0, *) {
+                let mode = CalendarSyncSettings.load().mode
+                if mode == .exportOnly {
+                    granted = try await eventStore.requestWriteOnlyAccessToEvents()
+                } else {
+                    granted = try await eventStore.requestFullAccessToEvents()
+                }
+            } else {
+                granted = try await eventStore.requestAccess(to: .event)
+            }
+            calendarStatus = PermissionStatus(authorizationStatus: EKEventStore.authorizationStatus(for: .event))
+            if !granted {
+                calendarStatus = .denied
+            }
         } catch {
             calendarStatus = .denied
         }
