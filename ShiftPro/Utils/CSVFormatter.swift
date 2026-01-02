@@ -198,6 +198,14 @@ struct CSVFormatter {
         }
         return data
     }
+
+    func formatHoursSummary(shifts: [Shift], period: PayPeriod) throws -> Data {
+        let csv = exportHoursSummary(shifts: shifts, period: period, profile: nil)
+        guard let data = csv.data(using: .utf8) else {
+            throw NSError(domain: "CSVFormatter", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to encode CSV"])
+        }
+        return data
+    }
 }
 
 private struct RateBreakdown {

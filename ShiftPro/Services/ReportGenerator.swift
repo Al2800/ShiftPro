@@ -9,18 +9,33 @@ final class ReportGenerator {
     // MARK: - Payroll CSV
 
     func generatePayrollCSV(period: PayPeriod) throws -> Data {
+        return try generatePayrollCSV(period: period, shifts: period.activeShifts)
+    }
+
+    func generatePayrollCSV(period: PayPeriod, shifts: [Shift]) throws -> Data {
         var csv = "PAYROLL REPORT\n"
         csv += "Pay Period: \(period.dateRangeFormatted)\n"
         csv += "Generated: \(formatDateTime(Date()))\n"
         csv += "\n"
 
+        let completedShifts = shifts.filter { $0.deletedAt == nil && $0.isCompleted }
+        let baseRateCents = shifts.compactMap { $0.owner?.baseRateCents }.first
+        let totalPaidMinutes = completedShifts.reduce(0) { $0 + paidMinutes(for: $1) }
+        let premiumMinutes = completedShifts.reduce(0) { total, shift in
+            shift.rateMultiplier > 1.0 ? total + paidMinutes(for: shift) : total
+        }
+        let regularMinutes = max(0, totalPaidMinutes - premiumMinutes)
+        let totalHours = Double(totalPaidMinutes) / 60.0
+        let regularHours = Double(regularMinutes) / 60.0
+        let premiumHours = Double(premiumMinutes) / 60.0
+
         // Summary section
         csv += "SUMMARY\n"
-        csv += "Total Hours,\(String(format: "%.2f", period.paidHours))\n"
-        csv += "Regular Hours,\(String(format: "%.2f", period.regularHours))\n"
-        csv += "Premium Hours,\(String(format: "%.2f", period.premiumHours))\n"
+        csv += "Total Hours,\(String(format: "%.2f", totalHours))\n"
+        csv += "Regular Hours,\(String(format: "%.2f", regularHours))\n"
+        csv += "Premium Hours,\(String(format: "%.2f", premiumHours))\n"
 
-        if let estimatedPay = period.estimatedPayFormatted {
+        if let estimatedPay = estimatedPayFormatted(shifts: completedShifts, baseRateCents: baseRateCents) {
             csv += "Estimated Pay,\(estimatedPay)\n"
         }
         csv += "\n"
@@ -29,11 +44,10 @@ final class ReportGenerator {
         csv += "RATE BREAKDOWN\n"
         csv += "Rate Type,Multiplier,Hours,Percentage\n"
 
-        let totalHours = period.paidHours
-        let groupedShifts = Dictionary(grouping: period.completedShifts) { $0.rateMultiplier }
+        let groupedShifts = Dictionary(grouping: completedShifts) { $0.rateMultiplier }
 
         for (multiplier, shifts) in groupedShifts.sorted(by: { $0.key < $1.key }) {
-            let totalMinutes = shifts.reduce(0) { $0 + $1.paidMinutes }
+            let totalMinutes = shifts.reduce(0) { $0 + paidMinutes(for: $1) }
             let hours = Double(totalMinutes) / 60.0
             let percentage = totalHours > 0 ? (hours / totalHours) * 100.0 : 0
             let label = shifts.first?.rateLabel ?? rateLabelForMultiplier(multiplier)
@@ -49,12 +63,12 @@ final class ReportGenerator {
         csv += "SHIFT DETAILS\n"
         csv += "Date,Day,Start,End,Hours,Break (min),Rate,Type\n"
 
-        for shift in period.completedShifts.sorted(by: { $0.scheduledStart < $1.scheduledStart }) {
+        for shift in completedShifts.sorted(by: { $0.scheduledStart < $1.scheduledStart }) {
             let date = formatDate(shift.scheduledStart)
             let day = formatDayOfWeek(shift.scheduledStart)
             let start = formatTime(shift.actualStart ?? shift.scheduledStart)
             let end = formatTime(shift.actualEnd ?? shift.scheduledEnd)
-            let hours = String(format: "%.2f", shift.paidHours)
+            let hours = String(format: "%.2f", Double(paidMinutes(for: shift)) / 60.0)
             let breakMins = "\(shift.breakMinutes)"
             let rate = String(format: "%.1fx", shift.rateMultiplier)
             let type = shift.isAdditionalShift ? "Additional" : "Regular"
@@ -114,6 +128,28 @@ final class ReportGenerator {
         default:
             return String(format: "%.1fx", multiplier)
         }
+    }
+
+    private func paidMinutes(for shift: Shift) -> Int {
+        if shift.paidMinutes > 0 {
+            return shift.paidMinutes
+        }
+        return max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
+    }
+
+    private func estimatedPayFormatted(shifts: [Shift], baseRateCents: Int64?) -> String? {
+        guard let baseRateCents else { return nil }
+        let totalPay = shifts.reduce(0.0) { total, shift in
+            let hours = Double(paidMinutes(for: shift)) / 60.0
+            return total + (Double(baseRateCents) * hours * shift.rateMultiplier / 100.0)
+        }
+
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        if let currencyCode = Locale.current.currency?.identifier {
+            formatter.currencyCode = currencyCode
+        }
+        return formatter.string(from: NSNumber(value: totalPay))
     }
 
     enum ReportError: Error {

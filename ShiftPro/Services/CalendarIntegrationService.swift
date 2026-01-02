@@ -12,6 +12,8 @@ final class CalendarIntegrationService: ObservableObject {
     private let context: ModelContext
     private let shiftRepository: ShiftRepository
     private let conflictResolver = ConflictResolver()
+    private let calculator = HoursCalculator()
+    private lazy var periodEngine = PayPeriodEngine(context: context, calculator: calculator)
 
     private let calendarIdentifierKey = "ShiftPro.CalendarIdentifier"
 
@@ -149,7 +151,7 @@ final class CalendarIntegrationService: ObservableObject {
                 return
             case .useEvent:
                 if settings.mode == .twoWay {
-                    EventMapper.updateShift(shift, from: event)
+                    try updateShiftFromEvent(shift, event: event)
                     calendarEvent.markSynced(eventModified: event.lastModifiedDate)
                     try context.save()
                     return
@@ -240,7 +242,7 @@ final class CalendarIntegrationService: ObservableObject {
             case .conflict:
                 calendarEvent?.markConflict()
             case .useEvent:
-                EventMapper.updateShift(shift, from: event)
+                try updateShiftFromEvent(shift, event: event)
                 calendarEvent?.markSynced(eventModified: event.lastModifiedDate)
             case .useShift:
                 try syncShift(shift, calendar: calendar, settings: settings)
@@ -250,5 +252,22 @@ final class CalendarIntegrationService: ObservableObject {
         }
 
         try context.save()
+    }
+
+    private func updateShiftFromEvent(_ shift: Shift, event: EKEvent) throws {
+        let originalStart = shift.scheduledStart
+        let originalPeriod = shift.payPeriod
+
+        EventMapper.updateShift(shift, from: event)
+        calculator.updateCalculatedFields(for: shift)
+
+        if let owner = shift.owner, shift.payPeriod == nil || originalStart != shift.scheduledStart {
+            try periodEngine.assignToPeriod(shift, type: owner.payPeriodType)
+            if let originalPeriod, originalPeriod.id != shift.payPeriod?.id {
+                calculator.updatePayPeriod(originalPeriod, baseRateCents: owner.baseRateCents)
+            }
+        } else if let period = shift.payPeriod {
+            calculator.updatePayPeriod(period, baseRateCents: shift.owner?.baseRateCents)
+        }
     }
 }

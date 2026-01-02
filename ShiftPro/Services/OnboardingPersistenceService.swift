@@ -6,6 +6,8 @@ struct OnboardingPersistenceService {
     private let context: ModelContext
     private let profileRepository: UserProfileRepository
     private let patternEngine: PatternEngine
+    private let calculator = HoursCalculator()
+    private lazy var periodEngine = PayPeriodEngine(context: context, calculator: calculator)
 
     init(context: ModelContext) {
         self.context = context
@@ -70,7 +72,9 @@ struct OnboardingPersistenceService {
 
         let shifts = patternEngine.generateShifts(for: pattern, from: startDate, to: endDate, owner: owner)
         for shift in shifts {
+            calculator.updateCalculatedFields(for: shift)
             context.insert(shift)
+            try periodEngine.assignToPeriod(shift, type: owner.payPeriodType)
         }
         try context.save()
     }

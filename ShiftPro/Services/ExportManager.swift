@@ -44,11 +44,11 @@ final class ExportManager {
     }
 
     enum ExportCategory {
-        case shiftReport(PayPeriod)
-        case hoursSummary(PayPeriod)
+        case shiftReport(period: PayPeriod, shifts: [Shift])
+        case hoursSummary(period: PayPeriod, shifts: [Shift])
         case patternExport(ShiftPattern)
         case fullBackup
-        case payrollReport(PayPeriod)
+        case payrollReport(period: PayPeriod, shifts: [Shift])
     }
 
     enum ExportError: LocalizedError {
@@ -97,22 +97,22 @@ final class ExportManager {
         let data: Data
 
         switch (category, format) {
-        case (.shiftReport(let period), .csv):
-            data = try exportShiftReportCSV(period: period)
-        case (.shiftReport(let period), .pdf):
-            data = try exportShiftReportPDF(period: period)
-        case (.hoursSummary(let period), .csv):
-            data = try exportHoursSummaryCSV(period: period)
-        case (.hoursSummary(let period), .pdf):
-            data = try exportHoursSummaryPDF(period: period)
+        case (.shiftReport(let period, let shifts), .csv):
+            data = try exportShiftReportCSV(period: period, shifts: shifts)
+        case (.shiftReport(let period, let shifts), .pdf):
+            data = try exportShiftReportPDF(period: period, shifts: shifts)
+        case (.hoursSummary(let period, let shifts), .csv):
+            data = try exportHoursSummaryCSV(period: period, shifts: shifts)
+        case (.hoursSummary(let period, let shifts), .pdf):
+            data = try exportHoursSummaryPDF(period: period, shifts: shifts)
         case (.patternExport(let pattern), .json):
             data = try exportPatternJSON(pattern: pattern)
         case (.fullBackup, .json):
             data = try exportFullBackupJSON()
-        case (.payrollReport(let period), .csv):
-            data = try exportPayrollReportCSV(period: period)
-        case (.payrollReport(let period), .pdf):
-            data = try exportPayrollReportPDF(period: period)
+        case (.payrollReport(let period, let shifts), .csv):
+            data = try exportPayrollReportCSV(period: period, shifts: shifts)
+        case (.payrollReport(let period, let shifts), .pdf):
+            data = try exportPayrollReportPDF(period: period, shifts: shifts)
         default:
             throw ExportError.formatNotSupported
         }
@@ -134,24 +134,30 @@ final class ExportManager {
 
     // MARK: - Shift Report Exports
 
-    private func exportShiftReportCSV(period: PayPeriod) throws -> Data {
-        let shifts = period.activeShifts.sorted { $0.scheduledStart < $1.scheduledStart }
+    private func exportShiftReportCSV(period: PayPeriod, shifts: [Shift]) throws -> Data {
+        let shifts = shifts
+            .filter { $0.deletedAt == nil }
+            .sorted { $0.scheduledStart < $1.scheduledStart }
         return try csvFormatter.formatShiftReport(shifts: shifts)
     }
 
-    private func exportShiftReportPDF(period: PayPeriod) throws -> Data {
-        let shifts = period.activeShifts.sorted { $0.scheduledStart < $1.scheduledStart }
+    private func exportShiftReportPDF(period: PayPeriod, shifts: [Shift]) throws -> Data {
+        let shifts = shifts
+            .filter { $0.deletedAt == nil }
+            .sorted { $0.scheduledStart < $1.scheduledStart }
         return try pdfGenerator.generateShiftReport(shifts: shifts, period: period)
     }
 
     // MARK: - Hours Summary Exports
 
-    private func exportHoursSummaryCSV(period: PayPeriod) throws -> Data {
-        return try csvFormatter.formatHoursSummary(period: period)
+    private func exportHoursSummaryCSV(period: PayPeriod, shifts: [Shift]) throws -> Data {
+        let shifts = shifts.filter { $0.deletedAt == nil }
+        return try csvFormatter.formatHoursSummary(shifts: shifts, period: period)
     }
 
-    private func exportHoursSummaryPDF(period: PayPeriod) throws -> Data {
-        return try pdfGenerator.generateHoursSummary(period: period)
+    private func exportHoursSummaryPDF(period: PayPeriod, shifts: [Shift]) throws -> Data {
+        let shifts = shifts.filter { $0.deletedAt == nil }
+        return try pdfGenerator.generateHoursSummary(period: period, shifts: shifts)
     }
 
     // MARK: - Pattern Exports
@@ -192,12 +198,14 @@ final class ExportManager {
 
     // MARK: - Payroll Reports
 
-    private func exportPayrollReportCSV(period: PayPeriod) throws -> Data {
-        return try reportGenerator.generatePayrollCSV(period: period)
+    private func exportPayrollReportCSV(period: PayPeriod, shifts: [Shift]) throws -> Data {
+        let shifts = shifts.filter { $0.deletedAt == nil }
+        return try reportGenerator.generatePayrollCSV(period: period, shifts: shifts)
     }
 
-    private func exportPayrollReportPDF(period: PayPeriod) throws -> Data {
-        return try reportGenerator.generatePayrollPDF(period: period)
+    private func exportPayrollReportPDF(period: PayPeriod, shifts: [Shift]) throws -> Data {
+        let shifts = shifts.filter { $0.deletedAt == nil }
+        return try pdfGenerator.generatePayrollReport(period: period, shifts: shifts)
     }
 
     // MARK: - Helper Methods
@@ -209,15 +217,15 @@ final class ExportManager {
 
         let baseName: String
         switch category {
-        case .shiftReport(let period):
+        case .shiftReport(let period, _):
             baseName = "shift-report-\(period.dateRangeFormatted.replacingOccurrences(of: " ", with: "-"))"
-        case .hoursSummary(let period):
+        case .hoursSummary(let period, _):
             baseName = "hours-summary-\(period.dateRangeFormatted.replacingOccurrences(of: " ", with: "-"))"
         case .patternExport(let pattern):
             baseName = "pattern-\(pattern.title.replacingOccurrences(of: " ", with: "-"))"
         case .fullBackup:
             baseName = "shiftpro-backup-\(dateString)"
-        case .payrollReport(let period):
+        case .payrollReport(let period, _):
             baseName = "payroll-\(period.dateRangeFormatted.replacingOccurrences(of: " ", with: "-"))"
         }
 

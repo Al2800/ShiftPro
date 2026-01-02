@@ -153,6 +153,9 @@ final class ShiftManager {
         rateLabel: String? = nil,
         notes: String? = nil
     ) async throws {
+        let originalStart = shift.scheduledStart
+        let originalPeriod = shift.payPeriod
+
         // Apply changes
         if let start = scheduledStart { shift.scheduledStart = start }
         if let end = scheduledEnd { shift.scheduledEnd = end }
@@ -170,6 +173,16 @@ final class ShiftManager {
         // Recalculate
         calculator.updateCalculatedFields(for: shift)
 
+        let owner = shift.owner
+        if let owner, shift.payPeriod == nil || originalStart != shift.scheduledStart {
+            try periodEngine.assignToPeriod(shift, type: owner.payPeriodType)
+            if let originalPeriod, originalPeriod.id != shift.payPeriod?.id {
+                calculator.updatePayPeriod(originalPeriod, baseRateCents: owner.baseRateCents)
+            }
+        } else if let period = shift.payPeriod {
+            calculator.updatePayPeriod(period, baseRateCents: owner?.baseRateCents)
+        }
+
         // Save
         try shiftRepository.update(shift)
 
@@ -180,8 +193,13 @@ final class ShiftManager {
 
     /// Deletes a shift (soft delete)
     func deleteShift(_ shift: Shift) async throws {
+        let period = shift.payPeriod
+        let baseRate = shift.owner?.baseRateCents
         try shiftRepository.softDelete(shift)
         notificationManager.cancelNotifications(for: shift)
+        if let period {
+            calculator.updatePayPeriod(period, baseRateCents: baseRate)
+        }
         await refresh()
     }
 

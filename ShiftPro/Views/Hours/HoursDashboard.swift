@@ -84,13 +84,6 @@ struct HoursDashboard: View {
         calculator.shifts(in: currentPeriod, from: shifts)
     }
 
-    private var exportPeriod: PayPeriod {
-        if let stored = storedCurrentPeriod { return stored }
-        let derived = calculator.period(for: Date(), type: profile?.payPeriodType ?? .biweekly, referenceDate: profile?.startDate)
-        derived.shifts = periodShifts
-        return derived
-    }
-
     private var summary: HoursCalculator.PeriodSummary {
         calculator.summary(for: periodShifts, baseRateCents: profile?.baseRateCents)
     }
@@ -331,7 +324,7 @@ struct HoursDashboard: View {
                 Divider()
 
                 NavigationLink {
-                    ExportOptionsView(period: exportPeriod)
+                    ExportOptionsView(period: currentPeriod, shifts: periodShifts)
                 } label: {
                     actionRow(
                         title: "Export",

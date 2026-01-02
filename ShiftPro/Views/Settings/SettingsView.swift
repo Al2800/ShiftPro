@@ -16,6 +16,9 @@ struct SettingsView: View {
     @Query(filter: #Predicate<PayPeriod> { $0.deletedAt == nil }, sort: [SortDescriptor(\PayPeriod.startDate, order: .reverse)])
     private var payPeriods: [PayPeriod]
 
+    @Query(filter: #Predicate<Shift> { $0.deletedAt == nil }, sort: [SortDescriptor(\Shift.scheduledStart, order: .forward)])
+    private var shifts: [Shift]
+
     private let calculator = PayPeriodCalculator()
 
     @State private var showProfileEditor = false
@@ -96,7 +99,7 @@ struct SettingsView: View {
                 }
 
                 NavigationLink {
-                    ExportOptionsView(period: currentPeriod)
+                    ExportOptionsView(period: currentPeriod, shifts: currentPeriodShifts)
                 } label: {
                     settingRow(icon: "square.and.arrow.up", title: "Export Data", detail: "Share reports")
                 }
@@ -140,6 +143,10 @@ struct SettingsView: View {
             return stored
         }
         return calculator.period(for: Date(), type: profile?.payPeriodType ?? .biweekly, referenceDate: profile?.startDate)
+    }
+
+    private var currentPeriodShifts: [Shift] {
+        calculator.shifts(in: currentPeriod, from: shifts)
     }
 
     private func createProfileAndEdit() {

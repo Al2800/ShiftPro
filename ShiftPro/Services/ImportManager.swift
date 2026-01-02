@@ -31,6 +31,8 @@ final class ImportManager {
     }
 
     private let context: ModelContext
+    private let calculator = HoursCalculator()
+    private lazy var periodEngine = PayPeriodEngine(context: context, calculator: calculator)
 
     init(context: ModelContext) {
         self.context = context
@@ -85,6 +87,7 @@ final class ImportManager {
         }
 
         try context.save()
+        errors.append(contentsOf: assignImportedShifts(importedShifts, profile: profile))
 
         return ImportResult(
             importedShifts: importedShifts.count,
@@ -103,6 +106,7 @@ final class ImportManager {
             let backup = try decoder.decode(FullBackupData.self, from: data)
 
             // Import profiles
+            var importedProfiles: [UserProfile] = []
             for profileData in backup.profiles {
                 let profile = UserProfile(
                     employeeId: profileData.employeeId,
@@ -112,6 +116,7 @@ final class ImportManager {
                     regularHoursPerPay: profileData.regularHoursPerPay
                 )
                 context.insert(profile)
+                importedProfiles.append(profile)
             }
 
             // Import patterns
@@ -125,6 +130,8 @@ final class ImportManager {
 
             // Import shifts
             var importedShifts = 0
+            var createdShifts: [Shift] = []
+            let owner = importedProfiles.first
             for shiftData in backup.shifts {
                 let shift = Shift(
                     scheduledStart: shiftData.scheduledStart,
@@ -135,18 +142,21 @@ final class ImportManager {
                     isAdditionalShift: shiftData.isAdditionalShift,
                     notes: shiftData.notes,
                     rateMultiplier: shiftData.rateMultiplier,
-                    rateLabel: shiftData.rateLabel
+                    rateLabel: shiftData.rateLabel,
+                    owner: owner
                 )
                 context.insert(shift)
+                createdShifts.append(shift)
                 importedShifts += 1
             }
 
             try context.save()
+            let assignmentErrors = assignImportedShifts(createdShifts, profile: owner)
 
             return ImportResult(
                 importedShifts: importedShifts,
                 importedPatterns: backup.patterns.count,
-                errors: []
+                errors: assignmentErrors
             )
         } catch {
             throw ImportError.parsingFailed(error.localizedDescription)
@@ -162,24 +172,28 @@ final class ImportManager {
 
         let events = try parseICSEvents(icsString)
         var importedShifts = 0
+        var createdShifts: [Shift] = []
 
         for event in events {
             guard let startDate = event.startDate, let endDate = event.endDate else { continue }
             let shift = Shift(
                 scheduledStart: startDate,
                 scheduledEnd: endDate,
-                notes: event.summary
+                notes: event.summary,
+                owner: profile
             )
             context.insert(shift)
+            createdShifts.append(shift)
             importedShifts += 1
         }
 
         try context.save()
+        let assignmentErrors = assignImportedShifts(createdShifts, profile: profile)
 
         return ImportResult(
             importedShifts: importedShifts,
             importedPatterns: 0,
-            errors: []
+            errors: assignmentErrors
         )
     }
 
@@ -241,6 +255,23 @@ final class ImportManager {
         )
 
         return shift
+    }
+
+    private func assignImportedShifts(_ shifts: [Shift], profile: UserProfile?) -> [String] {
+        guard let profile, !shifts.isEmpty else { return [] }
+        var errors: [String] = []
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        for shift in shifts {
+            calculator.updateCalculatedFields(for: shift)
+            do {
+                try periodEngine.assignToPeriod(shift, type: profile.payPeriodType)
+            } catch {
+                let date = formatter.string(from: shift.scheduledStart)
+                errors.append("Pay period assignment failed for shift on \(date).")
+            }
+        }
+        return errors
     }
 
     private func parseICSEvents(_ icsString: String) throws -> [ICSEvent] {

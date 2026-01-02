@@ -278,12 +278,35 @@ struct PDFGenerator {
         return data
     }
 
+    func generateHoursSummary(period: PayPeriod, shifts: [Shift]) throws -> Data {
+        guard let data = generateHoursSummaryReport(shifts: shifts, period: period, profile: nil) else {
+            throw NSError(domain: "PDFGenerator", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to generate PDF"])
+        }
+        return data
+    }
+
     /// Generates payroll report PDF - wrapper for ReportGenerator
     func generatePayrollReport(period: PayPeriod) throws -> Data {
         guard let data = generatePayPeriodReport(period: period, profile: nil) else {
             throw NSError(domain: "PDFGenerator", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to generate PDF"])
         }
         return data
+    }
+
+    func generatePayrollReport(period: PayPeriod, shifts: [Shift]) throws -> Data {
+        guard let data = generatePayPeriodReport(period: period, shifts: shifts, profile: nil) else {
+            throw NSError(domain: "PDFGenerator", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to generate PDF"])
+        }
+        return data
+    }
+
+    private func generatePayPeriodReport(
+        period: PayPeriod,
+        shifts: [Shift],
+        profile: UserProfile?
+    ) -> Data? {
+        let title = "Pay Period Report: \(period.dateRangeFormatted)"
+        return generateShiftsReport(shifts: shifts, profile: profile, title: title)
     }
 
     private func formatDate(_ date: Date) -> String {

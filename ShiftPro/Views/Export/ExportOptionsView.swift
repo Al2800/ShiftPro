@@ -9,6 +9,7 @@ struct ExportOptionsView: View {
     @EnvironmentObject private var entitlementManager: EntitlementManager
 
     let period: PayPeriod
+    let shifts: [Shift]
 
     @State private var selectedFormat: ExportManager.ExportFormat = .csv
     @State private var selectedCategory: ExportCategory = .hoursSummary
@@ -109,14 +110,14 @@ struct ExportOptionsView: View {
                     HStack {
                         Text("Total Hours")
                         Spacer()
-                        Text(String(format: "%.1f", period.paidHours))
+                        Text(String(format: "%.1f", totalPaidHours))
                             .foregroundStyle(ShiftProColors.inkSubtle)
                     }
 
                     HStack {
                         Text("Shifts")
                         Spacer()
-                        Text("\(period.shiftCount)")
+                        Text("\(shifts.count)")
                             .foregroundStyle(ShiftProColors.inkSubtle)
                     }
                 } header: {
@@ -221,11 +222,11 @@ struct ExportOptionsView: View {
                 let category: ExportManager.ExportCategory
                 switch selectedCategory {
                 case .shiftReport:
-                    category = .shiftReport(period)
+                    category = .shiftReport(period: period, shifts: shifts)
                 case .hoursSummary:
-                    category = .hoursSummary(period)
+                    category = .hoursSummary(period: period, shifts: shifts)
                 case .payrollReport:
-                    category = .payrollReport(period)
+                    category = .payrollReport(period: period, shifts: shifts)
                 }
 
                 let fileURL = try await exportManager.export(
@@ -320,12 +321,23 @@ struct ExportOptionsView: View {
             return ""
         }
     }
+
+    private var totalPaidHours: Double {
+        shifts.reduce(0.0) { total, shift in
+            guard shift.isCompleted else { return total }
+            if shift.paidMinutes > 0 {
+                return total + (Double(shift.paidMinutes) / 60.0)
+            }
+            let effective = max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
+            return total + (Double(effective) / 60.0)
+        }
+    }
 }
 
 // MARK: - Preview
 
 #Preview {
-    ExportOptionsView(period: PayPeriod.currentWeek())
+    ExportOptionsView(period: PayPeriod.currentWeek(), shifts: [])
         .modelContainer(for: [PayPeriod.self])
         .environmentObject(EntitlementManager())
 }
