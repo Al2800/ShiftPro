@@ -289,7 +289,7 @@ struct DashboardView: View {
         isProcessingAction = true
         defer { isProcessingAction = false }
 
-        let manager = ShiftManager(context: modelContext)
+        let manager = await ShiftManager(context: modelContext)
         do {
             try await manager.toggleCurrentShift()
         } catch {
@@ -310,7 +310,7 @@ struct DashboardView: View {
         isProcessingAction = true
         defer { isProcessingAction = false }
 
-        let manager = ShiftManager(context: modelContext)
+        let manager = await ShiftManager(context: modelContext)
         do {
             let newBreakMinutes = shift.breakMinutes + breakMinutesToLog
             try await manager.updateShift(shift, breakMinutes: newBreakMinutes)

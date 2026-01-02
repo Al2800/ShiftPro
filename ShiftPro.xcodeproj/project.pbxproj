@@ -43,6 +43,8 @@
 		2D0A6A81F7B1A232FFCC42C1 /* ImportManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8F83AAFDA8BD37C3E6DA831 /* ImportManager.swift */; };
 		2EC215324949DB5C63ECF25E /* OnboardingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED0F5B81AF5AA110BC31D55 /* OnboardingManager.swift */; };
 		8C7A3B9E2F0D4E6A5C1B7D3E /* OnboardingProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9E2C4A8B6D3F1E7A5C0B9D2 /* OnboardingProgressStore.swift */; };
+		D4F5E8A1B3C6F2E9A7D0B4C8 /* OnboardingPersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2E7C9D5B8F4A1E3C6D9F0B2 /* OnboardingPersistenceService.swift */; };
+		B5C8D2E4F1A3E7B9C6D0F4A2 /* OnboardingDataMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8F3A6B2C9D1E4F7A0B5C3D6 /* OnboardingDataMapping.swift */; };
 		30222C6BC7EEE4548B38B3B8 /* SecuritySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDBEC7A6A94678F30AF839FC /* SecuritySettingsView.swift */; };
 		30C963BCB28FC8E636634305 /* CustomAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25E98B02DCB9B6BF5FE8D015 /* CustomAnimations.swift */; };
 		32BFFCBAE58AF47EA1E8070B /* ShiftProUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2A25FC3BE766AFBE50F2113 /* ShiftProUITests.swift */; };
@@ -296,6 +298,8 @@
 		BD0DCA775E9593B749CFC7AF /* AnalyticsModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalyticsModels.swift; sourceTree = "<group>"; };
 		BED0F5B81AF5AA110BC31D55 /* OnboardingManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingManager.swift; sourceTree = "<group>"; };
 		F9E2C4A8B6D3F1E7A5C0B9D2 /* OnboardingProgressStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingProgressStore.swift; sourceTree = "<group>"; };
+		A2E7C9D5B8F4A1E3C6D9F0B2 /* OnboardingPersistenceService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingPersistenceService.swift; sourceTree = "<group>"; };
+		E8F3A6B2C9D1E4F7A0B5C3D6 /* OnboardingDataMapping.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingDataMapping.swift; sourceTree = "<group>"; };
 		C170FC40C801460CA2C1E20D /* UITestSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UITestSupport.swift; sourceTree = "<group>"; };
 		C1E3548A88FB39B642CEF9C9 /* TrendAnalyzer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrendAnalyzer.swift; sourceTree = "<group>"; };
 		C2A0E9CDE7394A8EF1CB24B6 /* OnboardingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -447,6 +451,8 @@
 				05C28E62D50AF587D47F888E /* NotificationScheduler.swift */,
 				BED0F5B81AF5AA110BC31D55 /* OnboardingManager.swift */,
 				F9E2C4A8B6D3F1E7A5C0B9D2 /* OnboardingProgressStore.swift */,
+				A2E7C9D5B8F4A1E3C6D9F0B2 /* OnboardingPersistenceService.swift */,
+				E8F3A6B2C9D1E4F7A0B5C3D6 /* OnboardingDataMapping.swift */,
 				827D4A97D472087E4C057B0E /* OvertimePredictor.swift */,
 				A1B2507722745721EF0EBCEF /* PatternEngine.swift */,
 				9CD4F7A029C57B9D96062AD1 /* PatternTemplates.swift */,
@@ -1022,6 +1028,8 @@
 				1BB96D2509FEECA162FCFAEC /* NotificationScheduler.swift in Sources */,
 				2EC215324949DB5C63ECF25E /* OnboardingManager.swift in Sources */,
 				8C7A3B9E2F0D4E6A5C1B7D3E /* OnboardingProgressStore.swift in Sources */,
+				D4F5E8A1B3C6F2E9A7D0B4C8 /* OnboardingPersistenceService.swift in Sources */,
+				B5C8D2E4F1A3E7B9C6D0F4A2 /* OnboardingDataMapping.swift in Sources */,
 				AF2BF6ADEB09F21A49013EAF /* OvertimePredictor.swift in Sources */,
 				27904E7DE09BB81BD28C4B51 /* PatternEngine.swift in Sources */,
 				82FDE57625DA29144646F0E1 /* PatternTemplates.swift in Sources */,
