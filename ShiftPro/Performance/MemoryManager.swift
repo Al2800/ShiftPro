@@ -106,7 +106,7 @@ actor MemoryManager {
     }
 
     @MainActor
-    nonisolated func downsampleImage(at url: URL, to pointSize: CGSize, scale: CGFloat? = nil) -> UIImage? {
+    func downsampleImage(at url: URL, to pointSize: CGSize, scale: CGFloat? = nil) -> UIImage? {
         let imageSourceOptions = [kCGImageSourceShouldCache: false] as CFDictionary
         guard let imageSource = CGImageSourceCreateWithURL(url as CFURL, imageSourceOptions) else {
             return nil
