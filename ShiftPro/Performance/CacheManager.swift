@@ -3,9 +3,8 @@ import SwiftData
 import UIKit
 
 /// Intelligent caching system for calculated data to improve performance
-@MainActor
-final class CacheManager {
-    enum CacheKey: String {
+actor CacheManager {
+    enum CacheKey: String, Sendable {
         case payPeriodSummaries = "cache.payPeriod.summaries"
         case hoursCalculations = "cache.hours.calculations"
         case patternPreviews = "cache.pattern.previews"
@@ -38,10 +37,11 @@ final class CacheManager {
 
     private var memoryCache: [String: Any] = [:]
     private var cacheAccessTimes: [String: Date] = [:]
-    private let cacheQueue = DispatchQueue(label: "com.shiftpro.cache", attributes: .concurrent)
 
     init() {
-        setupMemoryWarningObserver()
+        Task { @MainActor in
+            self.setupMemoryWarningObserver()
+        }
     }
 
     // MARK: - Generic Caching
@@ -49,66 +49,51 @@ final class CacheManager {
     func get<T: Codable>(_ key: CacheKey, identifier: String? = nil) -> T? {
         let cacheKey = makeCacheKey(key, identifier: identifier)
 
-        return cacheQueue.sync {
-            guard let cached = memoryCache[cacheKey] as? CachedValue<T> else {
-                return nil
-            }
-
-            if cached.isExpired {
-                memoryCache.removeValue(forKey: cacheKey)
-                cacheAccessTimes.removeValue(forKey: cacheKey)
-                return nil
-            }
-
-            cacheAccessTimes[cacheKey] = Date()
-            return cached.value
+        guard let cached = memoryCache[cacheKey] as? CachedValue<T> else {
+            return nil
         }
+
+        if cached.isExpired {
+            memoryCache.removeValue(forKey: cacheKey)
+            cacheAccessTimes.removeValue(forKey: cacheKey)
+            return nil
+        }
+
+        cacheAccessTimes[cacheKey] = Date()
+        return cached.value
     }
 
     func set<T: Codable>(_ key: CacheKey, value: T, identifier: String? = nil, ttl: TimeInterval? = nil) {
         let cacheKey = makeCacheKey(key, identifier: identifier)
         let cached = CachedValue(value: value, ttl: ttl ?? defaultTTL)
 
-        cacheQueue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
-            self.memoryCache[cacheKey] = cached
-            self.cacheAccessTimes[cacheKey] = Date()
+        memoryCache[cacheKey] = cached
+        cacheAccessTimes[cacheKey] = Date()
 
-            // Evict old entries if cache is too large
-            if self.memoryCache.count > self.memoryWarningThreshold {
-                self.evictLRU()
-            }
+        // Evict old entries if cache is too large
+        if memoryCache.count > memoryWarningThreshold {
+            evictLRU()
         }
     }
 
     func invalidate(_ key: CacheKey, identifier: String? = nil) {
         let cacheKey = makeCacheKey(key, identifier: identifier)
-
-        cacheQueue.async(flags: .barrier) { [weak self] in
-            self?.memoryCache.removeValue(forKey: cacheKey)
-            self?.cacheAccessTimes.removeValue(forKey: cacheKey)
-        }
+        memoryCache.removeValue(forKey: cacheKey)
+        cacheAccessTimes.removeValue(forKey: cacheKey)
     }
 
     func invalidateAll(for key: CacheKey) {
         let prefix = key.rawValue
-
-        cacheQueue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
-
-            let keysToRemove = self.memoryCache.keys.filter { $0.hasPrefix(prefix) }
-            for key in keysToRemove {
-                self.memoryCache.removeValue(forKey: key)
-                self.cacheAccessTimes.removeValue(forKey: key)
-            }
+        let keysToRemove = memoryCache.keys.filter { $0.hasPrefix(prefix) }
+        for key in keysToRemove {
+            memoryCache.removeValue(forKey: key)
+            cacheAccessTimes.removeValue(forKey: key)
         }
     }
 
     func clearAll() {
-        cacheQueue.async(flags: .barrier) { [weak self] in
-            self?.memoryCache.removeAll()
-            self?.cacheAccessTimes.removeAll()
-        }
+        memoryCache.removeAll()
+        cacheAccessTimes.removeAll()
     }
 
     // MARK: - Domain-Specific Caching
@@ -134,12 +119,10 @@ final class CacheManager {
     // MARK: - Cache Statistics
 
     func cacheStats() -> (itemCount: Int, oldestAccess: Date?, newestAccess: Date?) {
-        cacheQueue.sync {
-            let count = memoryCache.count
-            let oldest = cacheAccessTimes.values.min()
-            let newest = cacheAccessTimes.values.max()
-            return (count, oldest, newest)
-        }
+        let count = memoryCache.count
+        let oldest = cacheAccessTimes.values.min()
+        let newest = cacheAccessTimes.values.max()
+        return (count, oldest, newest)
     }
 
     // MARK: - Private Helpers
@@ -162,28 +145,28 @@ final class CacheManager {
         }
     }
 
+    @MainActor
     private func setupMemoryWarningObserver() {
         NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.handleMemoryWarning()
+            guard let self = self else { return }
+            Task {
+                await self.handleMemoryWarning()
+            }
         }
     }
 
     private func handleMemoryWarning() {
-        cacheQueue.async(flags: .barrier) { [weak self] in
-            // Clear 50% of cache on memory warning
-            guard let self = self else { return }
+        // Clear 50% of cache on memory warning
+        let sortedByAccess = cacheAccessTimes.sorted { $0.value < $1.value }
+        let toRemove = sortedByAccess.prefix(memoryCache.count / 2)
 
-            let sortedByAccess = self.cacheAccessTimes.sorted { $0.value < $1.value }
-            let toRemove = sortedByAccess.prefix(self.memoryCache.count / 2)
-
-            for (key, _) in toRemove {
-                self.memoryCache.removeValue(forKey: key)
-                self.cacheAccessTimes.removeValue(forKey: key)
-            }
+        for (key, _) in toRemove {
+            memoryCache.removeValue(forKey: key)
+            cacheAccessTimes.removeValue(forKey: key)
         }
     }
 }
@@ -195,4 +178,3 @@ extension PersistentIdentifier {
         "\(self.hashValue)"
     }
 }
-

@@ -2,9 +2,8 @@ import Foundation
 import UIKit
 
 /// Memory management and optimization utilities
-@MainActor
-final class MemoryManager: ObservableObject {
-    struct ImageCacheEntry {
+actor MemoryManager {
+    struct ImageCacheEntry: Sendable {
         let image: UIImage
         let cost: Int  // Size in bytes
         let lastAccessed: Date
@@ -17,13 +16,14 @@ final class MemoryManager: ObservableObject {
 
     // MARK: - State
 
-    @Published private(set) var currentCacheSize: Int = 0
+    private(set) var currentCacheSize: Int = 0
 
     private var imageCache: [String: ImageCacheEntry] = [:]
-    private let cacheQueue = DispatchQueue(label: "com.shiftpro.memory", attributes: .concurrent)
 
     init() {
-        setupMemoryWarningObserver()
+        Task { @MainActor in
+            self.setupMemoryWarningObserver()
+        }
     }
 
     // MARK: - Image Caching
@@ -36,57 +36,46 @@ final class MemoryManager: ObservableObject {
         let cost = data.count
         let entry = ImageCacheEntry(image: image, cost: cost, lastAccessed: Date())
 
-        cacheQueue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
+        // Remove old entry if exists
+        if let existing = imageCache[key] {
+            currentCacheSize -= existing.cost
+        }
 
-            // Remove old entry if exists
-            if let existing = self.imageCache[key] {
-                self.currentCacheSize -= existing.cost
-            }
+        // Add new entry
+        imageCache[key] = entry
+        currentCacheSize += cost
 
-            // Add new entry
-            self.imageCache[key] = entry
-            self.currentCacheSize += cost
-
-            // Evict if needed
-            if self.currentCacheSize > self.maxImageCacheSize {
-                self.evictImageCache()
-            }
+        // Evict if needed
+        if currentCacheSize > maxImageCacheSize {
+            evictImageCache()
         }
     }
 
     func getImage(forKey key: String) -> UIImage? {
-        cacheQueue.sync {
-            guard var entry = imageCache[key] else { return nil }
+        guard var entry = imageCache[key] else { return nil }
 
-            // Update access time
-            entry = ImageCacheEntry(
-                image: entry.image,
-                cost: entry.cost,
-                lastAccessed: Date()
-            )
-            imageCache[key] = entry
+        // Update access time
+        entry = ImageCacheEntry(
+            image: entry.image,
+            cost: entry.cost,
+            lastAccessed: Date()
+        )
+        imageCache[key] = entry
 
-            return entry.image
-        }
+        return entry.image
     }
 
     func removeImage(forKey key: String) {
-        cacheQueue.async(flags: .barrier) { [weak self] in
-            guard let self = self,
-                  let entry = self.imageCache.removeValue(forKey: key) else {
-                return
-            }
-
-            self.currentCacheSize -= entry.cost
+        guard let entry = imageCache.removeValue(forKey: key) else {
+            return
         }
+
+        currentCacheSize -= entry.cost
     }
 
     func clearImageCache() {
-        cacheQueue.async(flags: .barrier) { [weak self] in
-            self?.imageCache.removeAll()
-            self?.currentCacheSize = 0
-        }
+        imageCache.removeAll()
+        currentCacheSize = 0
     }
 
     private func evictImageCache() {
@@ -103,7 +92,7 @@ final class MemoryManager: ObservableObject {
 
     // MARK: - Data Compression
 
-    func compressImage(_ image: UIImage, targetSizeKB: Int = 500) -> UIImage? {
+    nonisolated func compressImage(_ image: UIImage, targetSizeKB: Int = 500) -> UIImage? {
         var quality: CGFloat = 1.0
         var data = image.jpegData(compressionQuality: quality)
 
@@ -116,7 +105,8 @@ final class MemoryManager: ObservableObject {
         return UIImage(data: compressedData)
     }
 
-    @MainActor func downsampleImage(at url: URL, to pointSize: CGSize, scale: CGFloat? = nil) -> UIImage? {
+    @MainActor
+    nonisolated func downsampleImage(at url: URL, to pointSize: CGSize, scale: CGFloat? = nil) -> UIImage? {
         let imageSourceOptions = [kCGImageSourceShouldCache: false] as CFDictionary
         guard let imageSource = CGImageSourceCreateWithURL(url as CFURL, imageSourceOptions) else {
             return nil
@@ -141,28 +131,28 @@ final class MemoryManager: ObservableObject {
 
     // MARK: - Memory Pressure Handling
 
+    @MainActor
     private func setupMemoryWarningObserver() {
         NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.handleMemoryWarning()
+            guard let self = self else { return }
+            Task {
+                await self.handleMemoryWarning()
+            }
         }
     }
 
-    @objc private func handleMemoryWarning() {
+    private func handleMemoryWarning() {
         // Clear 75% of image cache
-        cacheQueue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
+        let sortedEntries = imageCache.sorted { $0.value.lastAccessed < $1.value.lastAccessed }
+        let toRemove = sortedEntries.prefix(Int(Double(sortedEntries.count) * 0.75))
 
-            let sortedEntries = self.imageCache.sorted { $0.value.lastAccessed < $1.value.lastAccessed }
-            let toRemove = sortedEntries.prefix(Int(Double(sortedEntries.count) * 0.75))
-
-            for (key, entry) in toRemove {
-                self.imageCache.removeValue(forKey: key)
-                self.currentCacheSize -= entry.cost
-            }
+        for (key, entry) in toRemove {
+            imageCache.removeValue(forKey: key)
+            currentCacheSize -= entry.cost
         }
     }
 
@@ -172,15 +162,11 @@ final class MemoryManager: ObservableObject {
         // Remove images older than 1 hour
         let cutoff = Date().addingTimeInterval(-3600)
 
-        cacheQueue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
+        let oldEntries = imageCache.filter { $0.value.lastAccessed < cutoff }
 
-            let oldEntries = self.imageCache.filter { $0.value.lastAccessed < cutoff }
-
-            for (key, entry) in oldEntries {
-                self.imageCache.removeValue(forKey: key)
-                self.currentCacheSize -= entry.cost
-            }
+        for (key, entry) in oldEntries {
+            imageCache.removeValue(forKey: key)
+            currentCacheSize -= entry.cost
         }
     }
 }
