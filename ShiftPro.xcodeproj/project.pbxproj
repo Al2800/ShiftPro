@@ -137,6 +137,8 @@
 		D66A9315FE12EEBCD292ED77 /* OnboardingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0506ABE169FD6CE9808CC0F /* OnboardingTests.swift */; };
 		D6E712F347C4299CFF7C85FF /* EncryptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7BDC45CC5C4269E588D81D7 /* EncryptionManager.swift */; };
 		D87736AA3AC7769B8575AAD4 /* CalendarIntegrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6CDA08C92277928E81F7D49 /* CalendarIntegrationService.swift */; };
+		E42BCF5887FB38A3708460A9 /* DataDeletionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3CAF4E3C3019487A1B2D40A /* DataDeletionService.swift */; };
+		70258DD8EFB8722F7F03799C /* ProfileDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6D22CE8A7582BDF34BC2FC /* ProfileDetailView.swift */; };
 		D971D8E3D663BA96801F875C /* AnalyticsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD0DCA775E9593B749CFC7AF /* AnalyticsModels.swift */; };
 		DB5AB6F678A90DCE0C1F26B0 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F67C9F718DC407F2FFD6FEA /* PerformanceTests.swift */; };
 		DBED9B65F3DB47FF369503D2 /* ImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999733B25D847DBB74775BF5 /* ImportView.swift */; };
@@ -296,6 +298,8 @@
 		C1E3548A88FB39B642CEF9C9 /* TrendAnalyzer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrendAnalyzer.swift; sourceTree = "<group>"; };
 		C2A0E9CDE7394A8EF1CB24B6 /* OnboardingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		C6CDA08C92277928E81F7D49 /* CalendarIntegrationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarIntegrationService.swift; sourceTree = "<group>"; };
+		B3CAF4E3C3019487A1B2D40A /* DataDeletionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DataDeletionService.swift; sourceTree = "<group>"; };
+		4A6D22CE8A7582BDF34BC2FC /* ProfileDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileDetailView.swift; sourceTree = "<group>"; };
 		C85EF625D9041B66E5AB5504 /* CloudKitManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudKitManager.swift; sourceTree = "<group>"; };
 		C871FBCD21FAF7411D04B328 /* PaywallView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		C8F83AAFDA8BD37C3E6DA831 /* ImportManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ImportManager.swift; sourceTree = "<group>"; };
@@ -430,6 +434,7 @@
 				025AEE5C624125D422EF696A /* CalendarPermissions.swift */,
 				C85EF625D9041B66E5AB5504 /* CloudKitManager.swift */,
 				9388E3CA1257F57951606EB9 /* ConflictResolver.swift */,
+				B3CAF4E3C3019487A1B2D40A /* DataDeletionService.swift */,
 				220E7F66DD447FC71F97709B /* EntitlementManager.swift */,
 				16D409D067D5812F1B39805B /* EventMapper.swift */,
 				005F4A1DDBA40EA55261A236 /* ExportManager.swift */,
@@ -740,6 +745,7 @@
 				14EC312FF8557D1B39F8F439 /* NotificationSettingsView.swift */,
 				05EDD12714AE25A5DA3F28A2 /* PremiumView.swift */,
 				11A88C77D52E69591DF60368 /* PrivacySettingsView.swift */,
+				4A6D22CE8A7582BDF34BC2FC /* ProfileDetailView.swift */,
 				DDBEC7A6A94678F30AF839FC /* SecuritySettingsView.swift */,
 				813930F1B394838BEDEB08F6 /* SettingsView.swift */,
 				865A71A96FF5FE4EC7FAC3EE /* SubscriptionSettingsView.swift */,
@@ -1064,7 +1070,9 @@
 				BC7BEA8FFB4B5EE4F29A3B14 /* NotificationSettingsView.swift in Sources */,
 				76CAC1BC4AA85A5702114117 /* PremiumView.swift in Sources */,
 				FD6800EB7D5BE53388D3DFED /* PrivacySettingsView.swift in Sources */,
+				70258DD8EFB8722F7F03799C /* ProfileDetailView.swift in Sources */,
 				30222C6BC7EEE4548B38B3B8 /* SecuritySettingsView.swift in Sources */,
+				E42BCF5887FB38A3708460A9 /* DataDeletionService.swift in Sources */,
 				01EEE9FEEABEF6DD853B14B5 /* SettingsView.swift in Sources */,
 				AA9EC7A98701A9B5EE73CF06 /* SubscriptionSettingsView.swift in Sources */,
 				0D73C68244B8BCF435F42F03 /* MainTabView.swift in Sources */,

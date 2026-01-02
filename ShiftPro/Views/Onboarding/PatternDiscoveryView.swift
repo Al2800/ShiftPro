@@ -112,7 +112,7 @@ struct PatternDiscoveryView: View {
         .sheet(isPresented: $showPreview) {
             NavigationStack {
                 PatternPreviewView(
-                    definition: data.selectedPatternDefinition(),
+                    definition: data.wrappedValue.selectedPatternDefinition(),
                     initialStartDate: data.patternStartDate,
                     isPreviewOnly: true
                 )

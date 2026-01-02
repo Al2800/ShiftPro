@@ -237,17 +237,17 @@ struct ScheduleView: View {
     private var testControls: some View {
         VStack(spacing: ShiftProSpacing.extraSmall) {
             Button("Seed Shift") {
-                seedTestShift()
+                Task { @MainActor in seedTestShift() }
             }
             .accessibilityIdentifier("test.shift.seed")
 
             Button("Edit Shift") {
-                editTestShift()
+                Task { @MainActor in editTestShift() }
             }
             .accessibilityIdentifier("test.shift.edit")
 
             Button("Delete Shift") {
-                deleteTestShift()
+                Task { @MainActor in deleteTestShift() }
             }
             .accessibilityIdentifier("test.shift.delete")
         }

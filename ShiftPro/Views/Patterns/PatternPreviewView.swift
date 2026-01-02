@@ -79,7 +79,10 @@ struct PatternPreviewView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This will create a new pattern starting \(startDate.shiftDateFormatted) and generate \(previews.count) shifts for the next 2 months.")
+            Text("""
+                This will create a new pattern starting \(startDate.shiftDateFormatted) \
+                and generate \(previews.count) shifts for the next 2 months.
+                """)
         }
         .alert("Pattern Applied", isPresented: $showSuccess) {
             Button("Done") {
