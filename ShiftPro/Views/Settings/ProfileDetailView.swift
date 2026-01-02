@@ -107,19 +107,6 @@ struct ProfileDetailView: View {
     }
 }
 
-private extension PayPeriodType {
-    var displayName: String {
-        switch self {
-        case .weekly:
-            return "Weekly"
-        case .biweekly:
-            return "Bi-Weekly"
-        case .monthly:
-            return "Monthly"
-        }
-    }
-}
-
 #Preview {
     NavigationStack {
         ProfileDetailView(profile: UserProfile())
