@@ -128,6 +128,7 @@ struct ShiftFormView: View {
                             }
                             .font(ShiftProTypography.caption)
                             .foregroundStyle(ShiftProColors.accent)
+                            .shiftProPressable(scale: 0.98, opacity: 0.9, haptic: .selection)
                         }
                     }
                 }
@@ -151,12 +152,14 @@ struct ShiftFormView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
+                        .shiftProPressable(scale: 0.98, opacity: 0.9, haptic: .selection)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(isSaving ? "Saving..." : "Save") {
                         saveShift()
                     }
                     .disabled(isSaving || !isValidRange)
+                    .shiftProPressable(scale: 0.98, opacity: 0.9, haptic: .impactLight)
                 }
             }
             .alert("Unable to Save", isPresented: $showError) {

@@ -36,6 +36,7 @@ struct CalendarSetupView: View {
             }
             .disabled(!wantsCalendarSync)
             .opacity(wantsCalendarSync ? 1 : 0.5)
+            .shiftProPressable()
 
             Text("Status: \(permissionManager.calendarStatus.title)")
                 .font(ShiftProTypography.caption)

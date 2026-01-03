@@ -21,6 +21,7 @@ struct PatternDiscoveryView: View {
                         .foregroundStyle(ShiftProColors.accent)
                 }
                 .accessibilityLabel("Preview pattern")
+                .shiftProPressable(scale: 0.9, opacity: 0.8, haptic: .selection)
             }
 
             Text("Choose a pattern to prefill your schedule. You can customize later.")
@@ -58,7 +59,7 @@ struct PatternDiscoveryView: View {
                                 )
                         )
                     }
-                    .buttonStyle(.plain)
+                    .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: .selection)
                 }
 
                 Button(action: { showPatternLibrary = true }) {
@@ -83,7 +84,7 @@ struct PatternDiscoveryView: View {
                             )
                     )
                 }
-                .buttonStyle(.plain)
+                .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: .selection)
             }
 
             VStack(alignment: .leading, spacing: ShiftProSpacing.small) {

@@ -47,6 +47,7 @@ struct PermissionsView: View {
             .font(ShiftProTypography.caption)
             .foregroundStyle(ShiftProColors.accent)
             .accessibilityLabel("Open Settings")
+            .shiftProPressable(scale: 0.98, opacity: 0.9, haptic: .selection)
         }
         .padding(ShiftProSpacing.large)
         .background(
@@ -104,6 +105,7 @@ struct PermissionsView: View {
             }
             .disabled(!toggleOn.wrappedValue)
             .opacity(toggleOn.wrappedValue ? 1 : 0.5)
+            .shiftProPressable()
         }
         .padding(ShiftProSpacing.medium)
         .background(
