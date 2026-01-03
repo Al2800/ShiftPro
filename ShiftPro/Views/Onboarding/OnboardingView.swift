@@ -43,8 +43,15 @@ struct OnboardingView: View {
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.fog)
 
-            if !manager.step.requirementLabel.isEmpty {
-                Text(manager.step.requirementLabel)
+            HStack(spacing: 4) {
+                if !manager.step.requirementLabel.isEmpty {
+                    Text(manager.step.requirementLabel)
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.fog)
+                    Text("•")
+                        .foregroundStyle(ShiftProColors.fog.opacity(0.5))
+                }
+                Text(stepCountLabel)
                     .font(ShiftProTypography.caption)
                     .foregroundStyle(ShiftProColors.fog)
             }
@@ -53,7 +60,21 @@ struct OnboardingView: View {
                 .tint(ShiftProColors.accent)
                 .padding(.horizontal, ShiftProSpacing.large)
                 .accessibilityIdentifier("onboarding.progress")
+                .accessibilityLabel("Onboarding progress")
+                .accessibilityValue("\(currentStepNumber) of \(totalSteps) steps completed")
         }
+    }
+
+    private var currentStepNumber: Int {
+        manager.step.index + 1
+    }
+
+    private var totalSteps: Int {
+        OnboardingStep.allCases.count
+    }
+
+    private var stepCountLabel: String {
+        "Step \(currentStepNumber) of \(totalSteps)"
     }
 
     @ViewBuilder
