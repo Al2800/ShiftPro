@@ -10,6 +10,7 @@ struct DashboardView: View {
     @State private var isProcessingAction = false
     @State private var actionError: String?
     @State private var showingActionError = false
+    @State private var showingNotifications = false
     @Query(filter: #Predicate<Shift> { $0.deletedAt == nil }, sort: [SortDescriptor(\Shift.scheduledStart, order: .forward)])
     private var shifts: [Shift]
     @Query(filter: #Predicate<PayPeriod> { $0.deletedAt == nil }, sort: [SortDescriptor(\PayPeriod.startDate, order: .reverse)])
@@ -94,12 +95,16 @@ struct DashboardView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
+                    showingNotifications = true
                 } label: {
                     Image(systemName: "bell.badge")
                         .foregroundStyle(ShiftProColors.accent)
                 }
                 .accessibilityLabel("Notifications")
             }
+        }
+        .navigationDestination(isPresented: $showingNotifications) {
+            NotificationSettingsView()
         }
         .onAppear {
             guard !animateIn else { return }
