@@ -31,6 +31,11 @@ final class PerformanceMonitor: ObservableObject {
     private let logger = Logger(subsystem: "com.shiftpro", category: "Performance")
 
     private var operationStartTimes: [String: Date] = [:]
+    private var memoryTimer: DispatchSourceTimer?
+
+    deinit {
+        memoryTimer?.cancel()
+    }
 
     // MARK: - Timing Measurement
 
@@ -107,12 +112,24 @@ final class PerformanceMonitor: ObservableObject {
     }
 
     func startMemoryMonitoring(interval: TimeInterval = 5.0) {
-        Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+        memoryTimer?.cancel()
+        memoryTimer = nil
+
+        let timer = DispatchSource.makeTimerSource(queue: .main)
+        timer.schedule(deadline: .now() + interval, repeating: interval)
+        timer.setEventHandler { [weak self] in
             guard let monitor = self else { return }
             Task { @MainActor in
                 monitor.captureMemorySnapshot()
             }
         }
+        timer.resume()
+        memoryTimer = timer
+    }
+
+    func stopMemoryMonitoring() {
+        memoryTimer?.cancel()
+        memoryTimer = nil
     }
 
     // MARK: - Statistics
@@ -206,4 +223,3 @@ final class PerformanceMonitor: ObservableObject {
         return freeBytes / 1024.0 / 1024.0
     }
 }
-

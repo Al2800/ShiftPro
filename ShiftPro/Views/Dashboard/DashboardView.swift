@@ -230,10 +230,10 @@ struct DashboardView: View {
     }
 
     private var heroTitle: String {
-        if currentShift != nil {
+        if let _ = currentShift {
             return "On shift now"
         }
-        if upcomingShifts.first != nil {
+        if !upcomingShifts.isEmpty {
             return "Next shift"
         }
         return "No upcoming shifts"
@@ -482,7 +482,7 @@ struct DashboardView: View {
     }
 
     private func handleLogBreak() {
-        guard currentShift != nil else { return }
+        guard let _ = currentShift else { return }
         breakMinutesToLog = 15
         showingLogBreak = true
     }

@@ -108,8 +108,14 @@ struct ProfileDetailView: View {
 }
 
 #Preview {
-    NavigationStack {
-        ProfileDetailView(profile: UserProfile())
+    Group {
+        if let container = ModelContainerFactory.previewContainerOrNil() {
+            NavigationStack {
+                ProfileDetailView(profile: UserProfile())
+            }
+            .modelContainer(container)
+        } else {
+            Text("Preview unavailable")
+        }
     }
-    .modelContainer(ModelContainerFactory.unsafePreviewContainer())
 }

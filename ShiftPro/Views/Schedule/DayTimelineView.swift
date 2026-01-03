@@ -291,20 +291,9 @@ struct DayTimelineView: View {
 // MARK: - Preview
 
 #Preview {
-    let calendar = Calendar.current
-    let today = Date()
-    let startOfDay = calendar.startOfDay(for: today)
-
-    // Create mock shifts
-    let shift1Start = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: today)!
-    let shift1End = calendar.date(bySettingHour: 17, minute: 0, second: 0, of: today)!
-
-    let shift2Start = calendar.date(bySettingHour: 14, minute: 0, second: 0, of: today)!
-    let shift2End = calendar.date(bySettingHour: 22, minute: 0, second: 0, of: today)!
-
     return DayTimelineView(
         shifts: [],
-        selectedDate: today
+        selectedDate: Date()
     )
     .padding()
 }

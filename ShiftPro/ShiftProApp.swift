@@ -1,11 +1,13 @@
+import OSLog
 import SwiftData
 import SwiftUI
 import UIKit
 
 @main
 struct ShiftProApp: App {
-    let sharedModelContainer: ModelContainer
-    @StateObject private var notificationManager: NotificationManager
+    private let sharedModelContainer: ModelContainer?
+    private let logger = Logger(subsystem: "com.shiftpro", category: "App")
+    @State private var notificationManager: NotificationManager?
     @StateObject private var entitlementManager = EntitlementManager()
 
     init() {
@@ -22,11 +24,16 @@ struct ShiftProApp: App {
         do {
             let container = try ModelContainerFactory.makeContainer()
             sharedModelContainer = container
-            _notificationManager = StateObject(
-                wrappedValue: NotificationManager(context: container.mainContext)
-            )
+            _notificationManager = State(initialValue: NotificationManager(context: container.mainContext))
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            logger.error("Failed to create ModelContainer: \(error.localizedDescription, privacy: .public)")
+            let fallback = try? ModelContainerFactory.makeContainer(cloudSyncEnabled: false, inMemory: true)
+            sharedModelContainer = fallback
+            if let fallback {
+                _notificationManager = State(initialValue: NotificationManager(context: fallback.mainContext))
+            } else {
+                _notificationManager = State(initialValue: nil)
+            }
         }
 
         if !isUITest {
@@ -37,12 +44,34 @@ struct ShiftProApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .task {
-                    try? await notificationManager.rescheduleUpcomingShifts()
-                }
-                .environmentObject(entitlementManager)
+            if let sharedModelContainer {
+                ContentView()
+                    .task {
+                        try? await notificationManager?.rescheduleUpcomingShifts()
+                    }
+                    .environmentObject(entitlementManager)
+                    .modelContainer(sharedModelContainer)
+            } else {
+                StorageUnavailableView()
+            }
         }
-        .modelContainer(sharedModelContainer)
+    }
+}
+
+private struct StorageUnavailableView: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 32))
+                .foregroundStyle(ShiftProColors.warning)
+            Text("Storage Unavailable")
+                .font(ShiftProTypography.headline)
+            Text("ShiftPro could not load its data store. Please restart the app or reinstall if the issue persists.")
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(ShiftProColors.inkSubtle)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+        }
+        .padding()
     }
 }

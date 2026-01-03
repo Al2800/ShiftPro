@@ -494,8 +494,14 @@ struct HoursDashboard: View {
 }
 
 #Preview {
-    NavigationStack {
-        HoursDashboard()
+    Group {
+        if let container = ModelContainerFactory.previewContainerOrNil() {
+            NavigationStack {
+                HoursDashboard()
+            }
+            .modelContainer(container)
+        } else {
+            Text("Preview unavailable")
+        }
     }
-    .modelContainer(ModelContainerFactory.unsafePreviewContainer())
 }

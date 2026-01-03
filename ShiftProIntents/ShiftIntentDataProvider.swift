@@ -173,8 +173,10 @@ final class ShiftIntentDataProvider {
         
         let calendar = Calendar.current
         let now = Date()
-        let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now))!
-        let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart)!
+        guard let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)),
+              let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else {
+            return IntentHoursData(total: 0, regular: 0, premium: 0)
+        }
         
         let descriptor = FetchDescriptor<Shift>(
             predicate: #Predicate<Shift> { shift in

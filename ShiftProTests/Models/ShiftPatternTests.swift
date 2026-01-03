@@ -100,7 +100,11 @@ final class ShiftPatternTests: XCTestCase {
         let calendar = Calendar.current
         var date = Date()
         while calendar.component(.weekday, from: date) != 2 { // 2 = Monday
-            date = calendar.date(byAdding: .day, value: 1, to: date)!
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: date) else {
+                XCTFail("Failed to compute next weekday for Monday lookup.")
+                break
+            }
+            date = nextDate
         }
 
         XCTAssertTrue(pattern.isScheduled(on: date))
@@ -116,7 +120,11 @@ final class ShiftPatternTests: XCTestCase {
         let calendar = Calendar.current
         var date = Date()
         while calendar.component(.weekday, from: date) != 7 { // 7 = Saturday
-            date = calendar.date(byAdding: .day, value: 1, to: date)!
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: date) else {
+                XCTFail("Failed to compute next weekday for Saturday lookup.")
+                break
+            }
+            date = nextDate
         }
 
         XCTAssertFalse(pattern.isScheduled(on: date))

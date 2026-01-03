@@ -45,8 +45,15 @@ struct PredictiveModels {
     ) -> OvertimePrediction {
         let calendar = Calendar.current
         let now = Date()
-        let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now))!
-        let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart)!
+        guard let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)),
+              let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else {
+            return OvertimePrediction(
+                probability: 0,
+                predictedHours: 0,
+                scheduledHours: 0,
+                warnings: ["Unable to calculate overtime prediction."]
+            )
+        }
         
         // Calculate scheduled hours for this week
         let thisWeekShifts = scheduledShifts.filter {

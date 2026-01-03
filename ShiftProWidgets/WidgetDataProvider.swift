@@ -18,7 +18,7 @@ enum WidgetDataProvider {
     static func loadData() -> WidgetDataContainer {
         guard let url = dataFileURL,
               FileManager.default.fileExists(atPath: url.path),
-              let data = try? Data(contentsOf: url),
+              let data = try? readData(from: url),
               let container = try? JSONDecoder().decode(WidgetDataContainer.self, from: data) else {
             return .empty
         }
@@ -44,6 +44,15 @@ enum WidgetDataProvider {
     static func reloadTimeline(for kind: String) {
         WidgetCenter.shared.reloadTimelines(ofKind: kind)
     }
+
+    private static func readData(from url: URL) throws -> Data {
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        if let data = try handle.readToEnd() {
+            return data
+        }
+        return Data()
+    }
 }
 
 // MARK: - Timeline Entry
@@ -63,8 +72,10 @@ struct ShiftWidgetEntry: TimelineEntry {
         let now = Date()
         let calendar = Calendar.current
         
-        let shiftStart = calendar.date(byAdding: .hour, value: -2, to: now)!
-        let shiftEnd = calendar.date(byAdding: .hour, value: 6, to: now)!
+        let shiftStart = calendar.date(byAdding: .hour, value: -2, to: now)
+            ?? now.addingTimeInterval(-2 * 60 * 60)
+        let shiftEnd = calendar.date(byAdding: .hour, value: 6, to: now)
+            ?? now.addingTimeInterval(6 * 60 * 60)
         
         let currentShift = WidgetShiftData(
             id: UUID(),
@@ -83,8 +94,10 @@ struct ShiftWidgetEntry: TimelineEntry {
         let nextShift = WidgetShiftData(
             id: UUID(),
             title: "Night Shift",
-            scheduledStart: calendar.date(byAdding: .day, value: 1, to: now)!,
-            scheduledEnd: calendar.date(byAdding: .hour, value: 32, to: now)!,
+            scheduledStart: calendar.date(byAdding: .day, value: 1, to: now)
+                ?? now.addingTimeInterval(24 * 60 * 60),
+            scheduledEnd: calendar.date(byAdding: .hour, value: 32, to: now)
+                ?? now.addingTimeInterval(32 * 60 * 60),
             actualStart: nil,
             actualEnd: nil,
             status: .scheduled,
@@ -95,8 +108,10 @@ struct ShiftWidgetEntry: TimelineEntry {
         )
         
         let hoursData = WidgetHoursData(
-            periodStart: calendar.date(byAdding: .day, value: -7, to: now)!,
-            periodEnd: calendar.date(byAdding: .day, value: 7, to: now)!,
+            periodStart: calendar.date(byAdding: .day, value: -7, to: now)
+                ?? now.addingTimeInterval(-7 * 24 * 60 * 60),
+            periodEnd: calendar.date(byAdding: .day, value: 7, to: now)
+                ?? now.addingTimeInterval(7 * 24 * 60 * 60),
             totalHours: 32.5,
             regularHours: 28.0,
             premiumHours: 4.5,
@@ -164,8 +179,9 @@ struct ShiftTimelineProvider: AppIntentTimelineProvider {
         // Create entries for the next 8 hours with 15-minute intervals
         // This ensures the widget updates regularly without excessive refreshes
         for minuteOffset in stride(from: 0, through: 480, by: 15) {
-            let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: currentDate)!
-            entries.append(Entry(date: entryDate, data: data, configuration: configuration))
+            if let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: currentDate) {
+                entries.append(Entry(date: entryDate, data: data, configuration: configuration))
+            }
         }
         
         // Schedule next refresh based on shift timing
@@ -178,7 +194,8 @@ struct ShiftTimelineProvider: AppIntentTimelineProvider {
             nextRefresh = nextShift.scheduledStart
         } else {
             // Default: refresh in 1 hour
-            nextRefresh = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)!
+            nextRefresh = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)
+                ?? currentDate.addingTimeInterval(60 * 60)
         }
         
         return Timeline(entries: entries, policy: .after(nextRefresh))
@@ -212,11 +229,13 @@ struct SimpleShiftTimelineProvider: TimelineProvider {
         var entries: [Entry] = []
         
         for minuteOffset in stride(from: 0, through: 480, by: 15) {
-            let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: currentDate)!
-            entries.append(Entry(date: entryDate, data: data, configuration: nil))
+            if let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: currentDate) {
+                entries.append(Entry(date: entryDate, data: data, configuration: nil))
+            }
         }
         
-        let nextRefresh = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)!
+        let nextRefresh = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)
+            ?? currentDate.addingTimeInterval(60 * 60)
         completion(Timeline(entries: entries, policy: .after(nextRefresh)))
     }
 }

@@ -240,7 +240,8 @@ extension Shift {
     static var todayPredicate: Predicate<Shift> {
         let calendar = Calendar.current
         let startOfToday = calendar.startOfDay(for: Date())
-        let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
+        let endOfToday = calendar.date(byAdding: .day, value: 1, to: startOfToday)
+            ?? startOfToday
 
         return #Predicate<Shift> { shift in
             shift.scheduledStart < endOfToday &&

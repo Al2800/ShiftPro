@@ -41,7 +41,10 @@ final class EncryptionManager {
         // Generate random salt
         var salt = Data(count: 16)
         let saltStatus = salt.withUnsafeMutableBytes { buffer in
-            SecRandomCopyBytes(kSecRandomDefault, 16, buffer.baseAddress!)
+            guard let baseAddress = buffer.baseAddress else {
+                return errSecParam
+            }
+            return SecRandomCopyBytes(kSecRandomDefault, 16, baseAddress)
         }
         guard saltStatus == errSecSuccess else {
             throw EncryptionError.encryptionFailed
@@ -118,14 +121,14 @@ final class EncryptionManager {
 
     /// Encrypts a file and writes to destination path
     func encryptFile(at sourcePath: URL, to destinationPath: URL, password: String) throws {
-        let data = try Data(contentsOf: sourcePath)
+        let data = try readFileData(from: sourcePath)
         let encryptedData = try encrypt(data, password: password)
         try encryptedData.write(to: destinationPath, options: .atomic)
     }
 
     /// Decrypts a file and writes to destination path
     func decryptFile(at sourcePath: URL, to destinationPath: URL, password: String) throws {
-        let encryptedData = try Data(contentsOf: sourcePath)
+        let encryptedData = try readFileData(from: sourcePath)
         let decryptedData = try decrypt(encryptedData, password: password)
         try decryptedData.write(to: destinationPath, options: .atomic)
     }
@@ -190,5 +193,14 @@ final class EncryptionManager {
         try storage.save(keyData, forKey: keyIdentifier)
 
         return newKey
+    }
+
+    private func readFileData(from url: URL) throws -> Data {
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        if let data = try handle.readToEnd() {
+            return data
+        }
+        return Data()
     }
 }

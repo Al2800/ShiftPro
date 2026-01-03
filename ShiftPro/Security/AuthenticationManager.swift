@@ -68,7 +68,7 @@ final class AuthenticationManager: ObservableObject {
     private let storage: SecureStorage
     private let context = LAContext()
     private var lastActiveTime: Date?
-    private var lockTimer: Timer?
+    private var lockTimer: DispatchSourceTimer?
 
     private let authMethodKey = "auth.method"
     private let lockTimeoutKey = "auth.lockTimeout"
@@ -213,12 +213,17 @@ final class AuthenticationManager: ObservableObject {
         resetLockTimer()
     }
 
+    deinit {
+        lockTimer?.cancel()
+    }
+
     // MARK: - Lock Management
 
     func lock() {
         isLocked = true
         lastActiveTime = nil
-        lockTimer?.invalidate()
+        lockTimer?.cancel()
+        lockTimer = nil
     }
 
     func recordActiveTime() {
@@ -227,22 +232,24 @@ final class AuthenticationManager: ObservableObject {
     }
 
     private func resetLockTimer() {
-        lockTimer?.invalidate()
+        lockTimer?.cancel()
+        lockTimer = nil
 
         guard authMethod != .none, lockTimeout != .immediate else {
             return
         }
 
         let interval = TimeInterval(lockTimeout.rawValue)
-        lockTimer = Timer.scheduledTimer(
-            withTimeInterval: interval,
-            repeats: false
-        ) { [weak self] _ in
+        let timer = DispatchSource.makeTimerSource(queue: .main)
+        timer.schedule(deadline: .now() + interval)
+        timer.setEventHandler { [weak self] in
             guard let authManager = self else { return }
             Task { @MainActor in
                 authManager.lock()
             }
         }
+        timer.resume()
+        lockTimer = timer
     }
 
     private func checkShouldLock() {
@@ -309,4 +316,3 @@ final class AuthenticationManager: ObservableObject {
         isLocked = authMethod != .none
     }
 }
-

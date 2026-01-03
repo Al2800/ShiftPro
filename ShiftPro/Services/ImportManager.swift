@@ -40,8 +40,8 @@ final class ImportManager {
 
     // MARK: - Import Methods
 
-    func importData(from url: URL, format: ImportFormat, profile: UserProfile?) throws -> ImportResult {
-        let data = try Data(contentsOf: url)
+    func importData(from url: URL, format: ImportFormat, profile: UserProfile?) async throws -> ImportResult {
+        let data = try await readFileData(from: url)
 
         switch format {
         case .csv:
@@ -53,8 +53,8 @@ final class ImportManager {
         }
     }
 
-    func previewImpact(from url: URL, format: ImportFormat, profile: UserProfile?) throws -> ImportImpact {
-        let data = try Data(contentsOf: url)
+    func previewImpact(from url: URL, format: ImportFormat, profile: UserProfile?) async throws -> ImportImpact {
+        let data = try await readFileData(from: url)
         return try previewImpact(data: data, format: format, profile: profile)
     }
 
@@ -110,6 +110,14 @@ final class ImportManager {
         case .ics:
             return try previewICS(data: data)
         }
+    }
+
+    private func readFileData(from url: URL) async throws -> Data {
+        try await Task.detached(priority: .utility) {
+            let handle = try FileHandle(forReadingFrom: url)
+            defer { try? handle.close() }
+            return try handle.readToEnd() ?? Data()
+        }.value
     }
 
     private func previewCSV(data: Data, profile: UserProfile?) throws -> ImportImpact {

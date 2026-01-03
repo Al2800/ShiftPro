@@ -305,8 +305,14 @@ private struct NotificationSettingsForm: View {
 }
 
 #Preview {
-    NavigationStack {
-        NotificationSettingsView()
+    Group {
+        if let container = ModelContainerFactory.previewContainerOrNil() {
+            NavigationStack {
+                NotificationSettingsView()
+            }
+            .modelContainer(container)
+        } else {
+            Text("Preview unavailable")
+        }
     }
-    .modelContainer(ModelContainerFactory.unsafePreviewContainer())
 }

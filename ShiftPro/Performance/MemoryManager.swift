@@ -19,6 +19,13 @@ actor MemoryManager {
     private(set) var currentCacheSize: Int = 0
 
     private var imageCache: [String: ImageCacheEntry] = [:]
+    private var memoryWarningObserver: NSObjectProtocol?
+
+    deinit {
+        if let memoryWarningObserver {
+            NotificationCenter.default.removeObserver(memoryWarningObserver)
+        }
+    }
 
     init() {
         Task { @MainActor in
@@ -133,7 +140,10 @@ actor MemoryManager {
 
     @MainActor
     private func setupMemoryWarningObserver() {
-        NotificationCenter.default.addObserver(
+        if let memoryWarningObserver {
+            NotificationCenter.default.removeObserver(memoryWarningObserver)
+        }
+        memoryWarningObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
             queue: .main

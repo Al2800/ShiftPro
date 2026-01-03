@@ -55,15 +55,23 @@ final class AnalyticsEngine: ObservableObject {
         
         let calendar = Calendar.current
         let now = Date()
-        let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now))!
-        let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart)!
+        guard let weekStart = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)),
+              let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else {
+            weeklyMetrics = nil
+            errorMessage = "We couldn't load weekly analytics."
+            return
+        }
         
         do {
             // Fetch shifts for this week
             let shifts = try fetchShifts(from: weekStart, to: weekEnd, context: context)
             
             // Also fetch previous week for comparison
-            let prevWeekStart = calendar.date(byAdding: .day, value: -7, to: weekStart)!
+            guard let prevWeekStart = calendar.date(byAdding: .day, value: -7, to: weekStart) else {
+                weeklyMetrics = nil
+                errorMessage = "We couldn't load weekly analytics."
+                return
+            }
             let prevShifts = try fetchShifts(from: prevWeekStart, to: weekStart, context: context)
             
             let currentHours = computeHours(from: shifts)
@@ -92,12 +100,20 @@ final class AnalyticsEngine: ObservableObject {
         
         let calendar = Calendar.current
         let now = Date()
-        let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now))!
-        let monthEnd = calendar.date(byAdding: .month, value: 1, to: monthStart)!
+        guard let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: now)),
+              let monthEnd = calendar.date(byAdding: .month, value: 1, to: monthStart) else {
+            monthlyMetrics = nil
+            errorMessage = "We couldn't load monthly analytics."
+            return
+        }
         
         do {
             let shifts = try fetchShifts(from: monthStart, to: monthEnd, context: context)
-            let prevMonthStart = calendar.date(byAdding: .month, value: -1, to: monthStart)!
+            guard let prevMonthStart = calendar.date(byAdding: .month, value: -1, to: monthStart) else {
+                monthlyMetrics = nil
+                errorMessage = "We couldn't load monthly analytics."
+                return
+            }
             let prevShifts = try fetchShifts(from: prevMonthStart, to: monthStart, context: context)
             
             let currentHours = computeHours(from: shifts)
@@ -126,12 +142,20 @@ final class AnalyticsEngine: ObservableObject {
         
         let calendar = Calendar.current
         let now = Date()
-        let yearStart = calendar.date(from: calendar.dateComponents([.year], from: now))!
-        let yearEnd = calendar.date(byAdding: .year, value: 1, to: yearStart)!
+        guard let yearStart = calendar.date(from: calendar.dateComponents([.year], from: now)),
+              let yearEnd = calendar.date(byAdding: .year, value: 1, to: yearStart) else {
+            yearlyMetrics = nil
+            errorMessage = "We couldn't load yearly analytics."
+            return
+        }
         
         do {
             let shifts = try fetchShifts(from: yearStart, to: yearEnd, context: context)
-            let prevYearStart = calendar.date(byAdding: .year, value: -1, to: yearStart)!
+            guard let prevYearStart = calendar.date(byAdding: .year, value: -1, to: yearStart) else {
+                yearlyMetrics = nil
+                errorMessage = "We couldn't load yearly analytics."
+                return
+            }
             let prevShifts = try fetchShifts(from: prevYearStart, to: yearStart, context: context)
             
             let currentHours = computeHours(from: shifts)

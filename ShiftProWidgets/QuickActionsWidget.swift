@@ -194,7 +194,18 @@ struct QuickActionsWidgetView: View {
             
             Spacer()
             
-            Link(destination: URL(string: "shiftpro://schedule")!) {
+            if let scheduleURL {
+                Link(destination: scheduleURL) {
+                    Text("View Schedule")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(WidgetColors.accent.opacity(0.2))
+                        .foregroundStyle(WidgetColors.accent)
+                        .clipShape(Capsule())
+                }
+            } else {
                 Text("View Schedule")
                     .font(.caption)
                     .fontWeight(.medium)
@@ -219,7 +230,18 @@ struct QuickActionsWidgetView: View {
             
             Spacer()
             
-            Link(destination: URL(string: "shiftpro://add-shift")!) {
+            if let addShiftURL {
+                Link(destination: addShiftURL) {
+                    Label("Add Shift", systemImage: "plus.circle.fill")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(WidgetColors.accent.opacity(0.2))
+                        .foregroundStyle(WidgetColors.accent)
+                        .clipShape(Capsule())
+                }
+            } else {
                 Label("Add Shift", systemImage: "plus.circle.fill")
                     .font(.caption)
                     .fontWeight(.medium)
@@ -340,7 +362,21 @@ struct QuickActionsWidgetView: View {
                     }
                     .buttonStyle(.plain)
                 } else {
-                    Link(destination: URL(string: "shiftpro://add-shift")!) {
+                    if let addShiftURL {
+                        Link(destination: addShiftURL) {
+                            VStack(spacing: 4) {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.title2)
+                                Text("Add Shift")
+                                    .font(.caption2)
+                                    .fontWeight(.medium)
+                            }
+                            .frame(width: 70, height: 70)
+                            .background(WidgetColors.accent.opacity(0.2))
+                            .foregroundStyle(WidgetColors.accent)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                    } else {
                         VStack(spacing: 4) {
                             Image(systemName: "plus.circle.fill")
                                 .font(.title2)
@@ -368,6 +404,14 @@ struct QuickActionsWidgetView: View {
             return "\(hours)h \(mins)m"
         }
         return "\(mins)m"
+    }
+
+    private var scheduleURL: URL? {
+        URL(string: "shiftpro://schedule")
+    }
+
+    private var addShiftURL: URL? {
+        URL(string: "shiftpro://add-shift")
     }
 }
 

@@ -4,8 +4,8 @@ struct SubscriptionSettingsView: View {
     @EnvironmentObject private var entitlementManager: EntitlementManager
     @Environment(\.openURL) private var openURL
 
-    private let termsURL = URL(string: "https://shiftpro.app/terms")!
-    private let privacyURL = URL(string: "https://shiftpro.app/privacy")!
+    private let termsURL = URL(string: "https://shiftpro.app/terms")
+    private let privacyURL = URL(string: "https://shiftpro.app/privacy")
 
     var body: some View {
         List {
@@ -62,8 +62,12 @@ struct SubscriptionSettingsView: View {
                         .foregroundStyle(ShiftProColors.inkSubtle)
 
                     HStack(spacing: 12) {
-                        Link("Terms of Use", destination: termsURL)
-                        Link("Privacy Policy", destination: privacyURL)
+                        if let termsURL {
+                            Link("Terms of Use", destination: termsURL)
+                        }
+                        if let privacyURL {
+                            Link("Privacy Policy", destination: privacyURL)
+                        }
                     }
                     .font(ShiftProTypography.caption)
                     .foregroundStyle(ShiftProColors.accent)

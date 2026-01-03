@@ -173,9 +173,8 @@ final class PayPeriodRepository: AbstractRepository {
         case .monthly:
             var components = calendar.dateComponents([.year, .month], from: startOfDay)
             let monthStart = calendar.date(from: components) ?? startOfDay
-            components.month! += 1
-            components.day = 0
-            let monthEnd = calendar.date(from: components) ?? startOfDay
+            let monthEnd = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: monthStart)
+                ?? startOfDay
             return (monthStart, calendar.endOfDay(for: monthEnd))
         }
     }

@@ -8,9 +8,9 @@ struct PaywallView: View {
     @Environment(\.openURL) private var openURL
     @State private var purchasingProductID: Product.ID?
 
-    private let termsURL = URL(string: "https://shiftpro.app/terms")!
-    private let privacyURL = URL(string: "https://shiftpro.app/privacy")!
-    private let manageSubscriptionURL = URL(string: "https://apps.apple.com/account/subscriptions")!
+    private let termsURL = URL(string: "https://shiftpro.app/terms")
+    private let privacyURL = URL(string: "https://shiftpro.app/privacy")
+    private let manageSubscriptionURL = URL(string: "https://apps.apple.com/account/subscriptions")
 
     var body: some View {
         ScrollView {
@@ -220,7 +220,9 @@ struct PaywallView: View {
             .font(ShiftProTypography.subheadline)
 
             Button("Manage Subscription") {
-                openURL(manageSubscriptionURL)
+                if let manageSubscriptionURL {
+                    openURL(manageSubscriptionURL)
+                }
             }
             .font(ShiftProTypography.subheadline)
 
@@ -245,8 +247,12 @@ struct PaywallView: View {
                 .multilineTextAlignment(.center)
 
             HStack(spacing: ShiftProSpacing.medium) {
-                Link("Terms of Use", destination: termsURL)
-                Link("Privacy Policy", destination: privacyURL)
+                if let termsURL {
+                    Link("Terms of Use", destination: termsURL)
+                }
+                if let privacyURL {
+                    Link("Privacy Policy", destination: privacyURL)
+                }
             }
             .font(ShiftProTypography.caption)
             .foregroundStyle(ShiftProColors.accent)

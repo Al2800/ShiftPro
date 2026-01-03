@@ -283,8 +283,10 @@ extension PayPeriod {
     static func currentWeek() -> PayPeriod {
         let calendar = Calendar.current
         let now = Date()
-        let startOfWeek = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now))!
-        let endOfWeek = calendar.date(byAdding: .day, value: 6, to: startOfWeek)!
+        let startOfWeek = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now))
+            ?? now
+        let endOfWeek = calendar.date(byAdding: .day, value: 6, to: startOfWeek)
+            ?? startOfWeek
 
         return PayPeriod(startDate: startOfWeek, endDate: calendar.endOfDay(for: endOfWeek))
     }
@@ -297,8 +299,10 @@ extension PayPeriod {
         // Find start of the bi-weekly period based on reference
         let daysSinceReference = calendar.dateComponents([.day], from: referenceDate, to: now).day ?? 0
         let periodIndex = daysSinceReference / 14
-        let startDate = calendar.date(byAdding: .day, value: periodIndex * 14, to: referenceDate)!
-        let endDate = calendar.date(byAdding: .day, value: 13, to: startDate)!
+        let startDate = calendar.date(byAdding: .day, value: periodIndex * 14, to: referenceDate)
+            ?? referenceDate
+        let endDate = calendar.date(byAdding: .day, value: 13, to: startDate)
+            ?? startDate
 
         return PayPeriod(startDate: startDate, endDate: calendar.endOfDay(for: endDate))
     }
@@ -307,8 +311,10 @@ extension PayPeriod {
     static func currentMonth() -> PayPeriod {
         let calendar = Calendar.current
         let now = Date()
-        let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now))!
-        let endOfMonth = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: startOfMonth)!
+        let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now))
+            ?? now
+        let endOfMonth = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: startOfMonth)
+            ?? startOfMonth
 
         return PayPeriod(startDate: startOfMonth, endDate: calendar.endOfDay(for: endOfMonth))
     }

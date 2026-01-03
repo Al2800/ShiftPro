@@ -2,7 +2,7 @@ import XCTest
 @testable import ShiftPro
 
 final class HoursCalculatorTests: XCTestCase {
-    var calculator: HoursCalculator!
+    private var calculator = HoursCalculator()
 
     override func setUp() {
         super.setUp()
@@ -10,7 +10,6 @@ final class HoursCalculatorTests: XCTestCase {
     }
 
     override func tearDown() {
-        calculator = nil
         super.tearDown()
     }
 

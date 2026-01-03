@@ -104,8 +104,14 @@ struct RateMultiplierView: View {
 }
 
 #Preview {
-    NavigationStack {
-        RateMultiplierView()
+    Group {
+        if let container = ModelContainerFactory.previewContainerOrNil() {
+            NavigationStack {
+                RateMultiplierView()
+            }
+            .modelContainer(container)
+        } else {
+            Text("Preview unavailable")
+        }
     }
-    .modelContainer(ModelContainerFactory.unsafePreviewContainer())
 }

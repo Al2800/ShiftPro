@@ -79,12 +79,8 @@ enum ModelContainerFactory {
     }
 
     @MainActor
-    static func unsafePreviewContainer() -> ModelContainer {
-        do {
-            return try previewContainer()
-        } catch {
-            fatalError("Failed to create preview container: \(error)")
-        }
+    static func previewContainerOrNil() -> ModelContainer? {
+        try? previewContainer()
     }
 
     private static func storeLocationURL() throws -> URL {

@@ -37,6 +37,13 @@ actor CacheManager {
 
     private var memoryCache: [String: Any] = [:]
     private var cacheAccessTimes: [String: Date] = [:]
+    private var memoryWarningObserver: NSObjectProtocol?
+
+    deinit {
+        if let memoryWarningObserver {
+            NotificationCenter.default.removeObserver(memoryWarningObserver)
+        }
+    }
 
     init() {
         Task { @MainActor in
@@ -147,7 +154,10 @@ actor CacheManager {
 
     @MainActor
     private func setupMemoryWarningObserver() {
-        NotificationCenter.default.addObserver(
+        if let memoryWarningObserver {
+            NotificationCenter.default.removeObserver(memoryWarningObserver)
+        }
+        memoryWarningObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
             queue: .main

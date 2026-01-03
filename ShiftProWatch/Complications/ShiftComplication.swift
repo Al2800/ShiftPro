@@ -25,7 +25,9 @@ struct ShiftComplicationProvider: TimelineProvider {
         
         // Create entries for the next hour
         for minuteOffset in stride(from: 0, to: 60, by: 15) {
-            let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: now)!
+            guard let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: now) else {
+                continue
+            }
             let entry = ShiftComplicationEntry(
                 date: entryDate,
                 shift: data.currentShift,
@@ -35,7 +37,8 @@ struct ShiftComplicationProvider: TimelineProvider {
         }
         
         // Refresh every 15 minutes
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 15, to: now)!
+        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 15, to: now)
+            ?? now.addingTimeInterval(15 * 60)
         let timeline = Timeline(entries: entries, policy: .after(nextUpdate))
         completion(timeline)
     }

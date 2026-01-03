@@ -72,7 +72,9 @@ enum TestDataBuilder {
         pattern: ShiftPattern? = nil,
         owner: UserProfile? = nil
     ) -> Shift {
-        let end = scheduledEnd ?? Calendar.current.date(byAdding: .hour, value: 8, to: scheduledStart)!
+        let end = scheduledEnd
+            ?? Calendar.current.date(byAdding: .hour, value: 8, to: scheduledStart)
+            ?? scheduledStart.addingTimeInterval(8 * 60 * 60)
 
         return Shift(
             id: id,
@@ -98,7 +100,8 @@ enum TestDataBuilder {
         rateMultiplier: Double = 1.0,
         owner: UserProfile? = nil
     ) -> Shift {
-        let end = Calendar.current.date(byAdding: .hour, value: durationHours, to: scheduledStart)!
+        let end = Calendar.current.date(byAdding: .hour, value: durationHours, to: scheduledStart)
+            ?? scheduledStart.addingTimeInterval(TimeInterval(durationHours) * 60 * 60)
 
         return Shift(
             scheduledStart: scheduledStart,
@@ -123,7 +126,9 @@ enum TestDataBuilder {
         premiumMinutes: Int = 0,
         isComplete: Bool = false
     ) -> PayPeriod {
-        let end = endDate ?? Calendar.current.date(byAdding: .day, value: 13, to: startDate)!
+        let end = endDate
+            ?? Calendar.current.date(byAdding: .day, value: 13, to: startDate)
+            ?? startDate.addingTimeInterval(13 * 24 * 60 * 60)
 
         return PayPeriod(
             id: id,
@@ -156,17 +161,21 @@ enum TestDataBuilder {
         var components = calendar.dateComponents([.year, .month, .day], from: Date())
         components.hour = hour
         components.minute = minute
-        return calendar.date(from: components)!
+        return calendar.date(from: components)
+            ?? calendar.startOfDay(for: Date()).addingTimeInterval(TimeInterval(hour * 60 * 60 + minute * 60))
     }
 
     /// Creates a date at a specific time on a future day
     static func future(days: Int, hour: Int = 9) -> Date {
         let calendar = Calendar.current
-        var date = calendar.date(byAdding: .day, value: days, to: Date())!
+        guard let baseDate = calendar.date(byAdding: .day, value: days, to: Date()) else {
+            return Date()
+        }
+        var date = baseDate
         var components = calendar.dateComponents([.year, .month, .day], from: date)
         components.hour = hour
         components.minute = 0
-        return calendar.date(from: components)!
+        return calendar.date(from: components) ?? date
     }
 
     /// Creates a date at a specific time on a past day
