@@ -1,7 +1,9 @@
 import SwiftUI
+import UIKit
 
 struct PermissionsView: View {
     @EnvironmentObject var permissionManager: PermissionManager
+    @Environment(\.openURL) private var openURL
     @Binding var wantsCalendarSync: Bool
     @Binding var wantsNotifications: Bool
 
@@ -11,7 +13,7 @@ struct PermissionsView: View {
                 .font(ShiftProTypography.title)
                 .foregroundStyle(Color.white)
 
-            Text("Grant access now to enable automatic calendar sync and timely reminders. You can change this later in Settings.")
+            Text("Enable what you need now. You can continue without granting access and turn features on later in Settings.")
                 .font(ShiftProTypography.body)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(ShiftProColors.fog)
@@ -19,7 +21,8 @@ struct PermissionsView: View {
 
             permissionCard(
                 title: "Calendar Access",
-                description: "Sync shifts to your iOS calendar.",
+                description: "Export shifts to your iOS calendar. We request write-only access by default.",
+                benefit: "See your work schedule alongside personal plans.",
                 status: permissionManager.calendarStatus,
                 toggleOn: $wantsCalendarSync,
                 actionTitle: "Allow Calendar"
@@ -30,12 +33,20 @@ struct PermissionsView: View {
             permissionCard(
                 title: "Notifications",
                 description: "Get reminders before shifts start.",
+                benefit: "Stay on time with alerts you can customize later.",
                 status: permissionManager.notificationStatus,
                 toggleOn: $wantsNotifications,
                 actionTitle: "Allow Notifications"
             ) {
                 Task { await permissionManager.requestNotificationAccess() }
             }
+
+            Button("Manage Permissions in Settings") {
+                openSettings()
+            }
+            .font(ShiftProTypography.caption)
+            .foregroundStyle(ShiftProColors.accent)
+            .accessibilityLabel("Open Settings")
         }
         .padding(ShiftProSpacing.large)
         .background(
@@ -51,6 +62,7 @@ struct PermissionsView: View {
     private func permissionCard(
         title: String,
         description: String,
+        benefit: String,
         status: PermissionStatus,
         toggleOn: Binding<Bool>,
         actionTitle: String,
@@ -70,6 +82,10 @@ struct PermissionsView: View {
             Text(description)
                 .font(ShiftProTypography.callout)
                 .foregroundStyle(ShiftProColors.fog)
+
+            Text(benefit)
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(ShiftProColors.fog.opacity(0.9))
 
             Toggle("Enable", isOn: toggleOn)
                 .tint(ShiftProColors.accent)
@@ -94,6 +110,11 @@ struct PermissionsView: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(ShiftProColors.card)
         )
+    }
+
+    private func openSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        openURL(url)
     }
 }
 
