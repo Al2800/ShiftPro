@@ -123,6 +123,31 @@ struct HoursDashboard: View {
         return overtimePredictor.forecast(for: periodShifts, within: currentPeriod, thresholdHours: threshold)
     }
 
+    /// Next upcoming shift in the current pay period (not yet completed)
+    private var nextUpcomingShift: Shift? {
+        let now = Date()
+        return periodShifts.first { shift in
+            shift.scheduledStart > now && shift.status != .completed && shift.status != .cancelled
+        }
+    }
+
+    /// Impact message for the next shift on overtime threshold
+    private var nextShiftImpactMessage: String? {
+        guard let nextShift = nextUpcomingShift else { return nil }
+
+        let threshold = overtimeForecast.thresholdHours
+        let currentHours = summary.totalHours
+        let shiftHours = Double(max(0, nextShift.scheduledDurationMinutes - nextShift.breakMinutes)) / 60.0
+        let afterNextShift = currentHours + shiftHours
+
+        if afterNextShift > threshold {
+            let excess = afterNextShift - threshold
+            return String(format: "Next shift would exceed by %.1f hrs", excess)
+        } else {
+            return String(format: "After next shift: %.1f hrs", afterNextShift)
+        }
+    }
+
     private var emptyState: some View {
         EmptyStateView(
             icon: "clock.badge.questionmark",
@@ -288,6 +313,13 @@ struct HoursDashboard: View {
             Text(overtimeForecast.message)
                 .font(ShiftProTypography.body)
                 .foregroundStyle(color(for: overtimeForecast.status))
+
+            if let impactMessage = nextShiftImpactMessage {
+                Text(impactMessage)
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+                    .padding(.top, ShiftProSpacing.extraExtraSmall)
+            }
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surfaceElevated)
