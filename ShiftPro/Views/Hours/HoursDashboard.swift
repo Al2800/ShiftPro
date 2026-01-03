@@ -25,28 +25,49 @@ struct HoursDashboard: View {
                     emptyState
                     dataActionsCard
                 } else {
+                    // Primary card - dominant visual hierarchy
                     heroCard
 
-                    NavigationLink {
-                        PayPeriodDetailView(
-                            period: currentPeriod,
-                            shifts: periodShifts,
-                            baseRateCents: profile?.baseRateCents
-                        )
-                    } label: {
-                        summaryCard
+                    // Secondary section - insights and details
+                    VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
+                        Text("Details")
+                            .font(ShiftProTypography.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(ShiftProColors.inkSubtle)
+                            .textCase(.uppercase)
+                            .padding(.top, ShiftProSpacing.small)
+
+                        NavigationLink {
+                            PayPeriodDetailView(
+                                period: currentPeriod,
+                                shifts: periodShifts,
+                                baseRateCents: profile?.baseRateCents
+                            )
+                        } label: {
+                            summaryCard
+                        }
+                        .buttonStyle(.plain)
+
+                        chartCard
+
+                        rateBreakdownCard
+
+                        overtimeCard
                     }
-                    .buttonStyle(.plain)
 
-                    chartCard
+                    // Tertiary section - history and actions
+                    VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
+                        Text("History")
+                            .font(ShiftProTypography.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(ShiftProColors.inkSubtle)
+                            .textCase(.uppercase)
+                            .padding(.top, ShiftProSpacing.small)
 
-                    rateBreakdownCard
+                        recentPeriodsCard
 
-                    overtimeCard
-
-                    recentPeriodsCard
-
-                    dataActionsCard
+                        dataActionsCard
+                    }
                 }
             }
             .padding(.horizontal, ShiftProSpacing.medium)
@@ -118,29 +139,49 @@ struct HoursDashboard: View {
         VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             Text("Current Pay Period")
                 .font(ShiftProTypography.caption)
-                .foregroundStyle(ShiftProColors.inkSubtle)
+                .fontWeight(.medium)
+                .foregroundStyle(.white.opacity(0.8))
 
             Text(currentPeriod.dateRangeFormatted)
                 .font(ShiftProTypography.title)
-                .foregroundStyle(ShiftProColors.ink)
+                .foregroundStyle(.white)
 
             ProgressView(value: currentPeriod.progress)
-                .tint(ShiftProColors.accent)
+                .tint(.white)
 
             HStack(spacing: ShiftProSpacing.medium) {
-                metricView(title: "Total", value: String(format: "%.1f", summary.totalHours))
-                metricView(title: "Regular", value: String(format: "%.1f", summary.regularHours))
-                metricView(title: "Premium", value: String(format: "%.1f", summary.premiumHours))
+                heroMetricView(title: "Total", value: String(format: "%.1f", summary.totalHours))
+                heroMetricView(title: "Regular", value: String(format: "%.1f", summary.regularHours))
+                heroMetricView(title: "Premium", value: String(format: "%.1f", summary.premiumHours))
+            }
+
+            if let estimated = summary.estimatedPayCents {
+                Text("Est. \(estimated.centsFormatted)")
+                    .font(ShiftProTypography.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white.opacity(0.95))
+                    .padding(.top, ShiftProSpacing.extraExtraSmall)
             }
         }
-        .padding(ShiftProSpacing.medium)
-        .background(ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(ShiftProColors.accentMuted, lineWidth: 1)
-        )
+        .padding(ShiftProSpacing.large)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(ShiftProColors.heroGradient)
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .shadow(color: ShiftProColors.accent.opacity(0.25), radius: 18, x: 0, y: 12)
         .accessibilityIdentifier("hours.heroCard")
+    }
+
+    private func heroMetricView(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
+            Text(title)
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(.white.opacity(0.75))
+            Text("\(value)h")
+                .font(ShiftProTypography.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.white)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var summaryCard: some View {
