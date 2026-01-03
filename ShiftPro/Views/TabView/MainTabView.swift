@@ -43,6 +43,10 @@ struct MainTabView: View {
             }
         }
         .tint(ShiftProColors.accent)
+        .safeAreaInset(edge: .top) {
+            ShiftStatusBanner()
+                .transition(.move(edge: .top).combined(with: .opacity))
+        }
         .onAppear {
             // Navigate to Schedule tab if user chose to add their first shift after onboarding
             if showAddShiftAfterOnboarding {
