@@ -23,6 +23,7 @@ struct ScheduleView: View {
     @State private var showingDatePicker = false
     @State private var pendingDate = Date()
     @AppStorage("showAddShiftAfterOnboarding") private var showAddShiftAfterOnboarding = false
+    @State private var editingShift: Shift?
 
     private let calendar = Calendar.current
 
@@ -66,6 +67,36 @@ struct ScheduleView: View {
                                 )
                             }
                             .buttonStyle(.plain)
+                            .contextMenu {
+                                Button {
+                                    editingShift = shift
+                                } label: {
+                                    Label("Edit Shift", systemImage: "pencil")
+                                }
+
+                                Button(role: .destructive) {
+                                    softDeleteShift(shift)
+                                } label: {
+                                    Label("Delete Shift", systemImage: "trash")
+                                }
+                            }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button(role: .destructive) {
+                                    softDeleteShift(shift)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+
+                                Button {
+                                    editingShift = shift
+                                } label: {
+                                    Label("Edit", systemImage: "pencil")
+                                }
+                                .tint(ShiftProColors.accent)
+                            }
+                            .accessibilityAction(named: "Edit") {
+                                editingShift = shift
+                            }
                         }
                     }
                 }
@@ -137,6 +168,9 @@ struct ScheduleView: View {
         }
         .sheet(isPresented: $showingAddShift) {
             ShiftFormView()
+        }
+        .sheet(item: $editingShift) { shift in
+            ShiftFormView(shift: shift)
         }
         .sheet(isPresented: $showingDatePicker) {
             NavigationStack {
@@ -230,6 +264,11 @@ struct ScheduleView: View {
                 selectedDate = newDate
             }
         }
+    }
+
+    private func softDeleteShift(_ shift: Shift) {
+        let repository = ShiftRepository(context: modelContext)
+        try? repository.softDelete(shift)
     }
 
     private var emptyState: some View {
