@@ -2,6 +2,14 @@ import SwiftData
 import SwiftUI
 
 struct ScheduleView: View {
+    private enum ViewMode: String, CaseIterable, Identifiable {
+        case week
+        case month
+
+        var id: String { rawValue }
+        var title: String { rawValue.capitalized }
+    }
+
     @Environment(\.modelContext) private var modelContext
     @Query(filter: #Predicate<Shift> { $0.deletedAt == nil }, sort: [SortDescriptor(\Shift.scheduledStart, order: .forward)])
     private var shifts: [Shift]
@@ -11,13 +19,22 @@ struct ScheduleView: View {
     @State private var selectedDate = Date()
     @State private var showingAddShift = false
     @State private var testShiftID: UUID?
+    @State private var viewMode: ViewMode = .week
+    @State private var showingDatePicker = false
+    @State private var pendingDate = Date()
 
     private let calendar = Calendar.current
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
-                calendarStrip
+                calendarHeader
+
+                if viewMode == .week {
+                    calendarStrip
+                } else {
+                    monthGrid
+                }
 
                 VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
                     Text(sectionTitle)
@@ -67,7 +84,7 @@ struct ScheduleView: View {
             ToolbarItem(placement: .topBarLeading) {
                 HStack(spacing: ShiftProSpacing.small) {
                     Button {
-                        navigateWeek(by: -1)
+                        navigate(by: -1)
                     } label: {
                         Image(systemName: "chevron.left")
                             .foregroundStyle(ShiftProColors.accent)
@@ -86,13 +103,24 @@ struct ScheduleView: View {
                     .accessibilityLabel("Go to today")
 
                     Button {
-                        navigateWeek(by: 1)
+                        navigate(by: 1)
                     } label: {
                         Image(systemName: "chevron.right")
                             .foregroundStyle(ShiftProColors.accent)
                     }
                     .accessibilityLabel("Next week")
                 }
+            }
+
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    pendingDate = selectedDate
+                    showingDatePicker = true
+                } label: {
+                    Image(systemName: "calendar")
+                        .foregroundStyle(ShiftProColors.accent)
+                }
+                .accessibilityLabel("Jump to date")
             }
 
             ToolbarItem(placement: .topBarTrailing) {
@@ -108,6 +136,34 @@ struct ScheduleView: View {
         }
         .sheet(isPresented: $showingAddShift) {
             ShiftFormView()
+        }
+        .sheet(isPresented: $showingDatePicker) {
+            NavigationStack {
+                VStack {
+                    DatePicker(
+                        "Select date",
+                        selection: $pendingDate,
+                        displayedComponents: [.date]
+                    )
+                    .datePickerStyle(.graphical)
+                    .padding()
+                }
+                .navigationTitle("Jump to Date")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") {
+                            showingDatePicker = false
+                        }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") {
+                            selectedDate = pendingDate
+                            showingDatePicker = false
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -159,9 +215,10 @@ struct ScheduleView: View {
         }
     }
 
-    private func navigateWeek(by weeks: Int) {
+    private func navigate(by value: Int) {
         withAnimation {
-            if let newDate = calendar.date(byAdding: .weekOfYear, value: weeks, to: selectedDate) {
+            let component: Calendar.Component = viewMode == .month ? .month : .weekOfYear
+            if let newDate = calendar.date(byAdding: component, value: value, to: selectedDate) {
                 selectedDate = newDate
             }
         }
@@ -177,12 +234,26 @@ struct ScheduleView: View {
         )
     }
 
-    private var calendarStrip: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+    private var calendarHeader: some View {
+        HStack(spacing: ShiftProSpacing.small) {
             Text(currentMonthName)
                 .font(ShiftProTypography.subheadline)
                 .foregroundStyle(ShiftProColors.inkSubtle)
 
+            Spacer()
+
+            Picker("View", selection: $viewMode) {
+                ForEach(ViewMode.allCases) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 180)
+        }
+    }
+
+    private var calendarStrip: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             HStack(spacing: ShiftProSpacing.small) {
                 ForEach(weekDates, id: \.self) { date in
                     calendarDayCell(for: date)
@@ -195,6 +266,55 @@ struct ScheduleView: View {
             }
             .accessibilityIdentifier(AccessibilityIdentifiers.scheduleCalendarStrip)
         }
+    }
+
+    private var monthGrid: some View {
+        let columns = Array(repeating: GridItem(.flexible(), spacing: ShiftProSpacing.extraSmall), count: 7)
+        return VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+            HStack(spacing: ShiftProSpacing.extraSmall) {
+                ForEach(calendar.shortStandaloneWeekdaySymbols, id: \.self) { symbol in
+                    Text(symbol)
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+
+            LazyVGrid(columns: columns, spacing: ShiftProSpacing.extraSmall) {
+                ForEach(monthDates.indices, id: \.self) { index in
+                    if let date = monthDates[index] {
+                        monthDayCell(for: date)
+                            .onTapGesture {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    selectedDate = date
+                                }
+                            }
+                    } else {
+                        Color.clear
+                            .frame(height: 36)
+                    }
+                }
+            }
+        }
+    }
+
+    private var monthDates: [Date?] {
+        guard let monthInterval = calendar.dateInterval(of: .month, for: selectedDate),
+              let daysRange = calendar.range(of: .day, in: .month, for: selectedDate) else {
+            return []
+        }
+
+        let firstDay = monthInterval.start
+        let firstWeekday = calendar.component(.weekday, from: firstDay)
+        let leadingBlanks = (firstWeekday - calendar.firstWeekday + 7) % 7
+
+        var dates: [Date?] = Array(repeating: nil, count: leadingBlanks)
+        for day in daysRange {
+            if let date = calendar.date(byAdding: .day, value: day - 1, to: firstDay) {
+                dates.append(date)
+            }
+        }
+        return dates
     }
 
     private func calendarDayCell(for date: Date) -> some View {
@@ -229,6 +349,39 @@ struct ScheduleView: View {
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(isToday && !isSelected ? ShiftProColors.accent : .clear, lineWidth: 2)
+        )
+    }
+
+    private func monthDayCell(for date: Date) -> some View {
+        let isSelected = calendar.isDate(date, inSameDayAs: selectedDate)
+        let isToday = calendar.isDateInToday(date)
+        let hasShifts = shifts.contains { calendar.isDate($0.scheduledStart, inSameDayAs: date) }
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "d"
+
+        return VStack(spacing: 4) {
+            Text(dateFormatter.string(from: date))
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(isSelected ? .white : ShiftProColors.ink)
+
+            if hasShifts {
+                Circle()
+                    .fill(isSelected ? .white : ShiftProColors.accent)
+                    .frame(width: 5, height: 5)
+            } else {
+                Circle()
+                    .fill(Color.clear)
+                    .frame(width: 5, height: 5)
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 36)
+        .padding(.vertical, 6)
+        .background(isSelected ? ShiftProColors.accent : ShiftProColors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(isToday && !isSelected ? ShiftProColors.accent : .clear, lineWidth: 2)
         )
     }
