@@ -46,8 +46,8 @@ actor CacheManager {
     }
 
     init() {
-        Task { @MainActor in
-            self.setupMemoryWarningObserver()
+        Task {
+            await self.setupMemoryWarningObserver()
         }
     }
 
@@ -152,12 +152,11 @@ actor CacheManager {
         }
     }
 
-    @MainActor
     private func setupMemoryWarningObserver() {
         if let memoryWarningObserver {
             NotificationCenter.default.removeObserver(memoryWarningObserver)
         }
-        memoryWarningObserver = NotificationCenter.default.addObserver(
+        let observer = NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
             queue: .main
@@ -167,6 +166,7 @@ actor CacheManager {
                 await self.handleMemoryWarning()
             }
         }
+        memoryWarningObserver = observer
     }
 
     private func handleMemoryWarning() {
