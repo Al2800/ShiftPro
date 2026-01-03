@@ -19,6 +19,8 @@ struct PaywallView: View {
 
                 featureList
 
+                comparisonTable
+
                 if entitlementManager.products.isEmpty {
                     placeholderCards
                 } else {
@@ -92,6 +94,59 @@ struct PaywallView: View {
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surfaceElevated)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private var comparisonTable: some View {
+        let rows = comparisonRows
+        return VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+            Text("Free vs Premium")
+                .font(ShiftProTypography.headline)
+                .foregroundStyle(ShiftProColors.ink)
+
+            Grid(horizontalSpacing: 16, verticalSpacing: 10) {
+                GridRow {
+                    Text("Feature")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text("Free")
+                    Text("Premium")
+                }
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(ShiftProColors.inkSubtle)
+
+                ForEach(rows) { row in
+                    GridRow {
+                        Text(row.title)
+                            .font(ShiftProTypography.body)
+                            .foregroundStyle(ShiftProColors.ink)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        availabilityIcon(isAvailable: row.isFree)
+                        availabilityIcon(isAvailable: row.isPremium)
+                    }
+                }
+            }
+        }
+        .padding(ShiftProSpacing.medium)
+        .background(ShiftProColors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private var comparisonRows: [ComparisonRow] {
+        ShiftProFeature.allCases
+            .filter { $0.requiredTier != .enterprise }
+            .map { feature in
+                ComparisonRow(
+                    title: feature.displayName,
+                    isFree: feature.requiredTier == .free,
+                    isPremium: true
+                )
+            }
+    }
+
+    private func availabilityIcon(isAvailable: Bool) -> some View {
+        Image(systemName: isAvailable ? "checkmark.circle.fill" : "minus")
+            .foregroundStyle(isAvailable ? ShiftProColors.success : ShiftProColors.inkSubtle)
+            .font(ShiftProTypography.caption)
+            .frame(width: 20, height: 20)
     }
 
     /// The best value product (yearly plan) - only highlighted when multiple products exist
@@ -195,6 +250,13 @@ struct PaywallView: View {
         }
         .frame(maxWidth: .infinity)
     }
+}
+
+private struct ComparisonRow: Identifiable {
+    let id = UUID()
+    let title: String
+    let isFree: Bool
+    let isPremium: Bool
 }
 
 private struct PaywallProductCard: View {
