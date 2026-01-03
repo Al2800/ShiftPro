@@ -5,6 +5,7 @@ struct PaywallView: View {
     @EnvironmentObject private var entitlementManager: EntitlementManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @State private var purchasingProductID: Product.ID?
 
     private let termsURL = URL(string: "https://shiftpro.app/terms")!
     private let privacyURL = URL(string: "https://shiftpro.app/privacy")!
@@ -95,8 +96,19 @@ struct PaywallView: View {
     private var productCards: some View {
         VStack(spacing: ShiftProSpacing.medium) {
             ForEach(entitlementManager.products, id: \.id) { product in
-                PaywallProductCard(product: product) {
-                    Task { await entitlementManager.purchase(product) }
+                let isLoading = purchasingProductID == product.id
+                let isDisabled = purchasingProductID != nil
+                PaywallProductCard(
+                    product: product,
+                    isLoading: isLoading,
+                    isDisabled: isDisabled
+                ) {
+                    guard purchasingProductID == nil else { return }
+                    purchasingProductID = product.id
+                    Task {
+                        await entitlementManager.purchase(product)
+                        purchasingProductID = nil
+                    }
                 }
             }
         }
@@ -144,6 +156,8 @@ struct PaywallView: View {
 
 private struct PaywallProductCard: View {
     let product: Product
+    let isLoading: Bool
+    let isDisabled: Bool
     let action: () -> Void
 
     var body: some View {
@@ -165,20 +179,55 @@ private struct PaywallProductCard: View {
                     .foregroundStyle(ShiftProColors.accent)
             }
 
-            Button("Continue") {
-                action()
+            Button(action: action) {
+                HStack(spacing: 8) {
+                    if isLoading {
+                        ProgressView()
+                            .tint(ShiftProColors.midnight)
+                    }
+                    Text(isLoading ? "Processing..." : ctaTitle)
+                }
+                .frame(maxWidth: .infinity)
             }
             .font(ShiftProTypography.subheadline)
-            .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
             .background(ShiftProColors.accent)
             .foregroundStyle(ShiftProColors.midnight)
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: .selection)
+            .disabled(isDisabled)
+            .opacity(isDisabled ? 0.6 : 1)
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private var ctaTitle: String {
+        "Start \(product.displayName) - \(priceDetail)"
+    }
+
+    private var priceDetail: String {
+        let basePrice = product.displayPrice
+        guard let subscription = product.subscription else {
+            return basePrice
+        }
+        let period = subscription.subscriptionPeriod
+        let unitLabel: String
+        switch period.unit {
+        case .day:
+            unitLabel = "day"
+        case .week:
+            unitLabel = "wk"
+        case .month:
+            unitLabel = "mo"
+        case .year:
+            unitLabel = "yr"
+        @unknown default:
+            unitLabel = "period"
+        }
+        let suffix = period.value == 1 ? "/\(unitLabel)" : "/\(period.value)\(unitLabel)"
+        return "\(basePrice)\(suffix)"
     }
 }
 
