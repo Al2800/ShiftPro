@@ -103,22 +103,35 @@ jobs:
           # Try launching with retries
           for i in 1 2 3; do
             echo "Launch attempt $i..."
-            if xcrun simctl launch booted "$BUNDLE_ID" 2>&1; then
-              echo "Launch successful!"
+            if xcrun simctl launch --console-pty booted "$BUNDLE_ID" &
+            then
+              echo "Launch started!"
               break
             fi
             echo "Launch failed, waiting before retry..."
             sleep 5
           done
 
-          # Wait for app to fully load
-          sleep 10
+          # Wait for app to fully load (longer for onboarding)
+          sleep 15
 
-          # Capture screenshots
-          echo "Capturing screenshots..."
-          xcrun simctl io booted screenshot screenshot-01-main.png || true
+          # Capture initial screen (likely onboarding or dashboard)
+          echo "Capturing screenshot 1..."
+          xcrun simctl io booted screenshot screenshot-01-initial.png || true
+
+          # Simulate tap to potentially advance onboarding (center of screen)
+          echo "Simulating interaction..."
+          xcrun simctl io booted tap 200 600 2>/dev/null || true
           sleep 3
-          xcrun simctl io booted screenshot screenshot-02-current.png || true
+
+          xcrun simctl io booted screenshot screenshot-02-after-tap.png || true
+          sleep 2
+
+          # Try another tap
+          xcrun simctl io booted tap 200 700 2>/dev/null || true
+          sleep 3
+
+          xcrun simctl io booted screenshot screenshot-03-screen.png || true
 
       - name: Upload Screenshots
         uses: actions/upload-artifact@v4
