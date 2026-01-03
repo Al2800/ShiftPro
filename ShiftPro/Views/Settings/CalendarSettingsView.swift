@@ -1,9 +1,12 @@
 import EventKit
+import SwiftData
 import SwiftUI
 
 struct CalendarSettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var permissionManager = PermissionManager()
+    @Query(filter: #Predicate<CalendarEvent> { $0.syncStateRaw == CalendarSyncState.conflictDetected.rawValue })
+    private var conflicts: [CalendarEvent]
     @State private var settings = CalendarSyncSettings.load()
     @State private var showTwoWaySyncConfirmation = false
     @State private var calendars: [EKCalendar] = []
@@ -30,6 +33,30 @@ struct CalendarSettingsView: View {
 
     var body: some View {
         List {
+            if !conflicts.isEmpty {
+                Section {
+                    NavigationLink {
+                        CalendarConflictsView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(ShiftProColors.warning)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("\(conflicts.count) Sync Conflict\(conflicts.count == 1 ? "" : "s")")
+                                    .font(ShiftProTypography.body)
+                                Text("Resolve to continue syncing")
+                                    .font(ShiftProTypography.caption)
+                                    .foregroundStyle(ShiftProColors.inkSubtle)
+                            }
+                            Spacer()
+                        }
+                    }
+                    .accessibilityIdentifier("calendarSettings.conflicts")
+                } header: {
+                    Text("Attention Required")
+                }
+            }
+
             Section {
                 HStack {
                     Text("Calendar Access")

@@ -80,6 +80,7 @@
 		711E6B935A247BCDF0948FEB /* ExportOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCD660B98E0C62E3F2D8D849 /* ExportOptionsView.swift */; };
 		72BFD3DEDD5978BDFDA6507C /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5004FF033B990DF7A70B061 /* SubscriptionManager.swift */; };
 		7660DBE3327322905D4E0A59 /* CalendarSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120302C11DAC7C1AE4DCD437 /* CalendarSettingsView.swift */; };
+		C4F5E8A1B3C6F2E9A7D0B5C9 /* CalendarConflictsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F3A6B2C9D1E4F7A0B5C4D7 /* CalendarConflictsView.swift */; };
 		76CAC1BC4AA85A5702114117 /* PremiumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05EDD12714AE25A5DA3F28A2 /* PremiumView.swift */; };
 		76DAE391C3F1D7168ECD404B /* PremiumStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06D3465ABBF804477B6569EF /* PremiumStore.swift */; };
 		79217CBF19BA0EEEF1E0A1AF /* AccessibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7573EADB56376024AFBF0F /* AccessibilityTests.swift */; };
@@ -193,6 +194,7 @@
 		114868400FFC8C515369AD2B /* CalendarTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarTests.swift; sourceTree = "<group>"; };
 		11A88C77D52E69591DF60368 /* PrivacySettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrivacySettingsView.swift; sourceTree = "<group>"; };
 		120302C11DAC7C1AE4DCD437 /* CalendarSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarSettingsView.swift; sourceTree = "<group>"; };
+		E9F3A6B2C9D1E4F7A0B5C4D7 /* CalendarConflictsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarConflictsView.swift; sourceTree = "<group>"; };
 		1389981668DCC6237F71690E /* InsightsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
 		14EC312FF8557D1B39F8F439 /* NotificationSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
 		1633F0FCEB93E2BD9B2DA5D3 /* AbstractRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AbstractRepository.swift; sourceTree = "<group>"; };
@@ -755,6 +757,7 @@
 		E2638CFD96CDAB9E40307E27 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				E9F3A6B2C9D1E4F7A0B5C4D7 /* CalendarConflictsView.swift */,
 				120302C11DAC7C1AE4DCD437 /* CalendarSettingsView.swift */,
 				14EC312FF8557D1B39F8F439 /* NotificationSettingsView.swift */,
 				05EDD12714AE25A5DA3F28A2 /* PremiumView.swift */,
@@ -1087,6 +1090,7 @@
 				14F592BCAAEA4FAEA29AEC30 /* ShiftDetailView.swift in Sources */,
 				4DA46F637030481DB63F34DB /* ShiftFormView.swift in Sources */,
 				7660DBE3327322905D4E0A59 /* CalendarSettingsView.swift in Sources */,
+				C4F5E8A1B3C6F2E9A7D0B5C9 /* CalendarConflictsView.swift in Sources */,
 				BC7BEA8FFB4B5EE4F29A3B14 /* NotificationSettingsView.swift in Sources */,
 				76CAC1BC4AA85A5702114117 /* PremiumView.swift in Sources */,
 				FD6800EB7D5BE53388D3DFED /* PrivacySettingsView.swift in Sources */,
