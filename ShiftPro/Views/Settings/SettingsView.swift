@@ -392,7 +392,10 @@ private struct ICloudSyncStatusView: View {
     private var guidanceMessage: String {
         switch manager.status {
         case .available:
-            return "Your shifts and patterns are automatically synced to iCloud. They'll appear on all your devices signed in with the same Apple ID."
+            return """
+                Your shifts and patterns are automatically synced to iCloud. \
+                They'll appear on all your devices signed in with the same Apple ID.
+                """
         case .noAccount:
             return "Sign in to your Apple ID in Settings to enable automatic backup and sync across your devices."
         case .restricted:

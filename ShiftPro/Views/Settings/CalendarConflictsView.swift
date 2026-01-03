@@ -5,8 +5,9 @@ import SwiftUI
 /// Shows calendar sync conflicts and allows user resolution
 struct CalendarConflictsView: View {
     @Environment(\.modelContext) private var modelContext
+    // CalendarSyncState.conflictDetected.rawValue == 4
     @Query(
-        filter: #Predicate<CalendarEvent> { $0.syncStateRaw == CalendarSyncState.conflictDetected.rawValue },
+        filter: #Predicate<CalendarEvent> { $0.syncStateRaw == 4 },
         sort: [SortDescriptor(\CalendarEvent.lastSyncDate, order: .reverse)]
     )
     private var conflicts: [CalendarEvent]
@@ -31,7 +32,10 @@ struct CalendarConflictsView: View {
                 .listRowBackground(Color.clear)
             } else {
                 Section {
-                    Text("These shifts have been modified in both ShiftPro and your calendar since the last sync. Choose which version to keep.")
+                    Text("""
+                        These shifts have been modified in both ShiftPro and your \
+                        calendar since the last sync. Choose which version to keep.
+                        """)
                         .font(ShiftProTypography.caption)
                         .foregroundStyle(ShiftProColors.inkSubtle)
                 }

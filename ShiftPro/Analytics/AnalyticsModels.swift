@@ -10,7 +10,13 @@ struct WeeklyStats: Sendable {
     let shiftCount: Int
     let dayBreakdown: [WeekdayData]
 
-    init(periodStart: Date = Date(), periodEnd: Date = Date(), totalHours: Double = 0, shiftCount: Int = 0, dayBreakdown: [WeekdayData] = []) {
+    init(
+        periodStart: Date = Date(),
+        periodEnd: Date = Date(),
+        totalHours: Double = 0,
+        shiftCount: Int = 0,
+        dayBreakdown: [WeekdayData] = []
+    ) {
         self.periodStart = periodStart
         self.periodEnd = periodEnd
         self.totalHours = totalHours
@@ -27,7 +33,13 @@ struct MonthlyStats: Sendable {
     let shiftCount: Int
     let weeklyData: [WeekData]
 
-    init(periodStart: Date = Date(), periodEnd: Date = Date(), totalHours: Double = 0, shiftCount: Int = 0, weeklyData: [WeekData] = []) {
+    init(
+        periodStart: Date = Date(),
+        periodEnd: Date = Date(),
+        totalHours: Double = 0,
+        shiftCount: Int = 0,
+        weeklyData: [WeekData] = []
+    ) {
         self.periodStart = periodStart
         self.periodEnd = periodEnd
         self.totalHours = totalHours
@@ -43,7 +55,12 @@ struct YearlyStats: Sendable {
     let shiftCount: Int
     let monthlyData: [MonthData]
 
-    init(year: Int = Calendar.current.component(.year, from: Date()), totalHours: Double = 0, shiftCount: Int = 0, monthlyData: [MonthData] = []) {
+    init(
+        year: Int = Calendar.current.component(.year, from: Date()),
+        totalHours: Double = 0,
+        shiftCount: Int = 0,
+        monthlyData: [MonthData] = []
+    ) {
         self.year = year
         self.totalHours = totalHours
         self.shiftCount = shiftCount

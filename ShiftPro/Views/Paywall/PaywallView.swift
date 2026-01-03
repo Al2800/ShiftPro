@@ -231,7 +231,10 @@ struct PaywallView: View {
             .font(ShiftProTypography.caption)
             .foregroundStyle(ShiftProColors.inkSubtle)
 
-            Text("Subscription billed to your Apple ID at purchase. Renews automatically unless canceled at least 24 hours before period end.")
+            Text("""
+                Subscription billed to your Apple ID at purchase. Renews \
+                automatically unless canceled at least 24 hours before period end.
+                """)
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(ShiftProColors.inkSubtle)
                 .multilineTextAlignment(.center)

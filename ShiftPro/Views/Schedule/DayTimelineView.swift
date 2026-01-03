@@ -10,9 +10,9 @@ struct DayTimelineView: View {
     private let hourHeight: CGFloat = 60
     private let calendar = Calendar.current
     private let timeFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "HH:mm"
-        return f
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter
     }()
 
     var body: some View {
@@ -148,14 +148,14 @@ struct DayTimelineView: View {
 
         // Update total columns for proper width calculation
         let totalColumns = columns.count
-        return positioned.map { ps in
+        return positioned.map { item in
             PositionedShift(
-                shift: ps.shift,
-                startOffset: ps.startOffset,
-                height: ps.height,
-                columnIndex: ps.columnIndex,
+                shift: item.shift,
+                startOffset: item.startOffset,
+                height: item.height,
+                columnIndex: item.columnIndex,
                 totalColumns: totalColumns,
-                spansNextDay: ps.spansNextDay
+                spansNextDay: item.spansNextDay
             )
         }
     }
@@ -173,13 +173,13 @@ struct DayTimelineView: View {
         return minutesSinceDayStart(for: date, dayStart: dayStart)
     }
 
-    private func shiftsOverlap(_ a: Shift, _ b: Shift, dayStart: Date) -> Bool {
-        let aStart = minutesSinceDayStart(for: a.scheduledStart, dayStart: dayStart)
-        let aEnd = minutesSinceDayEnd(for: a.scheduledEnd, dayStart: dayStart)
-        let bStart = minutesSinceDayStart(for: b.scheduledStart, dayStart: dayStart)
-        let bEnd = minutesSinceDayEnd(for: b.scheduledEnd, dayStart: dayStart)
+    private func shiftsOverlap(_ first: Shift, _ second: Shift, dayStart: Date) -> Bool {
+        let firstStart = minutesSinceDayStart(for: first.scheduledStart, dayStart: dayStart)
+        let firstEnd = minutesSinceDayEnd(for: first.scheduledEnd, dayStart: dayStart)
+        let secondStart = minutesSinceDayStart(for: second.scheduledStart, dayStart: dayStart)
+        let secondEnd = minutesSinceDayEnd(for: second.scheduledEnd, dayStart: dayStart)
 
-        return aStart < bEnd && aEnd > bStart
+        return firstStart < secondEnd && firstEnd > secondStart
     }
 
     // MARK: - Shift Block View

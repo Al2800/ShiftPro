@@ -219,7 +219,7 @@ struct ShiftFormView: View {
         isSaving = true
 
         Task { @MainActor in
-            let manager = ShiftManager(context: modelContext)
+            let manager = await ShiftManager(context: modelContext)
             let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
             let trimmedLocation = location.trimmingCharacters(in: .whitespacesAndNewlines)
             let trimmedRateLabel = rateLabel.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -298,7 +298,11 @@ extension WatchConnectivityManager: WCSessionDelegate {
         }
     }
     
-    nonisolated func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
+    nonisolated func session(
+        _ session: WCSession,
+        didReceiveMessage message: [String: Any],
+        replyHandler: @escaping ([String: Any]) -> Void
+    ) {
         Task { @MainActor in
             let response = self.handleWatchAction(message)
             replyHandler(response)

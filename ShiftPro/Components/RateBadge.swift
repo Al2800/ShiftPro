@@ -21,7 +21,7 @@ struct RateBadge: View {
             .font(ShiftProTypography.caption)
             .foregroundStyle(.white)
             .padding(.horizontal, ShiftProSpacing.small)
-            .padding(.vertical, ShiftProSpacing.xSmall)
+            .padding(.vertical, ShiftProSpacing.extraSmall)
             .background(
                 Capsule(style: .continuous)
                     .fill(badgeColor)

@@ -12,6 +12,7 @@
 		050D6E3409712F139D3007B3 /* Shift.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC3B6328FC8FF577DCD8B30C /* Shift.swift */; };
 		052E871923D7BAB04AB602D4 /* RateBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3420E40EA019A424B667D023 /* RateBadge.swift */; };
 		067AF8A5C900D4FD2B48838E4 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2B364A12DE4A949F792E05 /* EmptyStateView.swift */; };
+		F3A4B5C6D7E8901234567890 /* ShiftProSurfaceStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B6C7D8E9F0123456789012 /* ShiftProSurfaceStyle.swift */; };
 		05BB037F896A85390F21E074 /* ShiftManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4E46E721D9750B2BE2A007D /* ShiftManagerTests.swift */; };
 		09D310F5CEEFBDADF9444348 /* DateMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B337B62AE68B252EC2ACA2 /* DateMath.swift */; };
 		0B47E010C6915BE7C03EEE54 /* ShiftProAccessibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2059FD56494BD44485EF487 /* ShiftProAccessibilityTests.swift */; };
@@ -202,6 +203,7 @@
 		16D409D067D5812F1B39805B /* EventMapper.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventMapper.swift; sourceTree = "<group>"; };
 		1778D26FF2BD904F20C7BE78 /* AnimationManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimationManager.swift; sourceTree = "<group>"; };
 		1B2B364A12DE4A949F792E05 /* EmptyStateView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
+		A5B6C7D8E9F0123456789012 /* ShiftProSurfaceStyle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShiftProSurfaceStyle.swift; sourceTree = "<group>"; };
 		19B479FD5A393B50F6A569B4 /* WidgetDataModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetDataModels.swift; sourceTree = "<group>"; };
 		1B97CFBC5C07B8B331F04230 /* ShiftProApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShiftProApp.swift; sourceTree = "<group>"; };
 		1D3F73E1E4A1CAAA9DCA7FB9 /* UserProfile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
@@ -622,6 +624,7 @@
 				C9048DC4EFFA98716EE392E8 /* QuickActionButton.swift */,
 				3420E40EA019A424B667D023 /* RateBadge.swift */,
 				DC9B37BCCDA5AEBAEBA20BAB /* ShiftCardView.swift */,
+				A5B6C7D8E9F0123456789012 /* ShiftProSurfaceStyle.swift */,
 				M1N2O3P4Q5R67890ABCDEF34 /* ShiftStatusBanner.swift */,
 				4526C83364443E8E8FBACB86 /* StatusIndicator.swift */,
 			);
@@ -991,6 +994,7 @@
 				F612C5FB04F9513A237DC6E6 /* ShiftCardView.swift in Sources */,
 				A1B2C3D4E5F67890ABCDEF12 /* ShiftStatusBanner.swift in Sources */,
 				067AF8A5C900D4FD2B48838E4 /* EmptyStateView.swift in Sources */,
+				F3A4B5C6D7E8901234567890 /* ShiftProSurfaceStyle.swift in Sources */,
 				2296130F8B900F163AE5B4C7 /* StatusIndicator.swift in Sources */,
 				F2CC4FF4989FCBA5F625C77D /* ContentView.swift in Sources */,
 				14A3CC4BB53946A1EC178872 /* ModelContainer.swift in Sources */,

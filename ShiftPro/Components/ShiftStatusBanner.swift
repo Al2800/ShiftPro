@@ -187,7 +187,7 @@ struct ShiftStatusBanner: View {
         isProcessing = true
         defer { isProcessing = false }
 
-        let manager = ShiftManager(context: modelContext)
+        let manager = await ShiftManager(context: modelContext)
         do {
             try await manager.clockIn(shift: shift)
         } catch {
@@ -200,7 +200,7 @@ struct ShiftStatusBanner: View {
         isProcessing = true
         defer { isProcessing = false }
 
-        let manager = ShiftManager(context: modelContext)
+        let manager = await ShiftManager(context: modelContext)
         do {
             try await manager.clockOut(shift: shift)
         } catch {

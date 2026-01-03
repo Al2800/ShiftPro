@@ -182,7 +182,11 @@ struct DashboardView: View {
         case .semimonthly:
             daysToSubtract = 15
         }
-        let previousDate = Calendar.current.date(byAdding: .day, value: -daysToSubtract, to: currentPeriod.startDate) ?? currentPeriod.startDate
+        let previousDate = Calendar.current.date(
+            byAdding: .day,
+            value: -daysToSubtract,
+            to: currentPeriod.startDate
+        ) ?? currentPeriod.startDate
         return calculator.period(for: previousDate, type: periodType, referenceDate: profile?.startDate)
     }
 

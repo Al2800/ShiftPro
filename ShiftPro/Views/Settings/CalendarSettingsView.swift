@@ -5,7 +5,8 @@ import SwiftUI
 struct CalendarSettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var permissionManager = PermissionManager()
-    @Query(filter: #Predicate<CalendarEvent> { $0.syncStateRaw == CalendarSyncState.conflictDetected.rawValue })
+    // CalendarSyncState.conflictDetected.rawValue == 4
+    @Query(filter: #Predicate<CalendarEvent> { $0.syncStateRaw == 4 })
     private var conflicts: [CalendarEvent]
     @State private var settings = CalendarSyncSettings.load()
     @State private var showTwoWaySyncConfirmation = false
@@ -191,7 +192,10 @@ struct CalendarSettingsView: View {
                     .disabled(!isAuthorized || (permissionManager.calendarStatus == .writeOnly && settings.mode != .exportOnly))
 
                     if permissionManager.calendarStatus == .writeOnly && settings.mode == .exportOnly {
-                        Text("Two-way sync is disabled because you have write-only access. Upgrade to full access in Settings to enable it.")
+                        Text("""
+                            Two-way sync is disabled because you have write-only access. \
+                            Upgrade to full access in Settings to enable it.
+                            """)
                             .font(ShiftProTypography.caption)
                             .foregroundStyle(ShiftProColors.warning)
                     }
@@ -203,10 +207,17 @@ struct CalendarSettingsView: View {
                     Text("Grant calendar permission above to enable sync.")
                         .foregroundStyle(ShiftProColors.warning)
                 } else if permissionManager.calendarStatus == .writeOnly {
-                    Text("With write-only access, only export mode is available. To enable two-way sync, grant full calendar access in iOS Settings > Privacy & Security > Calendars > ShiftPro.")
+                    Text("""
+                        With write-only access, only export mode is available. To enable \
+                        two-way sync, grant full calendar access in iOS Settings > Privacy \
+                        & Security > Calendars > ShiftPro.
+                        """)
                         .foregroundStyle(ShiftProColors.inkSubtle)
                 } else if settings.mode == .twoWay {
-                    Text("Two-way sync allows calendar changes to update your shifts. Changes made in your calendar app will be reflected in ShiftPro.")
+                    Text("""
+                        Two-way sync allows calendar changes to update your shifts. \
+                        Changes made in your calendar app will be reflected in ShiftPro.
+                        """)
                         .foregroundStyle(ShiftProColors.inkSubtle)
                 } else {
                     Text("Export only pushes shift changes to your calendar without importing calendar changes.")
@@ -257,7 +268,13 @@ struct CalendarSettingsView: View {
             Button("Cancel", role: .cancel) {
             }
         } message: {
-            Text("Two-way sync allows changes made in your calendar app to update your shifts in ShiftPro. This means editing or deleting events in your calendar will affect your shift records.\n\nAre you sure you want to enable this?")
+            Text("""
+                Two-way sync allows changes made in your calendar app to update \
+                your shifts in ShiftPro. This means editing or deleting events \
+                in your calendar will affect your shift records.
+
+                Are you sure you want to enable this?
+                """)
         }
         .alert("Sync Failed", isPresented: $showSyncError) {
             Button("OK", role: .cancel) {

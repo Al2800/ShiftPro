@@ -48,6 +48,9 @@ enum ShiftProSpacing {
     /// Compact spacing: list item padding, small gaps (8pt)
     static let extraSmall: CGFloat = 8
 
+    /// Alias for extraSmall (8pt) - legacy compatibility
+    static let xSmall: CGFloat = 8
+
     /// Standard tight spacing: form fields, card internal (12pt)
     static let small: CGFloat = 12
 

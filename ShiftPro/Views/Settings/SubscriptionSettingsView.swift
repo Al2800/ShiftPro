@@ -49,7 +49,11 @@ struct SubscriptionSettingsView: View {
 
             Section("Legal") {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Payment will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period.")
+                    Text("""
+                        Payment will be charged to your Apple ID account at confirmation \
+                        of purchase. Subscriptions automatically renew unless canceled at \
+                        least 24 hours before the end of the current period.
+                        """)
                         .font(ShiftProTypography.caption)
                         .foregroundStyle(ShiftProColors.inkSubtle)
 
