@@ -1,3 +1,4 @@
+import Foundation
 import StoreKit
 import SwiftUI
 
@@ -94,7 +95,7 @@ struct PaywallView: View {
     }
 
     /// The best value product (yearly plan) - only highlighted when multiple products exist
-    private var bestValueProductID: String? {
+    private var bestValueProductID: Product.ID? {
         guard entitlementManager.products.count > 1 else { return nil }
         return entitlementManager.products.first { $0.id == ShiftProProductID.premiumYearly }?.id
     }
@@ -119,7 +120,8 @@ struct PaywallView: View {
         // Calculate savings
         guard monthlyAnnualized > product.price else { return nil }
         let savings = monthlyAnnualized - product.price
-        let percentage = (savings / monthlyAnnualized) * 100
+        let percentage = (NSDecimalNumber(decimal: savings).doubleValue
+            / NSDecimalNumber(decimal: monthlyAnnualized).doubleValue) * 100
 
         return Int(percentage.rounded())
     }
