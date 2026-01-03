@@ -151,6 +151,7 @@
 		E611E36EBEFE562F2FF9A088 /* CalendarPermissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 025AEE5C624125D422EF696A /* CalendarPermissions.swift */; };
 		F0209014E5BB4B562DB73C44 /* HoursView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29C9E99090385B8DFF990E64 /* HoursView.swift */; };
 		F06A05761E321C5DEEE0CDAA /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FC20B0F728129775E86545D /* WelcomeView.swift */; };
+		D1E2F3A4B5C6D7E8F9012345 /* ValuePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2F3A4B5C6D7E8F901234567 /* ValuePreviewView.swift */; };
 		F19959EAC071DD8F81BCEF54 /* ReceiptValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72AAC9DEBF9B41E1445B7912 /* ReceiptValidator.swift */; };
 		F21AC01A9D7F46B0AD919A67 /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D687EA399DE781DD0DF25669 /* CacheManager.swift */; };
 		F2CC4FF4989FCBA5F625C77D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5294AC83C71130DA9A0E02C /* ContentView.swift */; };
@@ -235,6 +236,7 @@
 		63EF5B609F512987AEC48779 /* PerformanceMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PerformanceMonitor.swift; sourceTree = "<group>"; };
 		6C8BD0F4DE06EA6EFBDC6548 /* WidgetSyncService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetSyncService.swift; sourceTree = "<group>"; };
 		6FC20B0F728129775E86545D /* WelcomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		E2F3A4B5C6D7E8F901234567 /* ValuePreviewView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ValuePreviewView.swift; sourceTree = "<group>"; };
 		71F78F15B0F545D307E9E2E0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		72AAC9DEBF9B41E1445B7912 /* ReceiptValidator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReceiptValidator.swift; sourceTree = "<group>"; };
 		732868D231C040A52B604A91 /* AnimatedComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnimatedComponents.swift; sourceTree = "<group>"; };
@@ -784,6 +786,7 @@
 				3173AC687C088A512AA65F1A /* PayPeriodSetupView.swift */,
 				382B1BAB5F3661139DD2FB7C /* PermissionsView.swift */,
 				512152D54FD34BA8BF85FAAF /* ProfileSetupView.swift */,
+				E2F3A4B5C6D7E8F901234567 /* ValuePreviewView.swift */,
 				6FC20B0F728129775E86545D /* WelcomeView.swift */,
 			);
 			name = Onboarding;
@@ -1070,6 +1073,7 @@
 				9E742F131E91A9D07663E006 /* PayPeriodSetupView.swift in Sources */,
 				21B9684FC50BB49CED4DEE6E /* PermissionsView.swift in Sources */,
 				7B57F49B73FC2C350CC5FA92 /* ProfileSetupView.swift in Sources */,
+				D1E2F3A4B5C6D7E8F9012345 /* ValuePreviewView.swift in Sources */,
 				F06A05761E321C5DEEE0CDAA /* WelcomeView.swift in Sources */,
 				00F23DC3A699AE54CB67A660 /* PatternEditorView.swift in Sources */,
 				5D11F34611107B73388F5860 /* PatternLibraryView.swift in Sources */,

@@ -132,6 +132,7 @@ final class OnboardingManager: ObservableObject {
 
 enum OnboardingStep: String, CaseIterable, Codable {
     case welcome
+    case valuePreview
     case permissions
     case profile
     case payPeriod
@@ -166,7 +167,7 @@ enum OnboardingStep: String, CaseIterable, Codable {
 
     var requirementLabel: String {
         switch self {
-        case .welcome, .completion:
+        case .welcome, .valuePreview, .completion:
             return ""
         default:
             return isSkippable ? "Optional" : "Required"
@@ -177,6 +178,8 @@ enum OnboardingStep: String, CaseIterable, Codable {
         switch self {
         case .welcome:
             return "Welcome"
+        case .valuePreview:
+            return "Preview"
         case .permissions:
             return "Permissions"
         case .profile:

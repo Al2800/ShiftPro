@@ -60,6 +60,8 @@ struct OnboardingView: View {
         switch manager.step {
         case .welcome:
             WelcomeView()
+        case .valuePreview:
+            ValuePreviewView()
         case .permissions:
             PermissionsView(
                 wantsCalendarSync: $manager.data.wantsCalendarSync,
