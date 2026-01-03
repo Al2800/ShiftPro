@@ -179,8 +179,6 @@ struct DashboardView: View {
             daysToSubtract = 14
         case .monthly:
             daysToSubtract = 30
-        case .semimonthly:
-            daysToSubtract = 15
         }
         let previousDate = Calendar.current.date(
             byAdding: .day,

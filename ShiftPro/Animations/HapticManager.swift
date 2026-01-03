@@ -25,7 +25,7 @@ final class HapticManager {
         notificationGenerator.notificationOccurred(type)
     }
 
-    static func fire(_ feedback: ShiftProHaptic, enabled: Bool = true) {
+    nonisolated static func fire(_ feedback: ShiftProHaptic, enabled: Bool = true) {
         guard enabled else { return }
         Task { @MainActor in
             feedback.fire()
