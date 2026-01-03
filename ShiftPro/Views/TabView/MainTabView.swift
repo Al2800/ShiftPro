@@ -53,6 +53,9 @@ struct MainTabView: View {
                 selectedTab = 1
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .switchToScheduleTab)) { _ in
+            selectedTab = 1
+        }
     }
 }
 
