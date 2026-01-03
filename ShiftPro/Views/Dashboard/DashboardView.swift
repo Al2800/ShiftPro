@@ -29,9 +29,28 @@ struct DashboardView: View {
                     .animation(AnimationManager.shared.animation(for: .slow), value: animateIn)
 
                 VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
-                    Text("Upcoming")
-                        .font(ShiftProTypography.headline)
-                        .foregroundStyle(ShiftProColors.ink)
+                    HStack {
+                        Text("Upcoming")
+                            .font(ShiftProTypography.headline)
+                            .foregroundStyle(ShiftProColors.ink)
+
+                        Spacer()
+
+                        if !upcomingShifts.isEmpty {
+                            Button {
+                                NotificationCenter.default.post(name: .switchToScheduleTab, object: nil)
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Text("See all")
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 10, weight: .semibold))
+                                }
+                                .font(ShiftProTypography.subheadline)
+                                .foregroundStyle(ShiftProColors.accent)
+                            }
+                            .accessibilityIdentifier("dashboard.seeAllUpcoming")
+                        }
+                    }
 
                     if dashboardShifts.isEmpty {
                         EmptyStateView(
@@ -411,6 +430,12 @@ struct DashboardView: View {
         }
         .presentationDetents([.medium])
     }
+}
+
+// MARK: - Notification Names
+
+extension Notification.Name {
+    static let switchToScheduleTab = Notification.Name("switchToScheduleTab")
 }
 
 #Preview {
