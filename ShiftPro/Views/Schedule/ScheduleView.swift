@@ -58,6 +58,11 @@ struct ScheduleView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
+                // Prominent shift banner at top
+                if let primaryShift = primaryShiftForSelectedDate {
+                    activeShiftBanner(shift: primaryShift)
+                }
+
                 calendarHeader
 
                 if viewMode == .week {
@@ -330,6 +335,22 @@ struct ScheduleView: View {
         }
     }
 
+    /// Primary shift for selected date - prioritizes in-progress, then upcoming, then any
+    private var primaryShiftForSelectedDate: Shift? {
+        let dayShifts = shiftsForSelectedDate
+        // First, check for in-progress shift
+        if let inProgress = dayShifts.first(where: { $0.status == .inProgress }) {
+            return inProgress
+        }
+        // Then check for upcoming shift
+        let now = Date()
+        if let upcoming = dayShifts.first(where: { $0.scheduledStart > now && $0.status == .scheduled }) {
+            return upcoming
+        }
+        // Otherwise return the first shift
+        return dayShifts.first
+    }
+
     private func statusIndicator(for shift: Shift) -> StatusIndicator.Status {
         switch shift.status {
         case .scheduled:
@@ -357,6 +378,80 @@ struct ScheduleView: View {
             let repository = ShiftRepository(context: modelContext)
             try? repository.softDelete(shift)
         }
+    }
+
+    @ViewBuilder
+    private func activeShiftBanner(shift: Shift) -> some View {
+        let isInProgress = shift.status == .inProgress
+        let statusColor = isInProgress ? ShiftProColors.success : ShiftProColors.accent
+
+        NavigationLink {
+            ShiftDetailView(
+                title: shift.pattern?.name ?? "Shift",
+                timeRange: "\(shift.dateFormatted) • \(shift.timeRangeFormatted)",
+                location: shift.locationDisplay,
+                status: statusIndicator(for: shift),
+                rateMultiplier: shift.rateMultiplier,
+                rateLabel: shift.rateLabel,
+                notes: shift.notes
+            )
+        } label: {
+            VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+                HStack {
+                    if isInProgress {
+                        Circle()
+                            .fill(ShiftProColors.success)
+                            .frame(width: 8, height: 8)
+                    }
+                    Text(isInProgress ? "In Progress" : (calendar.isDateInToday(selectedDate) ? "Today's Shift" : sectionTitle))
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(statusColor)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ShiftProColors.fog)
+                }
+
+                Text(shift.pattern?.name ?? "Shift")
+                    .font(ShiftProTypography.title)
+                    .foregroundStyle(.white)
+
+                HStack(spacing: ShiftProSpacing.medium) {
+                    Label(shift.timeRangeFormatted, systemImage: "clock")
+                        .font(ShiftProTypography.subheadline)
+                        .foregroundStyle(.white.opacity(0.9))
+
+                    if let location = shift.locationDisplay, !location.isEmpty {
+                        Label(location, systemImage: "mappin")
+                            .font(ShiftProTypography.subheadline)
+                            .foregroundStyle(.white.opacity(0.9))
+                    }
+                }
+
+                if shift.rateMultiplier > 1.0 {
+                    Text(shift.rateLabel ?? "\(shift.rateMultiplier, specifier: "%.1f")x")
+                        .font(ShiftProTypography.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(ShiftProColors.midnight)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(ShiftProColors.warning))
+                }
+            }
+            .padding(ShiftProSpacing.large)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(
+                        isInProgress
+                            ? LinearGradient(colors: [ShiftProColors.success, ShiftProColors.success.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                            : ShiftProColors.heroGradient
+                    )
+            )
+            .shadow(color: statusColor.opacity(0.25), radius: 12, x: 0, y: 6)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("schedule.primaryShiftBanner")
     }
 
     private var emptyState: some View {

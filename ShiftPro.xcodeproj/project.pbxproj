@@ -70,6 +70,7 @@
 		58939D598EFCB594731ADFDC /* PatternPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7255546119B01ED8BE48129 /* PatternPreviewView.swift */; };
 		5A3BD109F45BF017CEB1CCCF /* RateBreakdownChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC3A4431886FA0DA7579D307 /* RateBreakdownChart.swift */; };
 		5D11F34611107B73388F5860 /* PatternLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE226B656201511BBB44416C /* PatternLibraryView.swift */; };
+		5D11F34611107B73388F5861 /* SimplePatternBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE226B656201511BBB44416D /* SimplePatternBuilderView.swift */; };
 		5E2E249FE0C25AC2BC8B8467 /* DateExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E86FDAF94206EDADD6AD95F3 /* DateExtensions.swift */; };
 		6063F931538912441D9AD738 /* ShiftProPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ABBD643B2FD20161684CA0 /* ShiftProPerformanceTests.swift */; };
 		624CCC1F3BF44DCDA923227C /* NotificationPermissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E70D19D47D1C1AE7B1E3A03C /* NotificationPermissions.swift */; };
@@ -335,6 +336,7 @@
 		E7E220A92C2B5C72BDFD0835 /* CalendarEvent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarEvent.swift; sourceTree = "<group>"; };
 		E86FDAF94206EDADD6AD95F3 /* DateExtensions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DateExtensions.swift; sourceTree = "<group>"; };
 		EE226B656201511BBB44416C /* PatternLibraryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PatternLibraryView.swift; sourceTree = "<group>"; };
+		EE226B656201511BBB44416D /* SimplePatternBuilderView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SimplePatternBuilderView.swift; sourceTree = "<group>"; };
 		EF958FDB788FCE99EA3137E5 /* HoursCalculator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HoursCalculator.swift; sourceTree = "<group>"; };
 		F178ED5EC59785513665E600 /* PayRuleset.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PayRuleset.swift; sourceTree = "<group>"; };
 		F5B94C16AD1827B45B4436CD /* ShiftManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShiftManager.swift; sourceTree = "<group>"; };
@@ -783,6 +785,7 @@
 				AD27C20DCCE60ADFB8E3164A /* PatternEditorView.swift */,
 				EE226B656201511BBB44416C /* PatternLibraryView.swift */,
 				E7255546119B01ED8BE48129 /* PatternPreviewView.swift */,
+				EE226B656201511BBB44416D /* SimplePatternBuilderView.swift */,
 			);
 			name = Patterns;
 			path = Patterns;
@@ -1091,6 +1094,7 @@
 				F06A05761E321C5DEEE0CDAA /* WelcomeView.swift in Sources */,
 				00F23DC3A699AE54CB67A660 /* PatternEditorView.swift in Sources */,
 				5D11F34611107B73388F5860 /* PatternLibraryView.swift in Sources */,
+				5D11F34611107B73388F5861 /* SimplePatternBuilderView.swift in Sources */,
 				58939D598EFCB594731ADFDC /* PatternPreviewView.swift in Sources */,
 				339AC68106623F42579BC725 /* PaywallView.swift in Sources */,
 				793C4B31C2B3D23E24B50C9E /* ScheduleView.swift in Sources */,

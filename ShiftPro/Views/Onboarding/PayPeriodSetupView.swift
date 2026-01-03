@@ -32,6 +32,7 @@ struct PayPeriodSetupView: View {
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .textFieldStyle(.roundedBorder)
+                        .foregroundStyle(ShiftProColors.ink)
                         .frame(width: 120)
                 }
             }

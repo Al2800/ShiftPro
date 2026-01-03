@@ -16,22 +16,30 @@ struct ProfileSetupView: View {
             VStack(alignment: .leading, spacing: 12) {
                 TextField("Workplace (optional)", text: $data.workplace)
                     .textFieldStyle(.roundedBorder)
+                    .foregroundStyle(ShiftProColors.ink)
 
                 TextField("Job Title (optional)", text: $data.jobTitle)
                     .textFieldStyle(.roundedBorder)
+                    .foregroundStyle(ShiftProColors.ink)
 
                 TextField("Employee ID (optional)", text: $data.employeeId)
                     .textFieldStyle(.roundedBorder)
+                    .foregroundStyle(ShiftProColors.ink)
 
-                DatePicker(
-                    "Start Date",
-                    selection: $data.startDate,
-                    displayedComponents: [.date]
-                )
-                .datePickerStyle(.compact)
+                HStack {
+                    Text("Start Date")
+                        .foregroundStyle(.white)
+                    Spacer()
+                    DatePicker(
+                        "",
+                        selection: $data.startDate,
+                        displayedComponents: [.date]
+                    )
+                    .datePickerStyle(.compact)
+                    .labelsHidden()
+                }
             }
             .font(ShiftProTypography.body)
-            .foregroundStyle(Color.white)
             .padding(ShiftProSpacing.medium)
             .background(
                 RoundedRectangle(cornerRadius: 16)

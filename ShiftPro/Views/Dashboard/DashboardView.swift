@@ -126,8 +126,17 @@ struct DashboardView: View {
                 .accessibilityLabel("Notifications")
             }
         }
-        .navigationDestination(isPresented: $showingNotifications) {
-            NotificationSettingsView()
+        .sheet(isPresented: $showingNotifications) {
+            NavigationStack {
+                NotificationSettingsView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") {
+                                showingNotifications = false
+                            }
+                        }
+                    }
+            }
         }
         .onAppear {
             guard !animateIn else { return }
