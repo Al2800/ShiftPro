@@ -46,9 +46,26 @@ actor CacheManager {
     }
 
     init() {
-        Task {
-            await self.setupMemoryWarningObserver()
+        Task { @MainActor in
+            let observer = NotificationCenter.default.addObserver(
+                forName: UIApplication.didReceiveMemoryWarningNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                Task {
+                    await self.handleMemoryWarning()
+                }
+            }
+            await self.setMemoryWarningObserver(observer)
         }
+    }
+
+    private func setMemoryWarningObserver(_ observer: NSObjectProtocol) {
+        if let memoryWarningObserver {
+            NotificationCenter.default.removeObserver(memoryWarningObserver)
+        }
+        memoryWarningObserver = observer
     }
 
     // MARK: - Generic Caching
@@ -150,23 +167,6 @@ actor CacheManager {
             memoryCache.removeValue(forKey: key)
             cacheAccessTimes.removeValue(forKey: key)
         }
-    }
-
-    private func setupMemoryWarningObserver() {
-        if let memoryWarningObserver {
-            NotificationCenter.default.removeObserver(memoryWarningObserver)
-        }
-        let observer = NotificationCenter.default.addObserver(
-            forName: UIApplication.didReceiveMemoryWarningNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            guard let self = self else { return }
-            Task {
-                await self.handleMemoryWarning()
-            }
-        }
-        memoryWarningObserver = observer
     }
 
     private func handleMemoryWarning() {

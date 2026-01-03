@@ -29,8 +29,25 @@ actor MemoryManager {
 
     init() {
         Task { @MainActor in
-            self.setupMemoryWarningObserver()
+            let observer = NotificationCenter.default.addObserver(
+                forName: UIApplication.didReceiveMemoryWarningNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                Task {
+                    await self.handleMemoryWarning()
+                }
+            }
+            await self.setMemoryWarningObserver(observer)
         }
+    }
+
+    private func setMemoryWarningObserver(_ observer: NSObjectProtocol) {
+        if let memoryWarningObserver {
+            NotificationCenter.default.removeObserver(memoryWarningObserver)
+        }
+        memoryWarningObserver = observer
     }
 
     // MARK: - Image Caching
@@ -137,23 +154,6 @@ actor MemoryManager {
     }
 
     // MARK: - Memory Pressure Handling
-
-    @MainActor
-    private func setupMemoryWarningObserver() {
-        if let memoryWarningObserver {
-            NotificationCenter.default.removeObserver(memoryWarningObserver)
-        }
-        memoryWarningObserver = NotificationCenter.default.addObserver(
-            forName: UIApplication.didReceiveMemoryWarningNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            guard let self = self else { return }
-            Task {
-                await self.handleMemoryWarning()
-            }
-        }
-    }
 
     private func handleMemoryWarning() {
         // Clear 75% of image cache
