@@ -200,12 +200,37 @@ struct DashboardView: View {
         currentShift == nil ? "play.fill" : "stop.fill"
     }
 
+    /// Projected earnings for the hero card shift (current or next)
+    private var heroPayEstimate: String? {
+        guard let baseRateCents = profile?.baseRateCents, baseRateCents > 0 else { return nil }
+
+        let shift: Shift?
+        if let current = currentShift {
+            shift = current
+        } else {
+            shift = upcomingShifts.first
+        }
+
+        guard let shift else { return nil }
+
+        // Calculate estimated paid minutes (scheduled duration minus break)
+        let estimatedPaidMinutes = max(0, shift.scheduledDurationMinutes - shift.breakMinutes)
+        let hours = Double(estimatedPaidMinutes) / 60.0
+        let earnings = hours * shift.rateMultiplier * Double(baseRateCents) / 100.0
+
+        // Format as currency
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.locale = Locale.current
+        return formatter.string(from: NSNumber(value: earnings))
+    }
+
     private var heroCard: some View {
         ZStack(alignment: .bottomLeading) {
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(ShiftProColors.heroGradient)
                 .frame(maxWidth: .infinity)
-                .frame(height: 180)
+                .frame(height: 200)
 
             VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
                 Text(heroTitle)
@@ -215,6 +240,13 @@ struct DashboardView: View {
                 Text(heroSubtitle)
                     .font(ShiftProTypography.subheadline)
                     .foregroundStyle(.white.opacity(0.85))
+
+                if let payEstimate = heroPayEstimate {
+                    Text("Est. \(payEstimate)")
+                        .font(ShiftProTypography.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white.opacity(0.95))
+                }
 
                 QuickActionButton(
                     title: heroActionTitle,
