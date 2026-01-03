@@ -3,6 +3,7 @@ import SwiftData
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var context
+    @StateObject private var entitlementManager = EntitlementManager()
 
     @Query(sort: [SortDescriptor(\UserProfile.createdAt, order: .forward)])
     private var profiles: [UserProfile]
@@ -74,13 +75,21 @@ struct SettingsView: View {
                 .accessibilityIdentifier(AccessibilityIdentifiers.settingsPrivacy)
             }
 
-            Section("Subscription") {
+            Section("Plan") {
                 NavigationLink {
-                    SubscriptionSettingsView()
+                    if entitlementManager.state.tier == .free {
+                        PremiumView()
+                    } else {
+                        SubscriptionSettingsView()
+                    }
                 } label: {
-                    settingRow(icon: "star.circle", title: "Subscription", detail: "Manage plan")
+                    settingRow(
+                        icon: "star.circle",
+                        title: premiumRowTitle,
+                        detail: premiumRowDetail
+                    )
                 }
-                .accessibilityIdentifier("settings.subscription")
+                .accessibilityIdentifier("settings.plan")
             }
 
             Section("Integrations") {
@@ -111,13 +120,6 @@ struct SettingsView: View {
                 }
             }
 
-            Section("Premium") {
-                NavigationLink {
-                    PremiumView()
-                } label: {
-                    settingRow(icon: "star.circle", title: "ShiftPro Premium", detail: "Unlock advanced features")
-                }
-            }
         }
         .listStyle(.insetGrouped)
         .navigationTitle("Settings")
@@ -136,6 +138,26 @@ struct SettingsView: View {
 
     private var defaultPatternName: String {
         patterns.first?.name ?? "Not set"
+    }
+
+    private var premiumRowTitle: String {
+        switch entitlementManager.state.tier {
+        case .free:
+            return "Go Premium"
+        case .premium:
+            return "Premium"
+        case .enterprise:
+            return "Enterprise"
+        }
+    }
+
+    private var premiumRowDetail: String {
+        switch entitlementManager.state.tier {
+        case .free:
+            return "Unlock advanced features"
+        case .premium, .enterprise:
+            return "Manage subscription"
+        }
     }
 
     private var currentPeriod: PayPeriod {
