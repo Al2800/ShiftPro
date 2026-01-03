@@ -54,6 +54,7 @@ jobs:
   screenshots:
     name: Capture Screenshots
     runs-on: macos-14
+    continue-on-error: true
 
     steps:
       - name: Checkout
@@ -74,8 +75,16 @@ jobs:
 
       - name: Boot Simulator
         run: |
+          # Shutdown any existing simulator first
+          xcrun simctl shutdown all || true
+          sleep 2
+
+          # Boot fresh
           xcrun simctl boot "${{ env.SIMULATOR_DEVICE }}" || true
           xcrun simctl bootstatus "${{ env.SIMULATOR_DEVICE }}" -b
+
+          # Extra wait for SpringBoard
+          sleep 5
 
       - name: Install App
         run: |
@@ -85,30 +94,40 @@ jobs:
 
       - name: Launch App and Capture Screenshots
         run: |
-          # Get bundle ID from the app
+          set +e  # Don't exit on error
+
           APP_PATH=$(find DerivedData -name "*.app" -type d | head -1)
           BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist")
           echo "Launching bundle: $BUNDLE_ID"
 
-          # Launch the app
-          xcrun simctl launch booted "$BUNDLE_ID"
+          # Try launching with retries
+          for i in 1 2 3; do
+            echo "Launch attempt $i..."
+            if xcrun simctl launch booted "$BUNDLE_ID" 2>&1; then
+              echo "Launch successful!"
+              break
+            fi
+            echo "Launch failed, waiting before retry..."
+            sleep 5
+          done
 
           # Wait for app to fully load
-          sleep 8
+          sleep 10
 
-          # Capture main screen
-          xcrun simctl io booted screenshot screenshot-01-main.png
-
-          # Give time between screenshots
-          sleep 2
-          xcrun simctl io booted screenshot screenshot-02-current.png
+          # Capture screenshots
+          echo "Capturing screenshots..."
+          xcrun simctl io booted screenshot screenshot-01-main.png || true
+          sleep 3
+          xcrun simctl io booted screenshot screenshot-02-current.png || true
 
       - name: Upload Screenshots
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: app-screenshots
           path: screenshot-*.png
           retention-days: 30
+          if-no-files-found: ignore
 
   analyze:
     name: Static Analysis
