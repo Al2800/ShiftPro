@@ -93,15 +93,49 @@ struct PaywallView: View {
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 
+    /// The best value product (yearly plan) - only highlighted when multiple products exist
+    private var bestValueProductID: String? {
+        guard entitlementManager.products.count > 1 else { return nil }
+        return entitlementManager.products.first { $0.id == ShiftProProductID.premiumYearly }?.id
+    }
+
+    /// Monthly product for savings calculation
+    private var monthlyProduct: Product? {
+        entitlementManager.products.first { $0.id == ShiftProProductID.premiumMonthly }
+    }
+
+    /// Calculate savings percentage for yearly vs monthly
+    private func savingsPercentage(for product: Product) -> Int? {
+        guard product.id == ShiftProProductID.premiumYearly,
+              let monthly = monthlyProduct,
+              let yearlySubscription = product.subscription,
+              yearlySubscription.subscriptionPeriod.unit == .year else {
+            return nil
+        }
+
+        // Calculate annualized monthly cost
+        let monthlyAnnualized = monthly.price * 12
+
+        // Calculate savings
+        guard monthlyAnnualized > product.price else { return nil }
+        let savings = monthlyAnnualized - product.price
+        let percentage = (savings / monthlyAnnualized) * 100
+
+        return Int(percentage.rounded())
+    }
+
     private var productCards: some View {
         VStack(spacing: ShiftProSpacing.medium) {
             ForEach(entitlementManager.products, id: \.id) { product in
                 let isLoading = purchasingProductID == product.id
                 let isDisabled = purchasingProductID != nil
+                let isBestValue = product.id == bestValueProductID
                 PaywallProductCard(
                     product: product,
                     isLoading: isLoading,
-                    isDisabled: isDisabled
+                    isDisabled: isDisabled,
+                    isBestValue: isBestValue,
+                    savingsPercentage: savingsPercentage(for: product)
                 ) {
                     guard purchasingProductID == nil else { return }
                     purchasingProductID = product.id
@@ -165,15 +199,33 @@ private struct PaywallProductCard: View {
     let product: Product
     let isLoading: Bool
     let isDisabled: Bool
+    let isBestValue: Bool
+    let savingsPercentage: Int?
     let action: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(product.displayName)
-                        .font(ShiftProTypography.headline)
-                        .foregroundStyle(ShiftProColors.ink)
+                    HStack(spacing: ShiftProSpacing.small) {
+                        Text(product.displayName)
+                            .font(ShiftProTypography.headline)
+                            .foregroundStyle(ShiftProColors.ink)
+
+                        if isBestValue {
+                            Text("Best Value")
+                                .font(ShiftProTypography.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    Capsule()
+                                        .fill(ShiftProColors.accent)
+                                )
+                        }
+                    }
+
                     Text(product.description)
                         .font(ShiftProTypography.caption)
                         .foregroundStyle(ShiftProColors.inkSubtle)
@@ -181,9 +233,18 @@ private struct PaywallProductCard: View {
 
                 Spacer()
 
-                Text(product.displayPrice)
-                    .font(ShiftProTypography.subheadline)
-                    .foregroundStyle(ShiftProColors.accent)
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(product.displayPrice)
+                        .font(ShiftProTypography.subheadline)
+                        .foregroundStyle(ShiftProColors.accent)
+
+                    if let savings = savingsPercentage, savings > 0 {
+                        Text("Save \(savings)%")
+                            .font(ShiftProTypography.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(ShiftProColors.success)
+                    }
+                }
             }
 
             Button(action: action) {
@@ -208,6 +269,10 @@ private struct PaywallProductCard: View {
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(isBestValue ? ShiftProColors.accent : Color.clear, lineWidth: 2)
+        )
     }
 
     private var ctaTitle: String {
