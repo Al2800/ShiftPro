@@ -24,6 +24,7 @@ struct ScheduleView: View {
     @State private var pendingDate = Date()
     @AppStorage("showAddShiftAfterOnboarding") private var showAddShiftAfterOnboarding = false
     @State private var editingShift: Shift?
+    @State private var showingPatterns = false
 
     private let calendar = Calendar.current
 
@@ -157,6 +158,17 @@ struct ScheduleView: View {
 
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
+                    showingPatterns = true
+                } label: {
+                    Image(systemName: "repeat")
+                        .foregroundStyle(ShiftProColors.accent)
+                }
+                .accessibilityLabel("Shift patterns")
+                .accessibilityIdentifier("schedule.patterns")
+            }
+
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
                     showingAddShift = true
                 } label: {
                     Image(systemName: "plus.circle.fill")
@@ -171,6 +183,9 @@ struct ScheduleView: View {
         }
         .sheet(item: $editingShift) { shift in
             ShiftFormView(shift: shift)
+        }
+        .navigationDestination(isPresented: $showingPatterns) {
+            PatternLibraryView()
         }
         .sheet(isPresented: $showingDatePicker) {
             NavigationStack {

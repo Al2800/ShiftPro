@@ -34,18 +34,9 @@ struct MainTabView: View {
             }
 
             NavigationStack {
-                PatternLibraryView()
-            }
-            .tag(3)
-            .accessibilityIdentifier(AccessibilityIdentifiers.tabPatterns)
-            .tabItem {
-                Label("Patterns", systemImage: "repeat")
-            }
-
-            NavigationStack {
                 SettingsView()
             }
-            .tag(4)
+            .tag(3)
             .accessibilityIdentifier(AccessibilityIdentifiers.tabSettings)
             .tabItem {
                 Label("Settings", systemImage: "gearshape")
