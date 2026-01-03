@@ -353,8 +353,10 @@ struct ScheduleView: View {
     }
 
     private func softDeleteShift(_ shift: Shift) {
-        let repository = ShiftRepository(context: modelContext)
-        try? repository.softDelete(shift)
+        Task { @MainActor in
+            let repository = ShiftRepository(context: modelContext)
+            try? repository.softDelete(shift)
+        }
     }
 
     private var emptyState: some View {

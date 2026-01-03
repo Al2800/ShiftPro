@@ -483,7 +483,6 @@ private struct DefaultPatternPickerView: View {
         // Move pattern to beginning by updating createdAt
         // This ensures it appears as the "first" pattern
         pattern.createdAt = Date()
-        pattern.markUpdated()
         try? context.save()
         dismiss()
     }
