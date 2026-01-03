@@ -2,11 +2,15 @@ import EventKit
 import SwiftUI
 
 struct CalendarSettingsView: View {
+    @Environment(\.modelContext) private var modelContext
     @StateObject private var permissionManager = PermissionManager()
     @State private var settings = CalendarSyncSettings.load()
     @State private var showTwoWaySyncConfirmation = false
     @State private var calendars: [EKCalendar] = []
     @State private var selectedCalendarIdentifier: String = ""
+    @State private var isSyncing = false
+    @State private var showSyncError = false
+    @State private var syncErrorMessage: String?
 
     private let eventStore = EKEventStore()
     private let calendarIdentifierKey = "ShiftPro.CalendarIdentifier"
@@ -18,6 +22,10 @@ struct CalendarSettingsView: View {
         case .exportOnly:
             return permissionManager.calendarStatus == .authorized || permissionManager.calendarStatus == .writeOnly
         }
+    }
+
+    private var canSyncNow: Bool {
+        settings.isEnabled && isAuthorized && !isSyncing
     }
 
     var body: some View {
@@ -41,16 +49,53 @@ struct CalendarSettingsView: View {
                     }
                 }
 
-                if let lastSync = settings.lastSyncedAt {
-                    HStack {
-                        Text("Last Synced")
-                        Spacer()
+                HStack {
+                    Text("Sync Status")
+                    Spacer()
+                    Text(settings.isEnabled ? "Enabled" : "Off")
+                        .foregroundStyle(settings.isEnabled ? ShiftProColors.success : ShiftProColors.inkSubtle)
+                        .font(ShiftProTypography.caption)
+                }
+
+                HStack {
+                    Text("Calendar")
+                    Spacer()
+                    Text(selectedCalendarTitle)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                }
+
+                HStack {
+                    Text("Last Synced")
+                    Spacer()
+                    if let lastSync = settings.lastSyncedAt {
                         Text(lastSync, style: .relative)
+                            .foregroundStyle(ShiftProColors.inkSubtle)
+                    } else {
+                        Text("Never")
                             .foregroundStyle(ShiftProColors.inkSubtle)
                     }
                 }
+
+                Button(action: { Task { await performSync() } }) {
+                    HStack {
+                        Text("Sync Now")
+                        Spacer()
+                        if isSyncing {
+                            ProgressView()
+                        }
+                    }
+                }
+                .disabled(!canSyncNow)
             } header: {
                 Text("Status")
+            } footer: {
+                if !settings.isEnabled {
+                    Text("Enable calendar sync below to run a manual sync.")
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                } else if !isAuthorized {
+                    Text("Calendar access is required to sync now.")
+                        .foregroundStyle(ShiftProColors.warning)
+                }
             }
 
             Section {
@@ -150,6 +195,14 @@ struct CalendarSettingsView: View {
         } message: {
             Text("Two-way sync allows changes made in your calendar app to update your shifts in ShiftPro. This means editing or deleting events in your calendar will affect your shift records.\n\nAre you sure you want to enable this?")
         }
+        .alert("Sync Failed", isPresented: $showSyncError) {
+            Button("OK", role: .cancel) {
+                showSyncError = false
+                syncErrorMessage = nil
+            }
+        } message: {
+            Text(syncErrorMessage ?? "Unable to sync your calendar right now.")
+        }
     }
 
     private func loadCalendars() {
@@ -168,8 +221,64 @@ struct CalendarSettingsView: View {
         }
     }
 
+    private var selectedCalendarTitle: String {
+        guard !selectedCalendarIdentifier.isEmpty else { return "Default" }
+        if let match = calendars.first(where: { $0.calendarIdentifier == selectedCalendarIdentifier }) {
+            return match.title
+        }
+        return "Default"
+    }
+
     private var statusColor: Color {
         permissionManager.calendarStatus.color
+    }
+
+    @MainActor
+    private func performSync() async {
+        guard settings.isEnabled else {
+            syncErrorMessage = "Turn on calendar sync to run a manual sync."
+            showSyncError = true
+            return
+        }
+        guard isAuthorized else {
+            syncErrorMessage = "Calendar access is required. Enable access in Settings > Privacy & Security > Calendars."
+            showSyncError = true
+            return
+        }
+
+        isSyncing = true
+        defer { isSyncing = false }
+
+        let now = Date()
+        let calendar = Calendar.current
+        let start = calendar.date(byAdding: .day, value: -60, to: now) ?? now
+        let end = calendar.date(byAdding: .day, value: 120, to: now) ?? now
+
+        let service = CalendarIntegrationService(context: modelContext)
+
+        do {
+            try await service.syncShifts(in: DateInterval(start: start, end: end))
+            settings = CalendarSyncSettings.load()
+        } catch {
+            syncErrorMessage = syncErrorText(for: error)
+            showSyncError = true
+        }
+    }
+
+    private func syncErrorText(for error: Error) -> String {
+        if let dataError = error as? DataError {
+            switch dataError {
+            case .permissionDenied:
+                return "Calendar access is required. Enable access in Settings > Privacy & Security > Calendars."
+            case .cloudUnavailable:
+                return "iCloud is unavailable. Try again later or check your iCloud settings."
+            case .invalidState(let message):
+                return message
+            default:
+                return dataError.localizedDescription
+            }
+        }
+        return error.localizedDescription
     }
 }
 
