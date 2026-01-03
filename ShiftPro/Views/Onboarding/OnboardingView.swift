@@ -8,6 +8,7 @@ struct OnboardingView: View {
     @State private var isSaving = false
     @State private var showSaveError = false
     @State private var saveError: String?
+    @AppStorage("showAddShiftAfterOnboarding") private var showAddShiftAfterOnboarding = false
 
     let onFinish: () -> Void
 
@@ -76,73 +77,80 @@ struct OnboardingView: View {
         case .calendar:
             CalendarSetupView(wantsCalendarSync: $manager.data.wantsCalendarSync)
         case .completion:
-            CompletionView(data: manager.data)
+            CompletionView(
+                data: manager.data,
+                skippedSteps: manager.skippedSteps,
+                onAddShift: { completeOnboarding(navigateToAddShift: true) },
+                onGoToDashboard: { completeOnboarding(navigateToAddShift: false) }
+            )
         }
     }
 
+    @ViewBuilder
     private var navigationControls: some View {
-        VStack(spacing: 12) {
-            if manager.step == .completion, manager.hasSkippedOptionalSteps {
-                Text("You can finish optional setup later in Settings.")
-                    .font(ShiftProTypography.caption)
-                    .foregroundStyle(ShiftProColors.fog)
-            }
-
-            Button(action: primaryAction) {
-                Text(isSaving ? "Saving..." : primaryButtonTitle)
-                    .font(ShiftProTypography.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(ShiftProColors.accent)
-                    )
-                    .foregroundStyle(ShiftProColors.midnight)
-            }
-            .padding(.horizontal, ShiftProSpacing.large)
-            .accessibilityIdentifier("onboarding.primary")
-            .disabled(isSaving || !manager.canProceed)
-
-            HStack(spacing: 16) {
-                Button("Back") { manager.back() }
-                    .disabled(manager.step == .welcome)
-                    .accessibilityIdentifier("onboarding.back")
-
-                if manager.step.isSkippable {
-                    Button("Skip for now") { manager.skip() }
-                        .accessibilityIdentifier("onboarding.skip")
+        // Hide standard navigation on completion step since CompletionView has its own CTAs
+        if manager.step != .completion {
+            VStack(spacing: 12) {
+                Button(action: primaryAction) {
+                    Text(isSaving ? "Saving..." : primaryButtonTitle)
+                        .font(ShiftProTypography.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(ShiftProColors.accent)
+                        )
+                        .foregroundStyle(ShiftProColors.midnight)
                 }
-            }
-            .font(ShiftProTypography.caption)
-            .foregroundStyle(ShiftProColors.fog)
+                .padding(.horizontal, ShiftProSpacing.large)
+                .accessibilityIdentifier("onboarding.primary")
+                .disabled(isSaving || !manager.canProceed)
 
-            if let message = manager.validationMessage {
-                Text(message)
-                    .font(ShiftProTypography.caption)
-                    .foregroundStyle(ShiftProColors.warning)
+                HStack(spacing: 16) {
+                    Button("Back") { manager.back() }
+                        .disabled(manager.step == .welcome)
+                        .accessibilityIdentifier("onboarding.back")
+
+                    if manager.step.isSkippable {
+                        Button("Skip for now") { manager.skip() }
+                            .accessibilityIdentifier("onboarding.skip")
+                    } else if manager.step == .valuePreview {
+                        Button("Skip preview") { manager.next() }
+                            .accessibilityIdentifier("onboarding.skipPreview")
+                    }
+                }
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(ShiftProColors.fog)
+
+                if let message = manager.validationMessage {
+                    Text(message)
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.warning)
+                }
             }
         }
     }
 
     private var primaryButtonTitle: String {
-        manager.step == .completion ? "Start Using ShiftPro" : "Continue"
+        "Continue"
     }
 
     private func primaryAction() {
-        if manager.step == .completion {
-            guard !isSaving else { return }
-            isSaving = true
-            do {
-                try manager.persist(context: modelContext)
-                isSaving = false
-                onFinish()
-            } catch {
-                isSaving = false
-                saveError = error.localizedDescription
-                showSaveError = true
-            }
-        } else {
-            manager.next()
+        manager.next()
+    }
+
+    private func completeOnboarding(navigateToAddShift: Bool) {
+        guard !isSaving else { return }
+        isSaving = true
+        do {
+            try manager.persist(context: modelContext)
+            isSaving = false
+            showAddShiftAfterOnboarding = navigateToAddShift
+            onFinish()
+        } catch {
+            isSaving = false
+            saveError = error.localizedDescription
+            showSaveError = true
         }
     }
 }

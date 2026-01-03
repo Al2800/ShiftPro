@@ -22,6 +22,7 @@ struct ScheduleView: View {
     @State private var viewMode: ViewMode = .week
     @State private var showingDatePicker = false
     @State private var pendingDate = Date()
+    @AppStorage("showAddShiftAfterOnboarding") private var showAddShiftAfterOnboarding = false
 
     private let calendar = Calendar.current
 
@@ -163,6 +164,13 @@ struct ScheduleView: View {
                         }
                     }
                 }
+            }
+        }
+        .onAppear {
+            // Show add shift form if user chose to add their first shift after onboarding
+            if showAddShiftAfterOnboarding {
+                showAddShiftAfterOnboarding = false
+                showingAddShift = true
             }
         }
     }
