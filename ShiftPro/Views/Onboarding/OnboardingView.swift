@@ -127,21 +127,56 @@ struct OnboardingView: View {
                 .accessibilityIdentifier("onboarding.primary")
                 .disabled(isSaving || !manager.canProceed)
 
-                HStack(spacing: 16) {
-                    Button("Back") { manager.back() }
-                        .disabled(manager.step == .welcome)
-                        .accessibilityIdentifier("onboarding.back")
+                HStack(spacing: 20) {
+                    // Back button - always visible, disabled on first step
+                    Button {
+                        manager.back()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text("Back")
+                        }
+                        .font(ShiftProTypography.callout)
+                        .foregroundStyle(manager.step == .welcome ? ShiftProColors.fog.opacity(0.4) : ShiftProColors.fog)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(
+                            Capsule()
+                                .stroke(ShiftProColors.fog.opacity(0.3), lineWidth: 1)
+                        )
+                    }
+                    .disabled(manager.step == .welcome)
+                    .accessibilityIdentifier("onboarding.back")
+                    .accessibilityHint(manager.step == .welcome ? "You are on the first step" : "Go to the previous step")
 
-                    if manager.step.isSkippable {
-                        Button("Skip for now") { manager.skip() }
-                            .accessibilityIdentifier("onboarding.skip")
-                    } else if manager.step == .valuePreview {
-                        Button("Skip preview") { manager.next() }
-                            .accessibilityIdentifier("onboarding.skipPreview")
+                    // Skip button - shown for skippable steps and value preview
+                    if manager.step.isSkippable || manager.step == .valuePreview {
+                        Button {
+                            if manager.step == .valuePreview {
+                                manager.next()
+                            } else {
+                                manager.skip()
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(manager.step == .valuePreview ? "Skip preview" : "Skip for now")
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                            }
+                            .font(ShiftProTypography.callout)
+                            .foregroundStyle(ShiftProColors.fog)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(
+                                Capsule()
+                                    .stroke(ShiftProColors.fog.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+                        .accessibilityIdentifier(manager.step == .valuePreview ? "onboarding.skipPreview" : "onboarding.skip")
+                        .accessibilityHint("Skip this optional step")
                     }
                 }
-                .font(ShiftProTypography.caption)
-                .foregroundStyle(ShiftProColors.fog)
 
                 if let message = manager.validationMessage {
                     Text(message)
