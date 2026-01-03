@@ -4,6 +4,20 @@ import UserNotifications
 
 @MainActor
 final class NotificationManager: NSObject, ObservableObject {
+    enum NotificationError: LocalizedError {
+        case permissionDenied
+        case schedulingFailed(String)
+
+        var errorDescription: String? {
+            switch self {
+            case .permissionDenied:
+                return "Notification permission is not granted."
+            case .schedulingFailed(let reason):
+                return "Unable to schedule test notification: \(reason)"
+            }
+        }
+    }
+
     @Published private(set) var authorizationStatus: UNAuthorizationStatus = .notDetermined
     @Published private(set) var lastScheduleDate: Date?
 
@@ -41,6 +55,32 @@ final class NotificationManager: NSObject, ObservableObject {
         } catch {
             authorizationStatus = .denied
             return false
+        }
+    }
+
+    func sendTestNotification(leadMinutes: Int) async throws {
+        await refreshAuthorizationStatus()
+
+        guard authorizationStatus == .authorized
+                || authorizationStatus == .provisional
+                || authorizationStatus == .ephemeral else {
+            throw NotificationError.permissionDenied
+        }
+
+        let content = UNMutableNotificationContent()
+        content.title = "ShiftPro Test Notification"
+        content.body = "Reminders fire \(leadMinutes) minutes before your shift."
+        content.sound = .default
+
+        let identifier = "shiftpro.test.notification"
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+        center.removePendingNotificationRequests(withIdentifiers: [identifier])
+
+        do {
+            try await center.add(request)
+        } catch {
+            throw NotificationError.schedulingFailed(error.localizedDescription)
         }
     }
 

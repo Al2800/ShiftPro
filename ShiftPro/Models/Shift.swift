@@ -24,6 +24,9 @@ final class Shift {
     /// Whether this is an additional/overtime shift
     var isAdditionalShift: Bool
 
+    /// Optional worksite/location for the shift
+    var location: String?
+
     /// Free-form notes
     var notes: String?
 
@@ -72,6 +75,7 @@ final class Shift {
         actualEnd: Date? = nil,
         breakMinutes: Int = 30,
         isAdditionalShift: Bool = false,
+        location: String? = nil,
         notes: String? = nil,
         status: ShiftStatus = .scheduled,
         paidMinutes: Int = 0,
@@ -91,6 +95,7 @@ final class Shift {
         self.actualEnd = actualEnd
         self.breakMinutes = breakMinutes
         self.isAdditionalShift = isAdditionalShift
+        self.location = location
         self.notes = notes
         self.statusRaw = status.rawValue
         self.paidMinutes = paidMinutes
@@ -119,6 +124,14 @@ extension Shift {
     /// Whether this shift is deleted
     var isDeleted: Bool {
         deletedAt != nil
+    }
+
+    /// Location to display for the shift (shift-specific overrides profile)
+    var locationDisplay: String? {
+        if let location, !location.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return location
+        }
+        return owner?.workplace
     }
 
     /// Effective start time (actual or scheduled)

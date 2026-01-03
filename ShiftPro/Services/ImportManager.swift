@@ -53,6 +53,11 @@ final class ImportManager {
         }
     }
 
+    func previewImpact(from url: URL, format: ImportFormat, profile: UserProfile?) throws -> ImportImpact {
+        let data = try Data(contentsOf: url)
+        return try previewImpact(data: data, format: format, profile: profile)
+    }
+
     // MARK: - CSV Import
 
     private func importCSV(data: Data, profile: UserProfile?) throws -> ImportResult {
@@ -94,6 +99,54 @@ final class ImportManager {
             importedPatterns: 0,
             errors: errors
         )
+    }
+
+    private func previewImpact(data: Data, format: ImportFormat, profile: UserProfile?) throws -> ImportImpact {
+        switch format {
+        case .csv:
+            return try previewCSV(data: data, profile: profile)
+        case .json:
+            return try previewJSON(data: data)
+        case .ics:
+            return try previewICS(data: data)
+        }
+    }
+
+    private func previewCSV(data: Data, profile: UserProfile?) throws -> ImportImpact {
+        guard let csvString = String(data: data, encoding: .utf8) else {
+            throw ImportError.parsingFailed("Unable to decode CSV")
+        }
+
+        let lines = csvString.components(separatedBy: .newlines).filter { !$0.isEmpty }
+        guard lines.count > 1 else {
+            throw ImportError.validationFailed("No data rows found")
+        }
+
+        let header = lines[0].components(separatedBy: ",")
+        guard header.contains("Date") && header.contains("Start Time") else {
+            throw ImportError.validationFailed("Required columns missing")
+        }
+
+        var validRows = 0
+        var invalidRows = 0
+
+        for line in lines.dropFirst() {
+            do {
+                if let _ = try parseCSVLine(line, profile: profile) {
+                    validRows += 1
+                } else {
+                    invalidRows += 1
+                }
+            } catch {
+                invalidRows += 1
+            }
+        }
+
+        guard validRows > 0 else {
+            throw ImportError.validationFailed("No valid shifts found in this file")
+        }
+
+        return ImportImpact(shiftCount: validRows, patternCount: 0, invalidRowCount: invalidRows)
     }
 
     // MARK: - JSON Import
@@ -163,6 +216,23 @@ final class ImportManager {
         }
     }
 
+    private func previewJSON(data: Data) throws -> ImportImpact {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        do {
+            let backup = try decoder.decode(FullBackupData.self, from: data)
+            let shiftCount = backup.shifts.count
+            let patternCount = backup.patterns.count
+            guard shiftCount > 0 || patternCount > 0 else {
+                throw ImportError.validationFailed("No shifts or patterns found in this backup")
+            }
+            return ImportImpact(shiftCount: shiftCount, patternCount: patternCount, invalidRowCount: 0)
+        } catch {
+            throw ImportError.parsingFailed(error.localizedDescription)
+        }
+    }
+
     // MARK: - ICS Import
 
     private func importICS(data: Data, profile: UserProfile?) throws -> ImportResult {
@@ -195,6 +265,22 @@ final class ImportManager {
             importedPatterns: 0,
             errors: assignmentErrors
         )
+    }
+
+    private func previewICS(data: Data) throws -> ImportImpact {
+        guard let icsString = String(data: data, encoding: .utf8) else {
+            throw ImportError.parsingFailed("Unable to decode ICS")
+        }
+
+        let events = try parseICSEvents(icsString)
+        let validEvents = events.filter { $0.startDate != nil && $0.endDate != nil }
+        let invalidEvents = max(events.count - validEvents.count, 0)
+
+        guard !validEvents.isEmpty else {
+            throw ImportError.validationFailed("No valid events found to import")
+        }
+
+        return ImportImpact(shiftCount: validEvents.count, patternCount: 0, invalidRowCount: invalidEvents)
     }
 
     // MARK: - Helper Methods
@@ -341,6 +427,19 @@ struct ImportResult {
             message += " with \(errors.count) errors"
         }
         return message
+    }
+}
+
+struct ImportImpact {
+    let shiftCount: Int
+    let patternCount: Int
+    let invalidRowCount: Int
+
+    var summary: String {
+        if patternCount > 0 {
+            return "\(shiftCount) shifts and \(patternCount) patterns"
+        }
+        return "\(shiftCount) shifts"
     }
 }
 

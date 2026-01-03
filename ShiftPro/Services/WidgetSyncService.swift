@@ -182,7 +182,7 @@ final class WidgetSyncService: ObservableObject {
             status: widgetStatus,
             rateMultiplier: shift.rateMultiplier,
             rateLabel: shift.rateLabel,
-            location: nil, // Could be added if location tracking is implemented
+            location: shift.locationDisplay,
             notes: shift.notes
         )
     }

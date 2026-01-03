@@ -180,7 +180,7 @@ final class WatchConnectivityManager: NSObject, ObservableObject {
             status: shift.statusRaw,
             rateMultiplier: shift.rateMultiplier,
             rateLabel: shift.rateLabel,
-            location: nil
+            location: shift.locationDisplay
         )
     }
     

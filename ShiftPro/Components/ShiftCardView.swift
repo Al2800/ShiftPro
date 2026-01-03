@@ -5,7 +5,7 @@ struct ShiftCardView: View {
 
     let title: String
     let timeRange: String
-    let location: String
+    let location: String?
     let status: StatusIndicator.Status
     let rateMultiplier: Double
     let notes: String?
@@ -25,9 +25,11 @@ struct ShiftCardView: View {
                         .font(ShiftProTypography.subheadline)
                         .foregroundStyle(ShiftProColors.inkSubtle)
 
-                    Text(location)
-                        .font(ShiftProTypography.caption)
-                        .foregroundStyle(ShiftProColors.inkSubtle)
+                    if let locationText = trimmedLocation {
+                        Text(locationText)
+                            .font(ShiftProTypography.caption)
+                            .foregroundStyle(ShiftProColors.inkSubtle)
+                    }
                 }
 
                 Spacer()
@@ -74,6 +76,12 @@ struct ShiftCardView: View {
         .accessibilityLabel("Shift card")
         .accessibilityValue("\(title), \(timeRange), \(status.rawValue)")
         .accessibilityIdentifier(accessibilityIdentifier ?? "")
+    }
+
+    private var trimmedLocation: String? {
+        guard let location else { return nil }
+        let trimmed = location.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }
 

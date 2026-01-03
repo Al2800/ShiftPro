@@ -25,6 +25,13 @@ struct ScheduleView: View {
     @AppStorage("showAddShiftAfterOnboarding") private var showAddShiftAfterOnboarding = false
     @State private var editingShift: Shift?
     @State private var showingPatterns = false
+    @State private var selectedPatternForAdd: ShiftPattern?
+
+    @Query(
+        filter: #Predicate<ShiftPattern> { $0.deletedAt == nil && $0.isActive },
+        sort: [SortDescriptor(\ShiftPattern.name, order: .forward)]
+    )
+    private var activePatterns: [ShiftPattern]
 
     private let calendar = Calendar.current
 
@@ -52,16 +59,17 @@ struct ScheduleView: View {
                                 ShiftDetailView(
                                     title: shift.pattern?.name ?? "Shift",
                                     timeRange: "\(shift.dateFormatted) • \(shift.timeRangeFormatted)",
-                                    location: profile?.workplace ?? "Worksite",
+                                    location: shift.locationDisplay,
                                     status: statusIndicator(for: shift),
                                     rateMultiplier: shift.rateMultiplier,
+                                    rateLabel: shift.rateLabel,
                                     notes: shift.notes
                                 )
                             } label: {
                                 ShiftCardView(
                                     title: shift.pattern?.name ?? "Shift",
                                     timeRange: shift.timeRangeFormatted,
-                                    location: profile?.workplace ?? "Worksite",
+                                    location: shift.locationDisplay,
                                     status: statusIndicator(for: shift),
                                     rateMultiplier: shift.rateMultiplier,
                                     notes: shift.notes
@@ -168,8 +176,24 @@ struct ScheduleView: View {
             }
 
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showingAddShift = true
+                Menu {
+                    if !activePatterns.isEmpty {
+                        Section("From Pattern") {
+                            ForEach(activePatterns, id: \.id) { pattern in
+                                Button {
+                                    selectedPatternForAdd = pattern
+                                } label: {
+                                    Label(pattern.name, systemImage: "repeat")
+                                }
+                            }
+                        }
+                    }
+
+                    Button {
+                        showingAddShift = true
+                    } label: {
+                        Label("Custom Shift", systemImage: "plus")
+                    }
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .foregroundStyle(ShiftProColors.accent)
@@ -179,7 +203,10 @@ struct ScheduleView: View {
             }
         }
         .sheet(isPresented: $showingAddShift) {
-            ShiftFormView()
+            ShiftFormView(prefillDate: selectedDate)
+        }
+        .sheet(item: $selectedPatternForAdd) { pattern in
+            ShiftFormView(prefillPattern: pattern, prefillDate: selectedDate)
         }
         .sheet(item: $editingShift) { shift in
             ShiftFormView(shift: shift)
@@ -287,13 +314,32 @@ struct ScheduleView: View {
     }
 
     private var emptyState: some View {
-        EmptyStateView(
-            icon: "calendar.badge.plus",
-            title: "No shifts scheduled",
-            subtitle: "Tap below to add your first shift for this day",
-            actionTitle: "Add Shift",
-            action: { showingAddShift = true }
-        )
+        VStack(spacing: ShiftProSpacing.medium) {
+            EmptyStateView(
+                icon: "calendar.badge.plus",
+                title: "No shifts scheduled",
+                subtitle: activePatterns.isEmpty
+                    ? "Tap below to add your first shift for this day"
+                    : "Add a shift from a pattern or create a custom one",
+                actionTitle: "Add Shift",
+                action: { showingAddShift = true }
+            )
+
+            if let defaultPattern = activePatterns.first {
+                Button {
+                    selectedPatternForAdd = defaultPattern
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "repeat")
+                            .font(.system(size: 12))
+                        Text("Add from \(defaultPattern.name)")
+                            .font(ShiftProTypography.subheadline)
+                    }
+                    .foregroundStyle(ShiftProColors.accent)
+                }
+                .accessibilityIdentifier("schedule.addFromPattern")
+            }
+        }
     }
 
     private var calendarHeader: some View {

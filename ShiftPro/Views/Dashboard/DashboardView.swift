@@ -65,7 +65,7 @@ struct DashboardView: View {
                             ShiftCardView(
                                 title: shift.pattern?.name ?? "Shift",
                                 timeRange: "\(shift.dateFormatted) • \(shift.timeRangeFormatted)",
-                                location: shift.owner?.workplace ?? "Worksite",
+                                location: shift.locationDisplay,
                                 status: statusIndicator(for: shift),
                                 rateMultiplier: shift.rateMultiplier,
                                 notes: shift.notes,
@@ -93,7 +93,9 @@ struct DashboardView: View {
                         HoursDisplay(
                             totalHours: summary.totalHours,
                             regularHours: summary.regularHours,
-                            overtimeHours: summary.premiumHours
+                            overtimeHours: summary.premiumHours,
+                            trendDelta: hoursTrend,
+                            estimatedPay: estimatedPay
                         )
                     }
                 }
@@ -162,6 +164,44 @@ struct DashboardView: View {
 
     private var summary: HoursCalculator.PeriodSummary {
         calculator.summary(for: periodShifts, baseRateCents: profile?.baseRateCents)
+    }
+
+    /// Previous pay period for trend comparison
+    private var previousPeriod: PayPeriod {
+        let periodType = profile?.payPeriodType ?? .biweekly
+        let daysToSubtract: Int
+        switch periodType {
+        case .weekly:
+            daysToSubtract = 7
+        case .biweekly:
+            daysToSubtract = 14
+        case .monthly:
+            daysToSubtract = 30
+        case .semimonthly:
+            daysToSubtract = 15
+        }
+        let previousDate = Calendar.current.date(byAdding: .day, value: -daysToSubtract, to: currentPeriod.startDate) ?? currentPeriod.startDate
+        return calculator.period(for: previousDate, type: periodType, referenceDate: profile?.startDate)
+    }
+
+    private var previousPeriodShifts: [Shift] {
+        calculator.shifts(in: previousPeriod, from: shifts)
+    }
+
+    private var previousSummary: HoursCalculator.PeriodSummary {
+        calculator.summary(for: previousPeriodShifts, baseRateCents: profile?.baseRateCents)
+    }
+
+    /// Delta in hours vs previous period (positive = more hours this period)
+    private var hoursTrend: Double? {
+        guard !previousPeriodShifts.isEmpty else { return nil }
+        return summary.totalHours - previousSummary.totalHours
+    }
+
+    /// Estimated pay for current period
+    private var estimatedPay: Double? {
+        guard let cents = summary.estimatedPayCents, cents > 0 else { return nil }
+        return Double(cents) / 100.0
     }
 
     private var currentShift: Shift? {
@@ -249,7 +289,7 @@ struct DashboardView: View {
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(ShiftProColors.heroGradient)
                 .frame(maxWidth: .infinity)
-                .frame(height: 200)
+                .frame(minHeight: currentShift != nil ? 240 : 200)
 
             VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
                 Text(heroTitle)
@@ -267,6 +307,11 @@ struct DashboardView: View {
                         .foregroundStyle(.white.opacity(0.95))
                 }
 
+                // Inline break controls for in-progress shifts
+                if let shift = currentShift {
+                    inlineBreakControls(for: shift)
+                }
+
                 QuickActionButton(
                     title: heroActionTitle,
                     systemImage: heroActionIcon,
@@ -279,6 +324,61 @@ struct DashboardView: View {
         }
         .shadow(color: ShiftProColors.accent.opacity(0.25), radius: 18, x: 0, y: 12)
         .accessibilityIdentifier(AccessibilityIdentifiers.dashboardHeroCard)
+    }
+
+    @ViewBuilder
+    private func inlineBreakControls(for shift: Shift) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Image(systemName: "cup.and.saucer.fill")
+                    .font(.system(size: 12))
+                Text("Break: \(shift.breakMinutes) min")
+                    .font(ShiftProTypography.caption)
+                    .fontWeight(.medium)
+            }
+            .foregroundStyle(.white.opacity(0.9))
+
+            HStack(spacing: 8) {
+                ForEach([5, 15, 30], id: \.self) { minutes in
+                    Button {
+                        Task { await logQuickBreak(minutes: minutes, for: shift) }
+                    } label: {
+                        Text("+\(minutes)m")
+                            .font(ShiftProTypography.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(ShiftProColors.midnight)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(.white.opacity(0.9))
+                            )
+                    }
+                    .disabled(isProcessingAction)
+                    .accessibilityLabel("Add \(minutes) minute break")
+                    .accessibilityIdentifier("dashboard.quickBreak.\(minutes)")
+                }
+
+                Text("→ \(shift.breakMinutes + 15) min")
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(.white.opacity(0.7))
+            }
+        }
+        .padding(.top, 4)
+    }
+
+    private func logQuickBreak(minutes: Int, for shift: Shift) async {
+        isProcessingAction = true
+        defer { isProcessingAction = false }
+
+        let manager = await ShiftManager(context: modelContext)
+        do {
+            let newBreakMinutes = shift.breakMinutes + minutes
+            try await manager.updateShift(shift, breakMinutes: newBreakMinutes)
+        } catch {
+            actionError = error.localizedDescription
+            showingActionError = true
+        }
     }
 
     private func timeRemaining(until date: Date) -> String? {
@@ -321,21 +421,28 @@ struct DashboardView: View {
 
             HStack(spacing: ShiftProSpacing.small) {
                 QuickActionButton(
-                    title: "Log Break",
-                    systemImage: "cup.and.saucer.fill",
-                    action: { handleLogBreak() },
-                    accessibilityIdentifier: AccessibilityIdentifiers.dashboardLogBreak
-                )
-                .disabled(currentShift == nil)
-                .opacity(currentShift == nil ? 0.5 : 1.0)
-
-                QuickActionButton(
                     title: "Add Shift",
                     systemImage: "plus",
                     action: { showingAddShift = true },
                     accessibilityIdentifier: AccessibilityIdentifiers.dashboardAddShift
                 )
+
+                QuickActionButton(
+                    title: "Schedule",
+                    systemImage: "calendar",
+                    action: {
+                        NotificationCenter.default.post(name: .switchToScheduleTab, object: nil)
+                    },
+                    accessibilityIdentifier: "dashboard.viewSchedule"
+                )
             }
+            .padding(ShiftProSpacing.medium)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(ShiftProColors.surface)
+                    .shadow(color: ShiftProColors.accent.opacity(0.1), radius: 8, x: 0, y: 4)
+            )
         }
     }
 

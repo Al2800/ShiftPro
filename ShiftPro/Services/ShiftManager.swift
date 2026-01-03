@@ -68,16 +68,20 @@ final class ShiftManager {
         breakMinutes: Int = 30,
         rateMultiplier: Double = 1.0,
         rateLabel: String? = nil,
+        location: String? = nil,
         notes: String? = nil,
         isAdditionalShift: Bool = false
     ) async throws -> Shift {
         let owner = try profileRepository.ensurePrimary()
+        let sanitizedLocation = location?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let storedLocation = sanitizedLocation?.isEmpty == false ? sanitizedLocation : nil
 
         let shift = Shift(
             scheduledStart: scheduledStart,
             scheduledEnd: scheduledEnd,
             breakMinutes: breakMinutes,
             isAdditionalShift: isAdditionalShift,
+            location: storedLocation,
             notes: notes,
             rateMultiplier: rateMultiplier,
             rateLabel: rateLabel,
@@ -150,8 +154,10 @@ final class ShiftManager {
         scheduledEnd: Date? = nil,
         breakMinutes: Int? = nil,
         rateMultiplier: Double? = nil,
-        rateLabel: String? = nil,
-        notes: String? = nil
+        rateLabel: String?? = nil,
+        notes: String?? = nil,
+        location: String?? = nil,
+        pattern: ShiftPattern?? = nil
     ) async throws {
         let originalStart = shift.scheduledStart
         let originalPeriod = shift.payPeriod
@@ -163,6 +169,13 @@ final class ShiftManager {
         if let rate = rateMultiplier { shift.rateMultiplier = rate }
         if let label = rateLabel { shift.rateLabel = label }
         if let noteText = notes { shift.notes = noteText }
+        if let location = location {
+            let trimmed = location?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            shift.location = trimmed.isEmpty ? nil : trimmed
+        }
+        if let pattern = pattern {
+            shift.pattern = pattern
+        }
 
         // Validate
         let result = await validator.validate(shift)

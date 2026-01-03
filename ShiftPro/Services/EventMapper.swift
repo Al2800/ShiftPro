@@ -25,6 +25,7 @@ struct EventMapper {
         event.title = title(for: shift)
         event.startDate = shift.scheduledStart
         event.endDate = shift.scheduledEnd
+        event.location = shift.locationDisplay
         event.notes = notes(for: shift)
         event.url = shiftURL(for: shift)
 
@@ -39,6 +40,8 @@ struct EventMapper {
     static func updateShift(_ shift: Shift, from event: EKEvent) {
         shift.scheduledStart = event.startDate
         shift.scheduledEnd = event.endDate
+        let trimmedLocation = event.location?.trimmingCharacters(in: .whitespacesAndNewlines)
+        shift.location = trimmedLocation?.isEmpty == false ? trimmedLocation : nil
         shift.markUpdated()
     }
 

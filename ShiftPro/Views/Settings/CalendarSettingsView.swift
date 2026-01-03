@@ -61,18 +61,42 @@ struct CalendarSettingsView: View {
                 HStack {
                     Text("Calendar Access")
                     Spacer()
-                    Text(permissionManager.calendarStatus.title)
+                    Text(permissionLevelDisplay)
                         .foregroundStyle(statusColor)
                         .font(ShiftProTypography.caption)
                 }
 
-                if !isAuthorized {
-                    Button("Request Access") {
-                        Task {
-                            await permissionManager.requestCalendarAccess()
-                            await permissionManager.refreshStatuses()
-                            loadCalendars()
+                if permissionManager.calendarStatus == .writeOnly {
+                    HStack(spacing: ShiftProSpacing.small) {
+                        Image(systemName: "info.circle.fill")
+                            .foregroundStyle(ShiftProColors.warning)
+                        Text("Write-only access allows exporting shifts to your calendar, but two-way sync requires full access.")
+                            .font(ShiftProTypography.caption)
+                            .foregroundStyle(ShiftProColors.inkSubtle)
+                    }
+                }
+
+                if !isAuthorized || permissionManager.calendarStatus == .writeOnly {
+                    if permissionManager.calendarStatus == .notDetermined {
+                        Button("Request Access") {
+                            Task {
+                                await permissionManager.requestCalendarAccess()
+                                await permissionManager.refreshStatuses()
+                                loadCalendars()
+                            }
                         }
+                    } else {
+                        Button {
+                            openSystemSettings()
+                        } label: {
+                            HStack {
+                                Text(permissionManager.calendarStatus == .writeOnly ? "Upgrade to Full Access" : "Open Settings")
+                                Spacer()
+                                Image(systemName: "arrow.up.forward.app")
+                                    .font(.system(size: 12))
+                            }
+                        }
+                        .foregroundStyle(ShiftProColors.accent)
                     }
                 }
 
@@ -157,10 +181,20 @@ struct CalendarSettingsView: View {
                         }
                     )) {
                         ForEach(CalendarSyncMode.allCases, id: \.self) { mode in
-                            Text(mode.displayName).tag(mode)
+                            if mode == .twoWay && permissionManager.calendarStatus == .writeOnly {
+                                Text("\(mode.displayName) (Requires Full Access)").tag(mode)
+                            } else {
+                                Text(mode.displayName).tag(mode)
+                            }
                         }
                     }
-                    .disabled(!isAuthorized)
+                    .disabled(!isAuthorized || (permissionManager.calendarStatus == .writeOnly && settings.mode != .exportOnly))
+
+                    if permissionManager.calendarStatus == .writeOnly && settings.mode == .exportOnly {
+                        Text("Two-way sync is disabled because you have write-only access. Upgrade to full access in Settings to enable it.")
+                            .font(ShiftProTypography.caption)
+                            .foregroundStyle(ShiftProColors.warning)
+                    }
                 }
             } header: {
                 Text("Sync Settings")
@@ -168,6 +202,9 @@ struct CalendarSettingsView: View {
                 if !isAuthorized {
                     Text("Grant calendar permission above to enable sync.")
                         .foregroundStyle(ShiftProColors.warning)
+                } else if permissionManager.calendarStatus == .writeOnly {
+                    Text("With write-only access, only export mode is available. To enable two-way sync, grant full calendar access in iOS Settings > Privacy & Security > Calendars > ShiftPro.")
+                        .foregroundStyle(ShiftProColors.inkSubtle)
                 } else if settings.mode == .twoWay {
                     Text("Two-way sync allows calendar changes to update your shifts. Changes made in your calendar app will be reflected in ShiftPro.")
                         .foregroundStyle(ShiftProColors.inkSubtle)
@@ -258,6 +295,27 @@ struct CalendarSettingsView: View {
 
     private var statusColor: Color {
         permissionManager.calendarStatus.color
+    }
+
+    private var permissionLevelDisplay: String {
+        switch permissionManager.calendarStatus {
+        case .authorized:
+            return "Full Access"
+        case .writeOnly:
+            return "Write Only"
+        case .denied:
+            return "Denied"
+        case .restricted:
+            return "Restricted"
+        case .notDetermined:
+            return "Not Requested"
+        }
+    }
+
+    private func openSystemSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url)
+        }
     }
 
     @MainActor

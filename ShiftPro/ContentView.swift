@@ -25,7 +25,14 @@ struct ContentView: View {
                 hasOnboarded = false
                 showOnboarding = true
             }
+            .onReceive(NotificationCenter.default.publisher(for: .resumeOnboarding)) { _ in
+                showOnboarding = true
+            }
     }
+}
+
+extension Notification.Name {
+    static let resumeOnboarding = Notification.Name("resumeOnboarding")
 }
 
 #Preview {

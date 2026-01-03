@@ -18,6 +18,7 @@ struct ImportView: View {
     @State private var validationState: ValidationState = .idle
     @State private var importResult: ImportResult?
     @State private var errorMessage: String?
+    @State private var showImportConfirmation: Bool = false
 
     private var profile: UserProfile? {
         profiles.first
@@ -93,11 +94,35 @@ struct ImportView: View {
                         Text("File Preview")
                     }
 
+                    if let impact = filePreview.impact {
+                        Section {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Label("\(impact.shiftCount) shifts will be added", systemImage: "calendar.badge.plus")
+                                    .font(ShiftProTypography.body)
+
+                                if impact.patternCount > 0 {
+                                    Label("\(impact.patternCount) patterns will be added", systemImage: "arrow.triangle.2.circlepath")
+                                        .font(ShiftProTypography.body)
+                                }
+
+                                if impact.invalidRowCount > 0 {
+                                    Text("\(impact.invalidRowCount) rows could not be parsed and may be skipped.")
+                                        .font(ShiftProTypography.caption)
+                                        .foregroundStyle(ShiftProColors.inkSubtle)
+                                }
+                            }
+                        } header: {
+                            Text("Import Impact")
+                        } footer: {
+                            Text("Your existing data stays intact.")
+                                .font(ShiftProTypography.caption)
+                                .foregroundStyle(ShiftProColors.inkSubtle)
+                        }
+                    }
+
                     Section {
                         Button {
-                            if let url = selectedFileURL {
-                                performImport(from: url)
-                            }
+                            showImportConfirmation = true
                         } label: {
                             Label("Import Now", systemImage: "square.and.arrow.down")
                         }
@@ -159,7 +184,7 @@ struct ImportView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         instructionRow(icon: "1.circle.fill", text: "Select the file format you're importing")
                         instructionRow(icon: "2.circle.fill", text: "Tap 'Select File to Import' and choose your file")
-                        instructionRow(icon: "3.circle.fill", text: "Review the import results")
+                        instructionRow(icon: "3.circle.fill", text: "Review the impact summary and confirm import")
                         instructionRow(icon: "checkmark.circle.fill", text: "Data will be added to your existing shifts")
                     }
                 } header: {
@@ -181,6 +206,16 @@ struct ImportView: View {
                 allowsMultipleSelection: false
             ) { result in
                 handleFileSelection(result)
+            }
+            .confirmationDialog(importConfirmationTitle, isPresented: $showImportConfirmation, titleVisibility: .visible) {
+                Button(importConfirmationActionLabel) {
+                    if let url = selectedFileURL {
+                        performImport(from: url)
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text(importConfirmationMessage)
             }
         }
     }
@@ -216,9 +251,11 @@ struct ImportView: View {
         importResult = nil
         isValidating = true
         selectedFileURL = url
+        let format = selectedFormat
+        let currentProfile = profile
 
         Task {
-            let (preview, state) = await buildPreview(from: url)
+            let (preview, state) = await buildPreview(from: url, format: format, profile: currentProfile)
             await MainActor.run {
                 filePreview = preview
                 validationState = state
@@ -269,9 +306,14 @@ struct ImportView: View {
         selectedFileURL = nil
         filePreview = nil
         validationState = .idle
+        showImportConfirmation = false
     }
 
-    private func buildPreview(from url: URL) async -> (ImportFilePreview?, ValidationState) {
+    private func buildPreview(
+        from url: URL,
+        format: ImportManager.ImportFormat,
+        profile: UserProfile?
+    ) async -> (ImportFilePreview?, ValidationState) {
         let accessGranted = url.startAccessingSecurityScopedResource()
         defer {
             if accessGranted {
@@ -299,7 +341,7 @@ struct ImportView: View {
         let displayName = url.lastPathComponent
         let modifiedAt = attributes[.modificationDate] as? Date
 
-        let allowedExtensions = expectedExtensions(for: selectedFormat)
+        let allowedExtensions = expectedExtensions(for: format)
         let extensionMatches = allowedExtensions.contains(url.pathExtension.lowercased())
         if !extensionMatches {
             return (
@@ -307,21 +349,39 @@ struct ImportView: View {
                     displayName: displayName,
                     sizeBytes: sizeBytes,
                     modifiedAt: modifiedAt,
-                    previewSnippet: previewSnippet
+                    previewSnippet: previewSnippet,
+                    impact: nil
                 ),
                 .invalid(message: "Selected file does not match the chosen format.")
             )
         }
 
-        return (
-            ImportFilePreview(
-                displayName: displayName,
-                sizeBytes: sizeBytes,
-                modifiedAt: modifiedAt,
-                previewSnippet: previewSnippet
-            ),
-            .valid(message: "Ready to import.")
-        )
+        do {
+            let importManager = await ImportManager(context: context)
+            let impact = try await importManager.previewImpact(from: url, format: format, profile: profile)
+            let message = "Ready to import \(impact.summary)."
+            return (
+                ImportFilePreview(
+                    displayName: displayName,
+                    sizeBytes: sizeBytes,
+                    modifiedAt: modifiedAt,
+                    previewSnippet: previewSnippet,
+                    impact: impact
+                ),
+                .valid(message: message)
+            )
+        } catch {
+            return (
+                ImportFilePreview(
+                    displayName: displayName,
+                    sizeBytes: sizeBytes,
+                    modifiedAt: modifiedAt,
+                    previewSnippet: previewSnippet,
+                    impact: nil
+                ),
+                .invalid(message: error.localizedDescription)
+            )
+        }
     }
 
     // MARK: - Helper Properties
@@ -373,6 +433,34 @@ struct ImportView: View {
             .joined(separator: "\n")
     }
 
+    private var importConfirmationTitle: String {
+        guard let impact = filePreview?.impact else {
+            return "Confirm Import"
+        }
+        if impact.patternCount > 0 {
+            return "Import \(impact.shiftCount) shifts and \(impact.patternCount) patterns?"
+        }
+        return "Import \(impact.shiftCount) shifts?"
+    }
+
+    private var importConfirmationMessage: String {
+        guard let impact = filePreview?.impact else {
+            return "This will add the selected data to your schedule."
+        }
+        var message = "This will add \(impact.summary) to your schedule."
+        if impact.invalidRowCount > 0 {
+            message += " \(impact.invalidRowCount) rows may be skipped due to formatting issues."
+        }
+        return message
+    }
+
+    private var importConfirmationActionLabel: String {
+        guard let impact = filePreview?.impact else {
+            return "Import"
+        }
+        return "Import \(impact.summary)"
+    }
+
     private var validationMessageView: some View {
         switch validationState {
         case .idle:
@@ -398,6 +486,7 @@ private struct ImportFilePreview {
     let sizeBytes: Int64
     let modifiedAt: Date?
     let previewSnippet: String?
+    let impact: ImportImpact?
 
     var detailLine: String {
         let size = ByteCountFormatter.string(fromByteCount: sizeBytes, countStyle: .file)

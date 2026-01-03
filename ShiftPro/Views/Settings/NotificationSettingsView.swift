@@ -23,7 +23,8 @@ struct NotificationSettingsView: View {
                     settings: settings,
                     permissionManager: permissionManager,
                     shifts: shifts,
-                    isScheduling: $isScheduling
+                    isScheduling: $isScheduling,
+                    context: context
                 )
             } else {
                 ProgressView("Loading settings...")
@@ -48,9 +49,34 @@ private struct NotificationSettingsForm: View {
     @ObservedObject var permissionManager: PermissionManager
     let shifts: [Shift]
     @Binding var isScheduling: Bool
+    let context: ModelContext
+
+    @State private var isSendingTest = false
+    @State private var testNotificationMessage: String?
+    @State private var testNotificationIsError = false
+    @State private var isSendingTest = false
+    @State private var testSentAt: Date?
+    @State private var testError: String?
 
     private var isAuthorized: Bool {
         permissionManager.notificationStatus == .authorized
+    }
+
+    private var nextUpcomingShift: Shift? {
+        let now = Date()
+        return shifts.first { $0.scheduledStart > now && $0.status != .cancelled }
+    }
+
+    private var nextReminderPreview: String? {
+        guard settings.shiftStartReminderEnabled, let shift = nextUpcomingShift else { return nil }
+        let reminderDate = shift.scheduledStart.addingTimeInterval(-Double(settings.shiftStartReminderMinutes) * 60)
+        if reminderDate <= Date() {
+            return "Next reminder: when shift starts"
+        }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return "Next reminder: \(formatter.string(from: reminderDate))"
     }
 
     var body: some View {
@@ -82,6 +108,62 @@ private struct NotificationSettingsForm: View {
                 }
             }
 
+            if isAuthorized {
+                Section {
+                    Button {
+                        sendTestNotification()
+                    } label: {
+                        HStack {
+                            if isSendingTest {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                Text("Sending...")
+                            } else {
+                                Image(systemName: "bell.badge")
+                                    .foregroundStyle(ShiftProColors.accent)
+                                Text("Send Test Notification")
+                            }
+                        }
+                    }
+                    .disabled(isSendingTest)
+
+                    if let testSentAt {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(ShiftProColors.success)
+                            Text("Test sent")
+                            Spacer()
+                            Text(testSentAt, style: .relative)
+                                .foregroundStyle(ShiftProColors.inkSubtle)
+                        }
+                    }
+
+                    if let testError {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(ShiftProColors.warning)
+                            Text(testError)
+                                .font(ShiftProTypography.caption)
+                                .foregroundStyle(ShiftProColors.inkSubtle)
+                        }
+                    }
+
+                    if let preview = nextReminderPreview {
+                        HStack {
+                            Image(systemName: "clock")
+                                .foregroundStyle(ShiftProColors.inkSubtle)
+                            Text(preview)
+                                .font(ShiftProTypography.caption)
+                                .foregroundStyle(ShiftProColors.inkSubtle)
+                        }
+                    }
+                } header: {
+                    Text("Test")
+                } footer: {
+                    Text("A notification will appear in a few seconds. Make sure your device isn't in Do Not Disturb mode.")
+                }
+            }
+
             Section {
                 Toggle("Start reminders", isOn: $settings.shiftStartReminderEnabled)
                     .disabled(!isAuthorized)
@@ -101,10 +183,36 @@ private struct NotificationSettingsForm: View {
             } header: {
                 Text("Shift Reminders")
             } footer: {
-                if !isAuthorized {
+                if isAuthorized && settings.shiftStartReminderEnabled {
+                    Text("Reminders fire \(settings.shiftStartReminderMinutes) minutes before shift start.")
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                } else if !isAuthorized {
                     Text("Grant notification permission above to enable reminders.")
                         .foregroundStyle(ShiftProColors.warning)
                 }
+            }
+
+            Section("Test Notification") {
+                if isAuthorized {
+                    Button(isSendingTest ? "Sending..." : "Send test notification") {
+                        sendTestNotification()
+                    }
+                    .disabled(isSendingTest)
+
+                    if let message = testNotificationMessage {
+                        Text(message)
+                            .font(ShiftProTypography.caption)
+                            .foregroundStyle(testNotificationIsError ? ShiftProColors.danger : ShiftProColors.success)
+                    }
+                } else {
+                    Text("Enable notifications to send a test alert.")
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.warning)
+                }
+            } footer: {
+                Text("Test notifications arrive in a few seconds and won't affect your schedule.")
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
             }
 
             Section("Overtime") {
@@ -166,6 +274,58 @@ private struct NotificationSettingsForm: View {
                         .foregroundStyle(ShiftProColors.warning)
                 }
             }
+        }
+    }
+
+    private func sendTestNotification() {
+        isSendingTest = true
+        testError = nil
+
+        Task {
+            do {
+                let content = UNMutableNotificationContent()
+                content.title = "ShiftPro Test"
+                content.body = "Notifications are working! You'll receive reminders before your shifts."
+                content.sound = .default
+
+                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
+                let request = UNNotificationRequest(
+                    identifier: "test-notification-\(UUID().uuidString)",
+                    content: content,
+                    trigger: trigger
+                )
+
+                try await UNUserNotificationCenter.current().add(request)
+
+                await MainActor.run {
+                    testSentAt = Date()
+                    isSendingTest = false
+                }
+            } catch {
+                await MainActor.run {
+                    testError = error.localizedDescription
+                    isSendingTest = false
+                }
+            }
+        }
+    }
+
+    private func sendTestNotification() {
+        testNotificationMessage = nil
+        testNotificationIsError = false
+        isSendingTest = true
+
+        Task {
+            do {
+                let manager = NotificationManager(context: context)
+                try await manager.sendTestNotification(leadMinutes: settings.shiftStartReminderMinutes)
+                testNotificationMessage = "Test notification scheduled."
+                testNotificationIsError = false
+            } catch {
+                testNotificationMessage = error.localizedDescription
+                testNotificationIsError = true
+            }
+            isSendingTest = false
         }
     }
 

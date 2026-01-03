@@ -199,6 +199,8 @@ struct OnboardingView: View {
         guard !isSaving else { return }
         isSaving = true
         do {
+            // Save skipped steps for later completion via Settings
+            OnboardingProgressStore.saveSkippedSteps(Array(manager.skippedSteps))
             try manager.persist(context: modelContext)
             isSaving = false
             showAddShiftAfterOnboarding = navigateToAddShift

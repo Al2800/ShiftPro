@@ -6,9 +6,23 @@ import Charts
 struct AnalyticsDashboard: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var analyticsEngine = AnalyticsEngine()
+
+    @Query(filter: #Predicate<Shift> { $0.deletedAt == nil }, sort: [SortDescriptor(\Shift.scheduledStart, order: .forward)])
+    private var shifts: [Shift]
+
+    @Query(filter: #Predicate<PayPeriod> { $0.deletedAt == nil }, sort: [SortDescriptor(\PayPeriod.startDate, order: .reverse)])
+    private var payPeriods: [PayPeriod]
+
+    @Query(sort: [SortDescriptor(\UserProfile.createdAt, order: .forward)])
+    private var profiles: [UserProfile]
+
     @State private var selectedPeriod: AnalyticsPeriod = .week
     @State private var showingAddShift = false
     @State private var showingImport = false
+    @State private var showingExport = false
+    @State private var navigateToHours = false
+
+    private let calculator = PayPeriodCalculator()
 
     var body: some View {
         ScrollView {
@@ -33,6 +47,20 @@ struct AnalyticsDashboard: View {
         }
         .navigationTitle("Analytics")
         .background(ShiftProColors.background)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingExport = true
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                        .foregroundStyle(ShiftProColors.accent)
+                }
+                .accessibilityLabel("Export Analytics")
+            }
+        }
+        .sheet(isPresented: $showingExport) {
+            ExportOptionsView(period: currentPeriod, shifts: periodShifts)
+        }
         .task {
             analyticsEngine.configure(with: modelContext)
             await refreshAnalytics()
@@ -48,12 +76,43 @@ struct AnalyticsDashboard: View {
         .sheet(isPresented: $showingImport) {
             ImportView()
         }
+        .navigationDestination(isPresented: $navigateToHours) {
+            HoursDashboard()
+        }
     }
 
     private var hasAnyData: Bool {
         (analyticsEngine.weeklyMetrics?.shiftCount ?? 0) > 0 ||
         (analyticsEngine.monthlyMetrics?.shiftCount ?? 0) > 0 ||
         (analyticsEngine.yearlyMetrics?.shiftCount ?? 0) > 0
+    }
+
+    private var profile: UserProfile? {
+        profiles.first
+    }
+
+    private var currentPeriod: PayPeriod {
+        if let stored = payPeriods.first(where: { $0.isCurrent }) {
+            return stored
+        }
+        return calculator.period(for: Date(), type: profile?.payPeriodType ?? .biweekly, referenceDate: profile?.startDate)
+    }
+
+    private var periodShifts: [Shift] {
+        calculator.shifts(in: currentPeriod, from: shifts)
+    }
+
+    private func action(for insight: AnalyticsInsight) -> (() -> Void)? {
+        guard insight.actionLabel != nil else { return nil }
+
+        switch insight.title {
+        case "High Overtime", "Premium Rate Shifts":
+            return { navigateToHours = true }
+        case "Hours Increasing", "Consistent Schedule":
+            return nil
+        default:
+            return nil
+        }
     }
 
     private var emptyState: some View {
@@ -203,7 +262,7 @@ struct AnalyticsDashboard: View {
                 .padding(ShiftProSpacing.medium)
             } else {
                 ForEach(analyticsEngine.insights) { insight in
-                    InsightCard(insight: insight)
+                    InsightCard(insight: insight, action: action(for: insight))
                 }
             }
         }
@@ -367,6 +426,7 @@ private struct MetricsSnapshot {
 
 struct InsightCard: View {
     let insight: AnalyticsInsight
+    var action: (() -> Void)?
 
     var body: some View {
         HStack(spacing: ShiftProSpacing.medium) {
@@ -391,10 +451,12 @@ struct InsightCard: View {
 
             Spacer()
 
-            if let action = insight.actionLabel {
-                Button(action) {}
-                    .font(ShiftProTypography.caption)
-                    .foregroundStyle(ShiftProColors.accent)
+            if let actionLabel = insight.actionLabel {
+                Button(actionLabel) {
+                    action?()
+                }
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(ShiftProColors.accent)
             }
         }
         .padding(ShiftProSpacing.medium)

@@ -65,14 +65,14 @@ enum ShiftProColors {
         if trait.userInterfaceStyle == .dark {
             return UIColor(red: 0.33, green: 0.75, blue: 0.57, alpha: 1.0)
         }
-        return UIColor(red: 0.16, green: 0.56, blue: 0.38, alpha: 1.0)
+        return UIColor(red: 0.12, green: 0.46, blue: 0.31, alpha: 1.0)
     })
 
     static let warning = Color(UIColor { trait in
         if trait.userInterfaceStyle == .dark {
             return UIColor(red: 0.95, green: 0.76, blue: 0.29, alpha: 1.0)
         }
-        return UIColor(red: 0.80, green: 0.53, blue: 0.05, alpha: 1.0)
+        return UIColor(red: 0.62, green: 0.38, blue: 0.04, alpha: 1.0)
     })
 
     static let danger = Color(UIColor { trait in
@@ -93,7 +93,7 @@ enum ShiftProColors {
         if trait.userInterfaceStyle == .dark {
             return UIColor(red: 0.82, green: 0.85, blue: 0.90, alpha: 1.0)
         }
-        return UIColor(red: 0.52, green: 0.56, blue: 0.62, alpha: 1.0)
+        return UIColor(red: 0.40, green: 0.44, blue: 0.50, alpha: 1.0)
     })
 
     static let steel = Color(UIColor { trait in

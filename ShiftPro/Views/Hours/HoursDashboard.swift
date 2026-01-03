@@ -14,6 +14,7 @@ struct HoursDashboard: View {
     @State private var rateChartStyle: RateBreakdownChart.ChartStyle = .pie
     @State private var showingAddShift = false
     @State private var showingImport = false
+    @State private var showingExport = false
 
     private let calculator = PayPeriodCalculator()
     private let overtimePredictor = OvertimePredictor()
@@ -76,9 +77,27 @@ struct HoursDashboard: View {
         .background(ShiftProColors.background.ignoresSafeArea())
         .navigationTitle("Hours")
         .toolbar {
-            NavigationLink("Rates") {
-                RateMultiplierView()
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button {
+                        showingExport = true
+                    } label: {
+                        Label("Export", systemImage: "square.and.arrow.up")
+                    }
+
+                    NavigationLink {
+                        RateMultiplierView()
+                    } label: {
+                        Label("Rates", systemImage: "dollarsign.circle")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundStyle(ShiftProColors.accent)
+                }
             }
+        }
+        .sheet(isPresented: $showingExport) {
+            ExportOptionsView(period: currentPeriod, shifts: periodShifts)
         }
         .sheet(isPresented: $showingAddShift) {
             ShiftFormView()

@@ -69,6 +69,25 @@ struct ExportOptionsView: View {
                     Text("What to Export")
                 }
 
+                // Included Fields Preview
+                Section {
+                    ForEach(includedFields, id: \.self) { field in
+                        HStack(spacing: ShiftProSpacing.small) {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(ShiftProColors.success)
+                            Text(field)
+                                .font(ShiftProTypography.body)
+                                .foregroundStyle(ShiftProColors.ink)
+                        }
+                    }
+                } header: {
+                    Text("Included Fields")
+                } footer: {
+                    Text("These fields will appear in your \(selectedFormat == .csv ? "spreadsheet" : "document")")
+                        .font(ShiftProTypography.caption)
+                }
+
                 // Format Selection
                 Section {
                     ForEach([ExportManager.ExportFormat.csv, .pdf], id: \.self) { format in
@@ -330,6 +349,43 @@ struct ExportOptionsView: View {
             }
             let effective = max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
             return total + (Double(effective) / 60.0)
+        }
+    }
+
+    private var includedFields: [String] {
+        switch selectedCategory {
+        case .shiftReport:
+            return [
+                "Date",
+                "Start time",
+                "End time",
+                "Duration",
+                "Break minutes",
+                "Paid hours",
+                "Rate multiplier",
+                "Location",
+                "Notes"
+            ]
+        case .hoursSummary:
+            return [
+                "Period start",
+                "Period end",
+                "Total hours",
+                "Regular hours",
+                "Premium hours",
+                "Shift count"
+            ]
+        case .payrollReport:
+            return [
+                "Employee name",
+                "Employee ID",
+                "Period dates",
+                "Total hours",
+                "Regular hours",
+                "Overtime hours",
+                "Rate breakdown",
+                "Estimated gross pay"
+            ]
         }
     }
 }

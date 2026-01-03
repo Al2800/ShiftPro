@@ -51,4 +51,39 @@ enum OnboardingProgressStore {
     static var hasProgress: Bool {
         load() != nil
     }
+
+    // MARK: - Skipped Steps (persisted after completion)
+
+    private static let skippedStepsKey = "onboardingSkippedSteps"
+
+    static func saveSkippedSteps(_ steps: [OnboardingStep]) {
+        guard !steps.isEmpty else {
+            clearSkippedSteps()
+            return
+        }
+        do {
+            let encoded = try JSONEncoder().encode(steps.map { $0.rawValue })
+            UserDefaults.standard.set(encoded, forKey: skippedStepsKey)
+        } catch {
+            return
+        }
+    }
+
+    static func loadSkippedSteps() -> [OnboardingStep] {
+        guard let data = UserDefaults.standard.data(forKey: skippedStepsKey) else { return [] }
+        do {
+            let rawValues = try JSONDecoder().decode([String].self, from: data)
+            return rawValues.compactMap { OnboardingStep(rawValue: $0) }
+        } catch {
+            return []
+        }
+    }
+
+    static func clearSkippedSteps() {
+        UserDefaults.standard.removeObject(forKey: skippedStepsKey)
+    }
+
+    static var hasSkippedSteps: Bool {
+        !loadSkippedSteps().isEmpty
+    }
 }

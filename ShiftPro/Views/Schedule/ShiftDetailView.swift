@@ -3,9 +3,10 @@ import SwiftUI
 struct ShiftDetailView: View {
     let title: String
     let timeRange: String
-    let location: String
+    let location: String?
     let status: StatusIndicator.Status
     let rateMultiplier: Double
+    let rateLabel: String?
     let notes: String?
 
     var body: some View {
@@ -36,9 +37,11 @@ struct ShiftDetailView: View {
                 .font(ShiftProTypography.subheadline)
                 .foregroundStyle(ShiftProColors.inkSubtle)
 
-            Text(location)
-                .font(ShiftProTypography.caption)
-                .foregroundStyle(ShiftProColors.inkSubtle)
+            if let locationText = trimmedLocation {
+                Text(locationText)
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+            }
 
             HStack(spacing: ShiftProSpacing.small) {
                 StatusIndicator(status: status)
@@ -57,11 +60,24 @@ struct ShiftDetailView: View {
                 .foregroundStyle(ShiftProColors.ink)
 
             detailRow(label: "Status", value: status.label)
-            detailRow(label: "Rate", value: String(format: "%.1fx", rateMultiplier))
+            detailRow(label: "Rate", value: rateDetailValue)
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surfaceElevated)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    private var rateDetailValue: String {
+        if let label = rateLabel?.trimmingCharacters(in: .whitespacesAndNewlines), !label.isEmpty {
+            return label
+        }
+        return String(format: "%.1fx", rateMultiplier)
+    }
+
+    private var trimmedLocation: String? {
+        guard let location else { return nil }
+        let trimmed = location.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     private func detailRow(label: String, value: String) -> some View {
@@ -99,6 +115,7 @@ struct ShiftDetailView: View {
             location: "Main Site",
             status: .scheduled,
             rateMultiplier: 1.5,
+            rateLabel: "Bank Holiday",
             notes: "Team briefing at 6:30 AM."
         )
     }

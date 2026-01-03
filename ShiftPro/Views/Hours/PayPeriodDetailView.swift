@@ -5,6 +5,8 @@ struct PayPeriodDetailView: View {
     let shifts: [Shift]
     let baseRateCents: Int64?
 
+    @State private var showingExport = false
+
     private let calculator = PayPeriodCalculator()
 
     var body: some View {
@@ -29,6 +31,23 @@ struct PayPeriodDetailView: View {
         }
         .background(ShiftProColors.background.ignoresSafeArea())
         .navigationTitle("Pay Period")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingExport = true
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                        .foregroundStyle(ShiftProColors.accent)
+                }
+                .accessibilityLabel("Export pay period")
+                .accessibilityIdentifier("payPeriodDetail.export")
+            }
+        }
+        .sheet(isPresented: $showingExport) {
+            NavigationStack {
+                ExportOptionsView(period: period, shifts: shifts)
+            }
+        }
     }
 
     private var summary: HoursCalculator.PeriodSummary {
@@ -82,7 +101,7 @@ struct PayPeriodDetailView: View {
                     ShiftCardView(
                         title: shift.pattern?.name ?? "Shift",
                         timeRange: "\(shift.dateFormatted) • \(shift.timeRangeFormatted)",
-                        location: shift.owner?.workplace ?? "",
+                        location: shift.locationDisplay,
                         status: status(for: shift),
                         rateMultiplier: shift.rateMultiplier,
                         notes: shift.notes

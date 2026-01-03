@@ -48,6 +48,20 @@ final class OnboardingManager: ObservableObject {
         OnboardingProgressStore.clear()
     }
 
+    /// Resume onboarding at the first skipped step
+    func resumeAtSkippedSteps() {
+        let savedSkipped = OnboardingProgressStore.loadSkippedSteps()
+        guard !savedSkipped.isEmpty else { return }
+
+        skippedSteps = Set(savedSkipped)
+        // Find the first skipped step by index
+        if let firstSkipped = savedSkipped.sorted(by: { $0.index < $1.index }).first {
+            step = firstSkipped
+        }
+        // Persist the current state so OnboardingProgressStore.hasProgress becomes true
+        persistProgress()
+    }
+
     // MARK: - Persistence
 
     /// Persists onboarding data to SwiftData models.
