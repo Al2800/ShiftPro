@@ -52,9 +52,6 @@ private struct NotificationSettingsForm: View {
     let context: ModelContext
 
     @State private var isSendingTest = false
-    @State private var testNotificationMessage: String?
-    @State private var testNotificationIsError = false
-    @State private var isSendingTest = false
     @State private var testSentAt: Date?
     @State private var testError: String?
 
@@ -192,29 +189,6 @@ private struct NotificationSettingsForm: View {
                 }
             }
 
-            Section("Test Notification") {
-                if isAuthorized {
-                    Button(isSendingTest ? "Sending..." : "Send test notification") {
-                        sendTestNotification()
-                    }
-                    .disabled(isSendingTest)
-
-                    if let message = testNotificationMessage {
-                        Text(message)
-                            .font(ShiftProTypography.caption)
-                            .foregroundStyle(testNotificationIsError ? ShiftProColors.danger : ShiftProColors.success)
-                    }
-                } else {
-                    Text("Enable notifications to send a test alert.")
-                        .font(ShiftProTypography.caption)
-                        .foregroundStyle(ShiftProColors.warning)
-                }
-            } footer: {
-                Text("Test notifications arrive in a few seconds and won't affect your schedule.")
-                    .font(ShiftProTypography.caption)
-                    .foregroundStyle(ShiftProColors.inkSubtle)
-            }
-
             Section("Overtime") {
                 Toggle("Overtime warnings", isOn: $settings.overtimeWarningEnabled)
                     .disabled(!isAuthorized)
@@ -307,25 +281,6 @@ private struct NotificationSettingsForm: View {
                     isSendingTest = false
                 }
             }
-        }
-    }
-
-    private func sendTestNotification() {
-        testNotificationMessage = nil
-        testNotificationIsError = false
-        isSendingTest = true
-
-        Task {
-            do {
-                let manager = NotificationManager(context: context)
-                try await manager.sendTestNotification(leadMinutes: settings.shiftStartReminderMinutes)
-                testNotificationMessage = "Test notification scheduled."
-                testNotificationIsError = false
-            } catch {
-                testNotificationMessage = error.localizedDescription
-                testNotificationIsError = true
-            }
-            isSendingTest = false
         }
     }
 

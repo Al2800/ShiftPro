@@ -85,6 +85,7 @@
 		76DAE391C3F1D7168ECD404B /* PremiumStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06D3465ABBF804477B6569EF /* PremiumStore.swift */; };
 		79217CBF19BA0EEEF1E0A1AF /* AccessibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD7573EADB56376024AFBF0F /* AccessibilityTests.swift */; };
 		793C4B31C2B3D23E24B50C9E /* ScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E31CA6FFD6BDB1A1936D84 /* ScheduleView.swift */; };
+		D1A2B3C4E5F67890ABCD1234 /* DayTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2B3C4D5F6A78901BCDE2345 /* DayTimelineView.swift */; };
 		7A0C496C66CB4E337D97190E /* BackgroundProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE0AE103BBF10DFDEBE9A107 /* BackgroundProcessor.swift */; };
 		7B57F49B73FC2C350CC5FA92 /* ProfileSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512152D54FD34BA8BF85FAAF /* ProfileSetupView.swift */; };
 		7BEC0BA59AEAEA8AD7932029 /* TransitionAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11312310168C06F35E725DCC /* TransitionAnimations.swift */; };
@@ -284,6 +285,7 @@
 		A61A90C26C08AA896B8F166F /* LazyLoading.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LazyLoading.swift; sourceTree = "<group>"; };
 		A7DA559AA75A987B8376C2CA /* PatternTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PatternTests.swift; sourceTree = "<group>"; };
 		A7E31CA6FFD6BDB1A1936D84 /* ScheduleView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScheduleView.swift; sourceTree = "<group>"; };
+		E2B3C4D5F6A78901BCDE2345 /* DayTimelineView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DayTimelineView.swift; sourceTree = "<group>"; };
 		FFF44BCB914E4C51934DE902 /* ShiftFormView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShiftFormView.swift; sourceTree = "<group>"; };
 		A8C9BE3B25167E6D2B9FA2D3 /* ShiftProTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShiftProTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB432775C85B825815D9CE16 /* DataError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DataError.swift; sourceTree = "<group>"; };
@@ -746,6 +748,7 @@
 		DDBF25514ACE9BE9C2562787 /* Schedule */ = {
 			isa = PBXGroup;
 			children = (
+				E2B3C4D5F6A78901BCDE2345 /* DayTimelineView.swift */,
 				A7E31CA6FFD6BDB1A1936D84 /* ScheduleView.swift */,
 				D7C5A3603DF24D3D9FE184D9 /* ShiftDetailView.swift */,
 				FFF44BCB914E4C51934DE902 /* ShiftFormView.swift */,
@@ -1087,6 +1090,7 @@
 				58939D598EFCB594731ADFDC /* PatternPreviewView.swift in Sources */,
 				339AC68106623F42579BC725 /* PaywallView.swift in Sources */,
 				793C4B31C2B3D23E24B50C9E /* ScheduleView.swift in Sources */,
+				D1A2B3C4E5F67890ABCD1234 /* DayTimelineView.swift in Sources */,
 				14F592BCAAEA4FAEA29AEC30 /* ShiftDetailView.swift in Sources */,
 				4DA46F637030481DB63F34DB /* ShiftFormView.swift in Sources */,
 				7660DBE3327322905D4E0A59 /* CalendarSettingsView.swift in Sources */,

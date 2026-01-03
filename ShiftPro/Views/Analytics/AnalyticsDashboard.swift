@@ -209,17 +209,36 @@ struct AnalyticsDashboard: View {
                     )
                 }
             } else {
-                Text("No shifts in this period yet.")
-                    .font(ShiftProTypography.caption)
-                    .foregroundStyle(ShiftProColors.inkSubtle)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                inlineEmptyState(
+                    icon: "calendar.badge.clock",
+                    title: "No shifts in this period",
+                    subtitle: "Complete some shifts to see metrics"
+                )
             }
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShiftProShape(.standard)
     }
-    
+
+    private func inlineEmptyState(icon: String, title: String, subtitle: String? = nil) -> some View {
+        VStack(spacing: ShiftProSpacing.small) {
+            Image(systemName: icon)
+                .font(.system(size: 28))
+                .foregroundStyle(ShiftProColors.inkSubtle)
+            Text(title)
+                .font(ShiftProTypography.subheadline)
+                .foregroundStyle(ShiftProColors.inkSubtle)
+            if let subtitle {
+                Text(subtitle)
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, ShiftProSpacing.medium)
+    }
+
     private func metricCard(title: String, value: Double, format: String, icon: String, color: Color) -> some View {
         VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             HStack {
@@ -239,9 +258,9 @@ struct AnalyticsDashboard: View {
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .clipShiftProShape(radius: ShiftProCornerRadius.medium)
     }
-    
+
     // MARK: - Insights Section
     
     private var insightsSection: some View {
@@ -251,15 +270,11 @@ struct AnalyticsDashboard: View {
                 .foregroundStyle(ShiftProColors.ink)
 
             if analyticsEngine.insights.isEmpty {
-                VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
-                    Text("No insights yet.")
-                        .font(ShiftProTypography.subheadline)
-                        .foregroundStyle(ShiftProColors.ink)
-                    Text("Track a few more shifts to unlock personalized insights.")
-                        .font(ShiftProTypography.caption)
-                        .foregroundStyle(ShiftProColors.inkSubtle)
-                }
-                .padding(ShiftProSpacing.medium)
+                inlineEmptyState(
+                    icon: "lightbulb",
+                    title: "No insights yet",
+                    subtitle: "Track a few more shifts to unlock personalized insights"
+                )
             } else {
                 ForEach(analyticsEngine.insights) { insight in
                     InsightCard(insight: insight, action: action(for: insight))
@@ -268,9 +283,9 @@ struct AnalyticsDashboard: View {
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShiftProShape(.standard)
     }
-    
+
     // MARK: - Trends Section
     
     private var trendsSection: some View {
@@ -294,9 +309,9 @@ struct AnalyticsDashboard: View {
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShiftProShape(.standard)
     }
-    
+
     // MARK: - Charts Section
 
     private var chartsSection: some View {
@@ -354,7 +369,7 @@ struct AnalyticsDashboard: View {
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShiftProShape(.standard)
     }
 
     private var chartEmptyState: some View {
@@ -461,7 +476,7 @@ struct InsightCard: View {
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .clipShiftProShape(radius: ShiftProCornerRadius.medium)
     }
 
     private var insightColor: Color {

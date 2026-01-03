@@ -109,6 +109,8 @@ Files affected:
 
 ## Token Reference
 
+### Colors
+
 | System Default | ShiftPro Token |
 |----------------|----------------|
 | `.systemGroupedBackground` | `ShiftProColors.background` |
@@ -116,11 +118,56 @@ Files affected:
 | `.tertiarySystemGroupedBackground` | `ShiftProColors.surfaceElevated` |
 | `Color.accentColor` | `ShiftProColors.accent` |
 | `.foregroundStyle(.secondary)` | `.foregroundStyle(ShiftProColors.inkSubtle)` |
+
+### Typography Scale
+
+| Token | Size | Weight | Use Case |
+|-------|------|--------|----------|
+| `ShiftProTypography.largeTitle` | 34pt | Bold | Primary screen titles, hero text |
+| `ShiftProTypography.titleLarge` | 28pt | Semibold | Section headers, card titles |
+| `ShiftProTypography.title` | 22pt | Semibold | Subsection headers, prominent values |
+| `ShiftProTypography.headline` | 17pt | Semibold | Card headings, list row titles |
+| `ShiftProTypography.body` | 17pt | Regular | Primary content text |
+| `ShiftProTypography.subheadline` | 15pt | Medium | Secondary labels, descriptions |
+| `ShiftProTypography.callout` | 16pt | Regular | Tertiary labels, hints |
+| `ShiftProTypography.caption` | 12pt | Medium | Metadata, timestamps, helper text |
+| `ShiftProTypography.footnote` | 13pt | Regular | Small metadata, footnotes |
+| `ShiftProTypography.mono` | 13pt | Mono | Code, IDs, fixed-width values |
+
+### Typography Mapping
+
+| System Default | ShiftPro Token |
+|----------------|----------------|
+| `.font(.largeTitle)` | `.font(ShiftProTypography.largeTitle)` |
+| `.font(.title)` | `.font(ShiftProTypography.titleLarge)` |
+| `.font(.title2)` | `.font(ShiftProTypography.title)` |
 | `.font(.headline)` | `.font(ShiftProTypography.headline)` |
-| `.font(.subheadline)` | `.font(ShiftProTypography.subheadline)` |
 | `.font(.body)` | `.font(ShiftProTypography.body)` |
+| `.font(.subheadline)` | `.font(ShiftProTypography.subheadline)` |
+| `.font(.callout)` | `.font(ShiftProTypography.callout)` |
 | `.font(.caption)` | `.font(ShiftProTypography.caption)` |
-| `spacing: 16` | `ShiftProSpacing.large` |
-| `spacing: 12` | `ShiftProSpacing.medium` |
-| `spacing: 8` | `ShiftProSpacing.small` |
+| `.font(.footnote)` | `.font(ShiftProTypography.footnote)` |
+
+### Spacing Scale
+
+| Token | Value | Use Case |
+|-------|-------|----------|
+| `ShiftProSpacing.extraExtraSmall` | 4pt | Tight spacing: inline elements, icon gaps |
+| `ShiftProSpacing.extraSmall` | 8pt | Compact spacing: list item padding, small gaps |
+| `ShiftProSpacing.small` | 12pt | Standard tight: form fields, card internal |
+| `ShiftProSpacing.medium` | 16pt | Default: section padding, card gaps |
+| `ShiftProSpacing.large` | 24pt | Generous: between sections, card margins |
+| `ShiftProSpacing.extraLarge` | 32pt | Wide: major section breaks |
+| `ShiftProSpacing.extraExtraLarge` | 48pt | Maximum: page margins, hero sections |
+
+### Spacing Mapping
+
+| Hardcoded Value | ShiftPro Token |
+|-----------------|----------------|
 | `spacing: 4` | `ShiftProSpacing.extraExtraSmall` |
+| `spacing: 8` | `ShiftProSpacing.extraSmall` |
+| `spacing: 12` | `ShiftProSpacing.small` |
+| `spacing: 16` | `ShiftProSpacing.medium` |
+| `spacing: 24` | `ShiftProSpacing.large` |
+| `spacing: 32` | `ShiftProSpacing.extraLarge` |
+| `spacing: 48` | `ShiftProSpacing.extraExtraLarge` |

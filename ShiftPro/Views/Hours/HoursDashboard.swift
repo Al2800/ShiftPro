@@ -210,7 +210,7 @@ struct HoursDashboard: View {
         .padding(ShiftProSpacing.large)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(ShiftProColors.heroGradient)
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .clipShiftProShape(.hero)
         .shadow(color: ShiftProColors.accent.opacity(0.25), radius: 18, x: 0, y: 12)
         .accessibilityIdentifier("hours.heroCard")
     }
@@ -251,7 +251,7 @@ struct HoursDashboard: View {
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShiftProShape(.standard)
         .accessibilityIdentifier("hours.summaryCard")
     }
 
@@ -265,7 +265,7 @@ struct HoursDashboard: View {
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShiftProShape(.standard)
         .accessibilityIdentifier("hours.chartCard")
     }
 
@@ -300,7 +300,7 @@ struct HoursDashboard: View {
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShiftProShape(.standard)
     }
 
     private var overtimeCard: some View {
@@ -342,7 +342,7 @@ struct HoursDashboard: View {
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShiftProShape(.standard)
         .accessibilityIdentifier("hours.overtimeCard")
     }
 
@@ -393,7 +393,7 @@ struct HoursDashboard: View {
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShiftProShape(.standard)
     }
 
     private var dataActionsCard: some View {
@@ -438,11 +438,11 @@ struct HoursDashboard: View {
                 }
             }
             .background(ShiftProColors.surfaceElevated)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .clipShiftProShape(radius: ShiftProCornerRadius.medium)
         }
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShiftProShape(.standard)
     }
 
     private func actionRow(title: String, subtitle: String, systemImage: String) -> some View {

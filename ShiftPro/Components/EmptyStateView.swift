@@ -11,6 +11,7 @@ struct EmptyStateView: View {
     var action: (() -> Void)? = nil
     var secondaryActionTitle: String? = nil
     var secondaryAction: (() -> Void)? = nil
+    var surfaceLevel: ShiftProSurfaceLevel = .standard
 
     var body: some View {
         VStack(spacing: ShiftProSpacing.medium) {
@@ -55,20 +56,14 @@ struct EmptyStateView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(ShiftProSpacing.large)
-        .background(ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(ShiftProColors.accentMuted, lineWidth: 1)
-        )
         .onAppear {
             pulseActive = !reduceMotion
         }
         .onChange(of: reduceMotion) { _, newValue in
             pulseActive = !newValue
         }
+        .frame(maxWidth: .infinity)
+        .shiftProSurface(surfaceLevel)
     }
 }
 

@@ -12,6 +12,7 @@ final class CloudKitManager: ObservableObject {
     }
 
     @Published private(set) var status: Status = .couldNotDetermine
+    private var isMonitoring = false
 
     func refreshStatus() async {
         do {
@@ -36,6 +37,8 @@ final class CloudKitManager: ObservableObject {
     }
 
     func startMonitoringAccountChanges() {
+        guard !isMonitoring else { return }
+        isMonitoring = true
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleAccountChange),

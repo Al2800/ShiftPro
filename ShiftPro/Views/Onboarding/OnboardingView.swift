@@ -112,7 +112,10 @@ struct OnboardingView: View {
         // Hide standard navigation on completion step since CompletionView has its own CTAs
         if manager.step != .completion {
             VStack(spacing: 12) {
-                Button(action: primaryAction) {
+                Button(action: {
+                    HapticManager.fire(.impactMedium)
+                    primaryAction()
+                }) {
                     Text(isSaving ? "Saving..." : primaryButtonTitle)
                         .font(ShiftProTypography.headline)
                         .frame(maxWidth: .infinity)
@@ -123,6 +126,7 @@ struct OnboardingView: View {
                         )
                         .foregroundStyle(ShiftProColors.midnight)
                 }
+                .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: nil)
                 .padding(.horizontal, ShiftProSpacing.large)
                 .accessibilityIdentifier("onboarding.primary")
                 .disabled(isSaving || !manager.canProceed)
@@ -130,6 +134,7 @@ struct OnboardingView: View {
                 HStack(spacing: 20) {
                     // Back button - always visible, disabled on first step
                     Button {
+                        HapticManager.fire(.selection)
                         manager.back()
                     } label: {
                         HStack(spacing: 4) {
@@ -146,6 +151,7 @@ struct OnboardingView: View {
                                 .stroke(ShiftProColors.fog.opacity(0.3), lineWidth: 1)
                         )
                     }
+                    .shiftProPressable(scale: 0.97, opacity: 0.94, haptic: nil)
                     .disabled(manager.step == .welcome)
                     .accessibilityIdentifier("onboarding.back")
                     .accessibilityHint(manager.step == .welcome ? "You are on the first step" : "Go to the previous step")
@@ -153,6 +159,7 @@ struct OnboardingView: View {
                     // Skip button - shown for skippable steps and value preview
                     if manager.step.isSkippable || manager.step == .valuePreview {
                         Button {
+                            HapticManager.fire(.selection)
                             if manager.step == .valuePreview {
                                 manager.next()
                             } else {
@@ -173,6 +180,7 @@ struct OnboardingView: View {
                                     .stroke(ShiftProColors.fog.opacity(0.3), lineWidth: 1)
                             )
                         }
+                        .shiftProPressable(scale: 0.97, opacity: 0.94, haptic: nil)
                         .accessibilityIdentifier(manager.step == .valuePreview ? "onboarding.skipPreview" : "onboarding.skip")
                         .accessibilityHint("Skip this optional step")
                     }

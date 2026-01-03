@@ -81,7 +81,7 @@ struct SettingsView: View {
                 }
             }
 
-            Section("Preferences") {
+            Section("Schedule") {
                 NavigationLink {
                     if patterns.isEmpty {
                         PatternLibraryView()
@@ -91,6 +91,21 @@ struct SettingsView: View {
                 } label: {
                     settingRow(icon: "calendar", title: "Default Pattern", detail: defaultPatternName)
                 }
+            }
+
+            Section("Integrations & Notifications") {
+                NavigationLink {
+                    CalendarSettingsView()
+                } label: {
+                    settingRow(icon: "calendar.badge.clock", title: "Calendar Settings", detail: "Sync & permissions")
+                }
+
+                NavigationLink {
+                    ICloudSyncStatusView(manager: cloudKitManager)
+                } label: {
+                    settingRow(icon: "icloud", title: "iCloud Sync", detail: iCloudStatusDetail)
+                }
+
                 NavigationLink {
                     NotificationSettingsView()
                 } label: {
@@ -98,13 +113,7 @@ struct SettingsView: View {
                 }
             }
 
-            Section("Account") {
-                NavigationLink {
-                    ICloudSyncStatusView(manager: cloudKitManager)
-                } label: {
-                    settingRow(icon: "icloud", title: "iCloud Sync", detail: iCloudStatusDetail)
-                }
-
+            Section("Security & Privacy") {
                 NavigationLink {
                     SecuritySettingsView()
                 } label: {
@@ -118,31 +127,6 @@ struct SettingsView: View {
                     settingRow(icon: "hand.raised", title: "Privacy", detail: "Data & permissions")
                 }
                 .accessibilityIdentifier(AccessibilityIdentifiers.settingsPrivacy)
-            }
-
-            Section("Plan") {
-                NavigationLink {
-                    if entitlementManager.state.tier == .free {
-                        PremiumView()
-                    } else {
-                        SubscriptionSettingsView()
-                    }
-                } label: {
-                    settingRow(
-                        icon: "star.circle",
-                        title: premiumRowTitle,
-                        detail: premiumRowDetail
-                    )
-                }
-                .accessibilityIdentifier("settings.plan")
-            }
-
-            Section("Integrations") {
-                NavigationLink {
-                    CalendarSettingsView()
-                } label: {
-                    settingRow(icon: "calendar.badge.clock", title: "Calendar Settings", detail: "Sync & permissions")
-                }
             }
 
             Section("Data & Reports") {
@@ -165,11 +149,29 @@ struct SettingsView: View {
                 }
             }
 
+            Section("Plan") {
+                NavigationLink {
+                    if entitlementManager.state.tier == .free {
+                        PremiumView()
+                    } else {
+                        SubscriptionSettingsView()
+                    }
+                } label: {
+                    settingRow(
+                        icon: "star.circle",
+                        title: premiumRowTitle,
+                        detail: premiumRowDetail
+                    )
+                }
+                .accessibilityIdentifier("settings.plan")
+            }
+
         }
         .listStyle(.insetGrouped)
         .navigationTitle("Settings")
         .task {
             await cloudKitManager.refreshStatus()
+            cloudKitManager.startMonitoringAccountChanges()
         }
         .sheet(isPresented: $showProfileEditor) {
             if let profile = draftProfile {
@@ -199,7 +201,7 @@ struct SettingsView: View {
         case .temporarilyUnavailable:
             return "Temporarily unavailable"
         case .couldNotDetermine:
-            return "Status unknown"
+            return "Checking..."
         }
     }
 
@@ -305,13 +307,23 @@ private struct ICloudSyncStatusView: View {
                         .font(ShiftProTypography.body)
                         .foregroundStyle(ShiftProColors.inkSubtle)
 
-                    if manager.status == .noAccount {
+                    if manager.status == .noAccount || manager.status == .restricted {
                         Button("Open Settings") {
                             if let url = URL(string: UIApplication.openSettingsURLString) {
                                 UIApplication.shared.open(url)
                             }
                         }
                         .buttonStyle(.borderedProminent)
+                        .tint(ShiftProColors.accent)
+                    }
+
+                    if manager.status == .temporarilyUnavailable || manager.status == .couldNotDetermine {
+                        Button("Check Again") {
+                            Task {
+                                await manager.refreshStatus()
+                            }
+                        }
+                        .buttonStyle(.bordered)
                         .tint(ShiftProColors.accent)
                     }
                 }

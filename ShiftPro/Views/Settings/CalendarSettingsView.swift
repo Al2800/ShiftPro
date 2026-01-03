@@ -300,15 +300,15 @@ struct CalendarSettingsView: View {
     private var permissionLevelDisplay: String {
         switch permissionManager.calendarStatus {
         case .authorized:
-            return "Full Access"
+            return "Full access"
         case .writeOnly:
-            return "Write Only"
+            return "Write-only"
         case .denied:
             return "Denied"
         case .restricted:
             return "Restricted"
         case .notDetermined:
-            return "Not Requested"
+            return "Not requested"
         }
     }
 

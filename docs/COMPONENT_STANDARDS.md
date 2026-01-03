@@ -75,6 +75,19 @@ Uses QuickActionButton component with consistent styling.
 | Section cards | `ShiftProColors.surface` |
 | Inner/nested cards | `ShiftProColors.surfaceElevated` |
 
+## Surface Cards
+
+Use the `shiftProSurface(_:)` modifier to apply consistent backgrounds, borders, and optional shadows. Pass `.standard` for typical cards, `.elevated` for inner panels that need subtle depth, and `.hero` for prominent callouts.
+
+```swift
+VStack {
+    // content
+}
+.shiftProSurface(.standard)
+```
+
+Horizonal padding, corner radius, and stroke colors are centralized in `ShiftProSurfaceLevel`, keeping cards uniform across dashboards, settings, and empty states.
+
 ## Typography
 
 Use `ShiftProTypography` tokens:
@@ -95,3 +108,13 @@ Use `ShiftProTypography` tokens:
 | Warning | `ShiftProColors.warning` |
 | Error | `ShiftProColors.danger` |
 | Muted accent | `ShiftProColors.accentMuted` |
+
+## Empty States
+
+Empty-state surfaces should feel calm yet actionable. Use `EmptyStateView` whenever you need an empty or loading placeholder.
+
+- Provide a single icon + concise title/subtitle.
+- Keep copy under two sentences and center-aligned.
+- Surface uses `shiftProSurface(.standard)` (or `.elevated` when nested).
+- Primary CTA uses the accent-filled button and `shiftProPressable` for haptic feedback; secondary CTAs remain text-only.
+- Pair each empty state with a helpful secondary sentence that reassures the user their data stays intact.

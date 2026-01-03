@@ -162,7 +162,10 @@ struct CompletionView: View {
 
     private var ctaButtons: some View {
         VStack(spacing: 12) {
-            Button(action: onAddShift) {
+            Button(action: {
+                HapticManager.fire(.impactMedium)
+                onAddShift()
+            }) {
                 HStack {
                     Image(systemName: "plus.circle.fill")
                     Text("Add Your First Shift")
@@ -176,9 +179,13 @@ struct CompletionView: View {
                 )
                 .foregroundStyle(ShiftProColors.midnight)
             }
+            .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: nil)
             .accessibilityIdentifier("completion.addShift")
 
-            Button(action: onGoToDashboard) {
+            Button(action: {
+                HapticManager.fire(.selection)
+                onGoToDashboard()
+            }) {
                 Text("Go to Dashboard")
                     .font(ShiftProTypography.body)
                     .frame(maxWidth: .infinity)
@@ -189,6 +196,7 @@ struct CompletionView: View {
                     )
                     .foregroundStyle(ShiftProColors.fog)
             }
+            .shiftProPressable(scale: 0.97, opacity: 0.94, haptic: nil)
             .accessibilityIdentifier("completion.dashboard")
         }
     }

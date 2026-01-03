@@ -87,7 +87,9 @@ struct DashboardView: View {
                         EmptyStateView(
                             icon: "chart.bar.xaxis",
                             title: "No hours this period",
-                            subtitle: "Complete a shift to track your hours"
+                            subtitle: "Complete a shift to track your hours",
+                            actionTitle: "Add Shift",
+                            action: { showingAddShift = true }
                         )
                     } else {
                         HoursDisplay(
@@ -341,6 +343,7 @@ struct DashboardView: View {
             HStack(spacing: 8) {
                 ForEach([5, 15, 30], id: \.self) { minutes in
                     Button {
+                        HapticManager.fire(.impactLight)
                         Task { await logQuickBreak(minutes: minutes, for: shift) }
                     } label: {
                         Text("+\(minutes)m")
@@ -354,6 +357,7 @@ struct DashboardView: View {
                                     .fill(.white.opacity(0.9))
                             )
                     }
+                    .shiftProPressable(scale: 0.95, opacity: 0.9, haptic: nil)
                     .disabled(isProcessingAction)
                     .accessibilityLabel("Add \(minutes) minute break")
                     .accessibilityIdentifier("dashboard.quickBreak.\(minutes)")
@@ -419,22 +423,36 @@ struct DashboardView: View {
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.ink)
 
-            HStack(spacing: ShiftProSpacing.small) {
-                QuickActionButton(
-                    title: "Add Shift",
-                    systemImage: "plus",
-                    action: { showingAddShift = true },
-                    accessibilityIdentifier: AccessibilityIdentifiers.dashboardAddShift
-                )
+            VStack(spacing: ShiftProSpacing.small) {
+                HStack(spacing: ShiftProSpacing.small) {
+                    QuickActionButton(
+                        title: "Add Shift",
+                        systemImage: "plus",
+                        action: { showingAddShift = true },
+                        accessibilityIdentifier: AccessibilityIdentifiers.dashboardAddShift
+                    )
+                    .frame(maxWidth: .infinity)
 
-                QuickActionButton(
-                    title: "Schedule",
-                    systemImage: "calendar",
-                    action: {
-                        NotificationCenter.default.post(name: .switchToScheduleTab, object: nil)
-                    },
-                    accessibilityIdentifier: "dashboard.viewSchedule"
-                )
+                    QuickActionButton(
+                        title: "Schedule",
+                        systemImage: "calendar",
+                        action: {
+                            NotificationCenter.default.post(name: .switchToScheduleTab, object: nil)
+                        },
+                        accessibilityIdentifier: "dashboard.viewSchedule"
+                    )
+                    .frame(maxWidth: .infinity)
+                }
+
+                if currentShift != nil {
+                    QuickActionButton(
+                        title: "Log Break",
+                        systemImage: "cup.and.saucer",
+                        action: handleLogBreak,
+                        accessibilityIdentifier: "dashboard.logBreak"
+                    )
+                    .frame(maxWidth: .infinity)
+                }
             }
             .padding(ShiftProSpacing.medium)
             .frame(maxWidth: .infinity)

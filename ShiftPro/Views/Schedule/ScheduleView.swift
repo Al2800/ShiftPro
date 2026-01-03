@@ -10,6 +10,25 @@ struct ScheduleView: View {
         var title: String { rawValue.capitalized }
     }
 
+    private enum DayViewMode: String, CaseIterable, Identifiable {
+        case list
+        case timeline
+
+        var id: String { rawValue }
+        var icon: String {
+            switch self {
+            case .list: return "list.bullet"
+            case .timeline: return "calendar.day.timeline.left"
+            }
+        }
+        var label: String {
+            switch self {
+            case .list: return "List"
+            case .timeline: return "Timeline"
+            }
+        }
+    }
+
     @Environment(\.modelContext) private var modelContext
     @Query(filter: #Predicate<Shift> { $0.deletedAt == nil }, sort: [SortDescriptor(\Shift.scheduledStart, order: .forward)])
     private var shifts: [Shift]
@@ -20,6 +39,7 @@ struct ScheduleView: View {
     @State private var showingAddShift = false
     @State private var testShiftID: UUID?
     @State private var viewMode: ViewMode = .week
+    @State private var dayViewMode: DayViewMode = .list
     @State private var showingDatePicker = false
     @State private var pendingDate = Date()
     @AppStorage("showAddShiftAfterOnboarding") private var showAddShiftAfterOnboarding = false
@@ -47,12 +67,36 @@ struct ScheduleView: View {
                 }
 
                 VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
-                    Text(sectionTitle)
-                        .font(ShiftProTypography.headline)
-                        .foregroundStyle(ShiftProColors.ink)
+                    HStack {
+                        Text(sectionTitle)
+                            .font(ShiftProTypography.headline)
+                            .foregroundStyle(ShiftProColors.ink)
+
+                        Spacer()
+
+                        // Day view mode toggle
+                        Picker("View", selection: $dayViewMode) {
+                            ForEach(DayViewMode.allCases) { mode in
+                                Image(systemName: mode.icon)
+                                    .tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 100)
+                        .accessibilityLabel("Day view mode")
+                    }
 
                     if shiftsForSelectedDate.isEmpty {
                         emptyState
+                    } else if dayViewMode == .timeline {
+                        DayTimelineView(
+                            shifts: shiftsForSelectedDate,
+                            selectedDate: selectedDate,
+                            onShiftTapped: { shift in
+                                editingShift = shift
+                            }
+                        )
+                        .frame(height: 500)
                     } else {
                         ForEach(shiftsForSelectedDate, id: \.id) { shift in
                             NavigationLink {
