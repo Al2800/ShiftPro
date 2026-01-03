@@ -133,7 +133,14 @@ struct PaywallView: View {
             }
             .font(ShiftProTypography.subheadline)
 
-            Text("Payment will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period.")
+            HStack(spacing: ShiftProSpacing.small) {
+                Label("Cancel anytime", systemImage: "arrow.counterclockwise")
+                Label("Apple ID billed", systemImage: "lock.shield")
+            }
+            .font(ShiftProTypography.caption)
+            .foregroundStyle(ShiftProColors.inkSubtle)
+
+            Text("Subscription billed to your Apple ID at purchase. Renews automatically unless canceled at least 24 hours before period end.")
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(ShiftProColors.inkSubtle)
                 .multilineTextAlignment(.center)
