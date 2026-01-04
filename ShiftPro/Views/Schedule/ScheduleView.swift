@@ -429,7 +429,7 @@ struct ScheduleView: View {
                 }
 
                 if shift.rateMultiplier > 1.0 {
-                    Text(shift.rateLabel ?? "\(shift.rateMultiplier, specifier: "%.1f")x")
+                    Text(shift.rateLabel ?? String(format: "%.1fx", shift.rateMultiplier))
                         .font(ShiftProTypography.caption)
                         .fontWeight(.semibold)
                         .foregroundStyle(ShiftProColors.midnight)
