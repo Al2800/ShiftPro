@@ -57,115 +57,121 @@ struct ScheduleView: View {
     private let calendar = Calendar.current
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
-                // Prominent shift banner at top
-                if let primaryShift = primaryShiftForSelectedDate {
-                    activeShiftBanner(shift: primaryShift)
-                }
+        ZStack {
+            // Premium animated background
+            AnimatedMeshBackground()
 
-                calendarHeader
-
-                calendarContent
-
-                VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
-                    HStack {
-                        Text(sectionTitle)
-                            .font(ShiftProTypography.headline)
-                            .foregroundStyle(ShiftProColors.ink)
-
-                        Spacer()
-
-                        // Day view mode toggle
-                        Picker("View", selection: $dayViewMode) {
-                            ForEach(DayViewMode.allCases) { mode in
-                                Image(systemName: mode.icon)
-                                    .tag(mode)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 100)
-                        .accessibilityLabel("Day view mode")
+            ScrollView {
+                VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
+                    // Prominent shift banner at top
+                    if let primaryShift = primaryShiftForSelectedDate {
+                        premiumActiveShiftBanner(shift: primaryShift)
                     }
 
-                    if shiftsForSelectedDate.isEmpty {
-                        emptyState
-                    } else if dayViewMode == .timeline {
-                        DayTimelineView(
-                            shifts: shiftsForSelectedDate,
-                            selectedDate: selectedDate,
-                            onShiftTapped: { shift in
-                                editingShift = shift
-                            }
-                        )
-                        .frame(height: 500)
-                    } else {
-                        ForEach(shiftsForSelectedDate, id: \.id) { shift in
-                            NavigationLink {
-                                ShiftDetailView(
-                                    title: shift.pattern?.name ?? "Shift",
-                                    timeRange: "\(shift.dateFormatted) • \(shift.timeRangeFormatted)",
-                                    location: shift.locationDisplay,
-                                    status: statusIndicator(for: shift),
-                                    rateMultiplier: shift.rateMultiplier,
-                                    rateLabel: shift.rateLabel,
-                                    notes: shift.notes
-                                )
-                            } label: {
-                                ShiftCardView(
-                                    title: shift.pattern?.name ?? "Shift",
-                                    timeRange: shift.timeRangeFormatted,
-                                    location: shift.locationDisplay,
-                                    status: statusIndicator(for: shift),
-                                    rateMultiplier: shift.rateMultiplier,
-                                    notes: shift.notes
-                                )
-                            }
-                            .buttonStyle(.plain)
-                            .contextMenu {
-                                Button {
-                                    editingShift = shift
-                                } label: {
-                                    Label("Edit Shift", systemImage: "pencil")
-                                }
+                    premiumCalendarHeader
 
-                                Button(role: .destructive) {
-                                    softDeleteShift(shift)
-                                } label: {
-                                    Label("Delete Shift", systemImage: "trash")
-                                }
-                            }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button(role: .destructive) {
-                                    softDeleteShift(shift)
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
+                    premiumCalendarContent
 
-                                Button {
-                                    editingShift = shift
-                                } label: {
-                                    Label("Edit", systemImage: "pencil")
-                                }
-                                .tint(ShiftProColors.accent)
+                    VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
+                        HStack {
+                            HStack(spacing: 8) {
+                                Image(systemName: "calendar.badge.clock")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(ShiftProColors.accent)
+                                Text(sectionTitle)
+                                    .font(ShiftProTypography.headline)
+                                    .foregroundStyle(ShiftProColors.ink)
                             }
-                            .accessibilityAction(named: "Edit") {
-                                editingShift = shift
+
+                            Spacer()
+
+                            // Day view mode toggle
+                            Picker("View", selection: $dayViewMode) {
+                                ForEach(DayViewMode.allCases) { mode in
+                                    Image(systemName: mode.icon)
+                                        .tag(mode)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .frame(width: 100)
+                            .accessibilityLabel("Day view mode")
+                        }
+
+                        if shiftsForSelectedDate.isEmpty {
+                            premiumEmptyState
+                        } else if dayViewMode == .timeline {
+                            DayTimelineView(
+                                shifts: shiftsForSelectedDate,
+                                selectedDate: selectedDate,
+                                onShiftTapped: { shift in
+                                    editingShift = shift
+                                }
+                            )
+                            .frame(height: 500)
+                        } else {
+                            ForEach(shiftsForSelectedDate, id: \.id) { shift in
+                                NavigationLink {
+                                    ShiftDetailView(
+                                        title: shift.pattern?.name ?? "Shift",
+                                        timeRange: "\(shift.dateFormatted) • \(shift.timeRangeFormatted)",
+                                        location: shift.locationDisplay,
+                                        status: statusIndicator(for: shift),
+                                        rateMultiplier: shift.rateMultiplier,
+                                        rateLabel: shift.rateLabel,
+                                        notes: shift.notes
+                                    )
+                                } label: {
+                                    PremiumShiftRow(
+                                        shift: shift,
+                                        profile: profile,
+                                        onTap: nil
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                .contextMenu {
+                                    Button {
+                                        editingShift = shift
+                                    } label: {
+                                        Label("Edit Shift", systemImage: "pencil")
+                                    }
+
+                                    Button(role: .destructive) {
+                                        softDeleteShift(shift)
+                                    } label: {
+                                        Label("Delete Shift", systemImage: "trash")
+                                    }
+                                }
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button(role: .destructive) {
+                                        softDeleteShift(shift)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+
+                                    Button {
+                                        editingShift = shift
+                                    } label: {
+                                        Label("Edit", systemImage: "pencil")
+                                    }
+                                    .tint(ShiftProColors.accent)
+                                }
+                                .accessibilityAction(named: "Edit") {
+                                    editingShift = shift
+                                }
                             }
                         }
                     }
-                }
 
-                #if DEBUG
-                if UITestSupport.isUITesting {
-                    testControls
+                    #if DEBUG
+                    if UITestSupport.isUITesting {
+                        testControls
+                    }
+                    #endif
                 }
-                #endif
+                .padding(.horizontal, ShiftProSpacing.medium)
+                .padding(.vertical, ShiftProSpacing.large)
             }
-            .padding(.horizontal, ShiftProSpacing.medium)
-            .padding(.vertical, ShiftProSpacing.large)
         }
-        .background(ShiftProColors.background.ignoresSafeArea())
         .navigationTitle("Schedule")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -503,36 +509,59 @@ struct ScheduleView: View {
         }
     }
 
-    private var emptyState: some View {
-        VStack(spacing: ShiftProSpacing.medium) {
-            EmptyStateView(
-                icon: "calendar.badge.plus",
-                title: "No shifts scheduled",
-                subtitle: activePatterns.isEmpty
-                    ? "Tap below to add your first shift for this day"
-                    : "Add a shift from a pattern or create a custom one",
-                actionTitle: "Add Shift",
-                action: { showingAddShift = true }
-            )
+    // MARK: - Premium Empty State
 
-            if let defaultPattern = activePatterns.first {
-                Button {
-                    selectedPatternForAdd = defaultPattern
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "repeat")
-                            .font(.system(size: 12))
-                        Text("Add from \(defaultPattern.name)")
-                            .font(ShiftProTypography.subheadline)
-                    }
-                    .foregroundStyle(ShiftProColors.accent)
+    private var premiumEmptyState: some View {
+        VStack(spacing: ShiftProSpacing.large) {
+            Image(systemName: "calendar.badge.plus")
+                .font(.system(size: 48, weight: .light))
+                .foregroundStyle(ShiftProColors.accent.opacity(0.6))
+                .floatingAnimation()
+
+            Text("No shifts scheduled")
+                .font(ShiftProTypography.headline)
+                .foregroundStyle(ShiftProColors.ink)
+
+            Text(activePatterns.isEmpty
+                ? "Tap below to add your first shift for this day"
+                : "Add a shift from a pattern or create a custom one")
+                .font(ShiftProTypography.subheadline)
+                .foregroundStyle(ShiftProColors.inkSubtle)
+                .multilineTextAlignment(.center)
+
+            VStack(spacing: ShiftProSpacing.small) {
+                PremiumButton(
+                    title: "Add Shift",
+                    icon: "plus",
+                    style: .primary
+                ) {
+                    showingAddShift = true
                 }
-                .accessibilityIdentifier("schedule.addFromPattern")
+
+                if let defaultPattern = activePatterns.first {
+                    PremiumButton(
+                        title: "Add from \(defaultPattern.name)",
+                        icon: "repeat",
+                        style: .ghost
+                    ) {
+                        selectedPatternForAdd = defaultPattern
+                    }
+                    .accessibilityIdentifier("schedule.addFromPattern")
+                }
             }
         }
+        .frame(maxWidth: .infinity)
+        .padding(ShiftProSpacing.extraLarge)
+        .glassMorphism(intensity: 0.6, cornerRadius: 24)
     }
 
-    private var calendarHeader: some View {
+    private var emptyState: some View {
+        premiumEmptyState
+    }
+
+    // MARK: - Premium Calendar Header
+
+    private var premiumCalendarHeader: some View {
         HStack(spacing: ShiftProSpacing.small) {
             Button {
                 pendingDate = selectedDate
@@ -541,19 +570,72 @@ struct ScheduleView: View {
                 HStack(spacing: 6) {
                     Text(currentMonthName)
                         .font(ShiftProTypography.subheadline)
+                        .fontWeight(.semibold)
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(.system(size: 10, weight: .bold))
                 }
-                .foregroundStyle(ShiftProColors.inkSubtle)
-                .padding(.vertical, 4)
-                .padding(.horizontal, 8)
-                .background(ShiftProColors.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .foregroundStyle(ShiftProColors.ink)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 14)
+                .background(
+                    Capsule()
+                        .fill(ShiftProColors.surface)
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                        )
+                )
             }
-            .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: .selection)
+            .scalePress(0.96)
             .accessibilityLabel("Jump to date")
 
+            Button {
+                goToToday()
+            } label: {
+                Text("Today")
+                    .font(ShiftProTypography.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(ShiftProColors.accent)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(
+                        Capsule()
+                            .fill(ShiftProColors.accent.opacity(0.12))
+                    )
+            }
+            .scalePress(0.96)
+
             Spacer()
+
+            HStack(spacing: 4) {
+                Button {
+                    navigate(by: -1)
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(ShiftProColors.ink)
+                        .frame(width: 36, height: 36)
+                        .background(
+                            Circle()
+                                .fill(ShiftProColors.surface)
+                        )
+                }
+                .scalePress(0.92)
+
+                Button {
+                    navigate(by: 1)
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(ShiftProColors.ink)
+                        .frame(width: 36, height: 36)
+                        .background(
+                            Circle()
+                                .fill(ShiftProColors.surface)
+                        )
+                }
+                .scalePress(0.92)
+            }
 
             Picker("View", selection: $viewMode) {
                 ForEach(ViewMode.allCases) { mode in
@@ -561,19 +643,25 @@ struct ScheduleView: View {
                 }
             }
             .pickerStyle(.segmented)
-            .frame(width: 180)
+            .frame(width: 130)
             .onChange(of: viewMode) { _, _ in
                 HapticManager.fire(.selection, enabled: !reduceMotion)
             }
         }
     }
 
-    private var calendarContent: some View {
+    private var calendarHeader: some View {
+        premiumCalendarHeader
+    }
+
+    // MARK: - Premium Calendar Content
+
+    private var premiumCalendarContent: some View {
         Group {
             if viewMode == .week {
-                calendarStrip
+                premiumCalendarStrip
             } else {
-                monthGrid
+                premiumMonthGrid
             }
         }
         .animation(
@@ -598,6 +686,251 @@ struct ScheduleView: View {
         .accessibilityAction(named: "Today") {
             goToToday()
         }
+    }
+
+    private var calendarContent: some View {
+        premiumCalendarContent
+    }
+
+    // MARK: - Premium Active Shift Banner
+
+    @ViewBuilder
+    private func premiumActiveShiftBanner(shift: Shift) -> some View {
+        let isInProgress = shift.status == .inProgress
+        let estimatedPay = estimatedPayLabel(for: shift)
+
+        PremiumHeroCard(
+            title: shift.pattern?.name ?? "Shift",
+            subtitle: timeDisplay(for: shift),
+            badge: isInProgress ? "In Progress" : (calendar.isDateInToday(selectedDate) ? "Today" : nil),
+            estimatedPay: estimatedPay,
+            actionTitle: isInProgress ? "View Details" : nil,
+            actionIcon: isInProgress ? "eye" : nil,
+            style: isInProgress ? .success : .primary
+        )
+        .accessibilityIdentifier("schedule.primaryShiftBanner")
+        .transition(.asymmetric(
+            insertion: .scale(scale: 0.95).combined(with: .opacity),
+            removal: .opacity
+        ))
+        .animation(
+            reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.8),
+            value: primaryShiftForSelectedDate?.id
+        )
+    }
+
+    // MARK: - Premium Calendar Strip
+
+    private var premiumCalendarStrip: some View {
+        let columns = Array(repeating: GridItem(.flexible(), spacing: ShiftProSpacing.extraSmall), count: 7)
+
+        return LazyVGrid(columns: columns, spacing: ShiftProSpacing.small) {
+            ForEach(weekDates, id: \.self) { date in
+                premiumDayCell(for: date, shifts: shifts(for: date))
+                    .onTapGesture {
+                        withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)) {
+                            selectedDate = date
+                        }
+                        HapticManager.fire(.selection, enabled: !reduceMotion)
+                    }
+            }
+        }
+        .accessibilityIdentifier(AccessibilityIdentifiers.scheduleCalendarStrip)
+    }
+
+    private func premiumDayCell(for date: Date, shifts dayShifts: [Shift]) -> some View {
+        let isSelected = calendar.isDate(date, inSameDayAs: selectedDate)
+        let isToday = calendar.isDateInToday(date)
+        let hasShifts = !dayShifts.isEmpty
+        let previewShift = dayShifts.first
+
+        let dayFormatter = DateFormatter()
+        dayFormatter.dateFormat = "EEE"
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "d"
+
+        return VStack(spacing: ShiftProSpacing.extraExtraSmall) {
+            Text(dayFormatter.string(from: date))
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(isSelected ? .white : ShiftProColors.inkSubtle)
+
+            Text(dateFormatter.string(from: date))
+                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                .foregroundStyle(isSelected ? .white : ShiftProColors.ink)
+
+            if let previewShift {
+                ShiftPreviewPill(shift: previewShift, compact: true)
+            }
+
+            if dayShifts.count > 1 {
+                Text("+\(dayShifts.count - 1)")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(isSelected ? .white.opacity(0.9) : ShiftProColors.accent)
+            } else if hasShifts {
+                Circle()
+                    .fill(isSelected ? .white : ShiftProColors.accent)
+                    .frame(width: 6, height: 6)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, ShiftProSpacing.small)
+        .padding(.horizontal, ShiftProSpacing.extraExtraSmall)
+        .background(
+            ZStack {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.30, green: 0.50, blue: 0.98),
+                                    Color(red: 0.45, green: 0.40, blue: 0.92)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                } else if isToday {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(ShiftProColors.accent.opacity(0.15))
+                } else {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(ShiftProColors.surface)
+                }
+
+                // Top highlight
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.1),
+                                Color.white.opacity(0)
+                            ],
+                            startPoint: .top,
+                            endPoint: .center
+                        )
+                    )
+
+                // Border
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(
+                        isToday && !isSelected ? ShiftProColors.accent : Color.white.opacity(0.06),
+                        lineWidth: isToday && !isSelected ? 2 : 1
+                    )
+            }
+        )
+        .shadow(color: isSelected ? ShiftProColors.accent.opacity(0.3) : Color.black.opacity(0.1), radius: isSelected ? 12 : 4, x: 0, y: isSelected ? 6 : 2)
+        .scaleEffect(isSelected ? 1.02 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+        .contentShape(Rectangle())
+        .accessibilityLabel(dayAccessibilityLabel(for: date, shifts: dayShifts))
+    }
+
+    // MARK: - Premium Month Grid
+
+    private var premiumMonthGrid: some View {
+        let columns = Array(repeating: GridItem(.flexible(), spacing: ShiftProSpacing.extraSmall), count: 7)
+        let shiftsByDay = Dictionary(grouping: shifts) { shift in
+            calendar.startOfDay(for: shift.scheduledStart)
+        }
+
+        return VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+            HStack(spacing: ShiftProSpacing.extraSmall) {
+                ForEach(calendar.shortStandaloneWeekdaySymbols, id: \.self) { symbol in
+                    Text(symbol)
+                        .font(ShiftProTypography.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(.bottom, 4)
+
+            LazyVGrid(columns: columns, spacing: ShiftProSpacing.extraSmall) {
+                ForEach(monthDates.indices, id: \.self) { index in
+                    if let date = monthDates[index] {
+                        let dayKey = calendar.startOfDay(for: date)
+                        let dayShifts = shiftsByDay[dayKey] ?? []
+                        premiumMonthDayCell(for: date, shifts: dayShifts)
+                            .onTapGesture {
+                                withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)) {
+                                    selectedDate = date
+                                }
+                                HapticManager.fire(.selection, enabled: !reduceMotion)
+                            }
+                    } else {
+                        Color.clear
+                            .frame(height: 54)
+                    }
+                }
+            }
+        }
+        .padding(ShiftProSpacing.medium)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(ShiftProColors.surface.opacity(0.5))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+        )
+    }
+
+    private func premiumMonthDayCell(for date: Date, shifts dayShifts: [Shift]) -> some View {
+        let isSelected = calendar.isDate(date, inSameDayAs: selectedDate)
+        let isToday = calendar.isDateInToday(date)
+        let hasShifts = !dayShifts.isEmpty
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "d"
+
+        let barColor = isSelected ? Color.white : shiftStatusColor(for: dayShifts)
+        let firstShift = dayShifts.first
+
+        return VStack(spacing: 2) {
+            Text(dateFormatter.string(from: date))
+                .font(.system(size: 14, weight: isSelected ? .bold : .medium, design: .rounded))
+                .foregroundStyle(isSelected ? .white : (isToday ? ShiftProColors.accent : ShiftProColors.ink))
+
+            if hasShifts, let shift = firstShift {
+                Image(systemName: shiftTimeIcon(for: shift))
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(barColor)
+
+                if dayShifts.count > 1 {
+                    Text("\(dayShifts.count)")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(isSelected ? .white.opacity(0.9) : ShiftProColors.accent)
+                } else {
+                    Text(shortTimeLabel(for: shift))
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundStyle(isSelected ? .white.opacity(0.8) : ShiftProColors.inkSubtle)
+                }
+            } else {
+                Color.clear
+                    .frame(height: 18)
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 54)
+        .background(
+            ZStack {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(ShiftProColors.accent)
+                } else {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color.clear)
+                }
+            }
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(isToday && !isSelected ? ShiftProColors.accent : .clear, lineWidth: 2)
+        )
+        .contentShape(Rectangle())
+        .scaleEffect(isSelected ? 1.05 : 1.0)
+        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isSelected)
+        .accessibilityLabel(dayAccessibilityLabel(for: date, shifts: dayShifts))
     }
 
     private func handleSwipe(_ value: DragGesture.Value) {
