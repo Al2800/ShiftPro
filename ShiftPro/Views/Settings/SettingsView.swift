@@ -3,7 +3,7 @@ import SwiftData
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var context
-    @StateObject private var entitlementManager = EntitlementManager()
+    @EnvironmentObject private var entitlementManager: EntitlementManager
     @StateObject private var cloudKitManager = CloudKitManager()
 
     @Query(sort: [SortDescriptor(\UserProfile.createdAt, order: .forward)])
