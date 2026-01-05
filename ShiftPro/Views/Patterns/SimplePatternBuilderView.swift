@@ -62,7 +62,7 @@ struct SimplePatternBuilderView: View {
                             HStack(spacing: ShiftProSpacing.small) {
                                 ForEach([4, 5, 7, 14, 21, 28], id: \.self) { length in
                                     Button {
-                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                        withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)) {
                                             cycleLength = length
                                             isCustomLength = false
                                             normalizeCycleLength()
@@ -76,10 +76,11 @@ struct SimplePatternBuilderView: View {
                                             .foregroundStyle(cycleLength == length && !isCustomLength ? .white : ShiftProColors.ink)
                                             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                                     }
+                                    .shiftProPressable(scale: 0.97, opacity: 0.94, haptic: nil)
                                 }
 
                                 Button {
-                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                    withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)) {
                                         isCustomLength = true
                                     }
                                     HapticManager.fire(.selection, enabled: !reduceMotion)
@@ -91,6 +92,7 @@ struct SimplePatternBuilderView: View {
                                         .foregroundStyle(isCustomLength ? .white : ShiftProColors.ink)
                                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                                 }
+                                .shiftProPressable(scale: 0.97, opacity: 0.94, haptic: nil)
                             }
                         }
 
@@ -193,6 +195,7 @@ struct SimplePatternBuilderView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                     }
                     .disabled(!canCreate || isApplying)
+                    .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: nil)
                 }
                 .padding(ShiftProSpacing.medium)
             }
@@ -354,14 +357,14 @@ struct SimplePatternBuilderView: View {
     private func dayToggleCell(for day: Int) -> some View {
         let isWorkDay = workDays.contains(day)
         return Button {
-            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
+            withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)) {
                 if isWorkDay {
                     workDays.remove(day)
                 } else {
                     workDays.insert(day)
                 }
             }
-            HapticManager.fire(.selection, enabled: !reduceMotion)
+            HapticManager.fire(.impactMedium, enabled: !reduceMotion)
         } label: {
             VStack(spacing: ShiftProSpacing.extraExtraSmall) {
                 Text("Day \(day + 1)")
@@ -382,6 +385,8 @@ struct SimplePatternBuilderView: View {
                     .stroke(isWorkDay ? ShiftProColors.accent : ShiftProColors.divider, lineWidth: 2)
             )
         }
+        .shiftProPressable(scale: 0.96, opacity: 0.94, haptic: nil)
+        .shiftProHoverLift()
     }
 
     private func dayAbbreviation(for date: Date) -> String {
@@ -496,10 +501,12 @@ struct SimplePatternBuilderView: View {
             try modelContext.save()
             isApplying = false
             showSuccess = true
+            HapticManager.fire(.notificationSuccess, enabled: !reduceMotion)
         } catch {
             isApplying = false
             errorMessage = "Failed to save pattern: \(error.localizedDescription)"
             showError = true
+            HapticManager.fire(.notificationError, enabled: !reduceMotion)
         }
     }
 }

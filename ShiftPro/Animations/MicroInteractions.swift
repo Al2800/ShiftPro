@@ -87,6 +87,29 @@ struct ShiftProPulse: ViewModifier {
     }
 }
 
+struct ShiftProHoverLift: ViewModifier {
+    var scale: CGFloat = 1.02
+    var opacity: Double = 0.98
+
+    @State private var isHovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .onHover { hovering in
+                guard !reduceMotion else {
+                    isHovering = false
+                    return
+                }
+                withAnimation(.easeOut(duration: 0.12)) {
+                    isHovering = hovering
+                }
+            }
+            .scaleEffect(reduceMotion ? 1 : (isHovering ? scale : 1))
+            .opacity(reduceMotion ? 1 : (isHovering ? opacity : 1))
+    }
+}
+
 struct ShiftProShake: GeometryEffect {
     var amount: CGFloat = 6
     var shakesPerUnit: CGFloat = 3
@@ -113,5 +136,9 @@ extension View {
 
     func shiftProShake(trigger: Bool) -> some View {
         modifier(ShiftProShake(animatableData: trigger ? 1 : 0))
+    }
+
+    func shiftProHoverLift(scale: CGFloat = 1.02, opacity: Double = 0.98) -> some View {
+        modifier(ShiftProHoverLift(scale: scale, opacity: opacity))
     }
 }

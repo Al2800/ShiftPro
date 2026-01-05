@@ -323,7 +323,8 @@ struct ScheduleView: View {
     }
 
     private func navigate(by value: Int) {
-        withAnimation {
+        let animation = reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.8)
+        withAnimation(animation) {
             let component: Calendar.Component = viewMode == .month ? .month : .weekOfYear
             if let newDate = calendar.date(byAdding: component, value: value, to: selectedDate) {
                 selectedDate = newDate
@@ -417,11 +418,19 @@ struct ScheduleView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("schedule.primaryShiftBanner")
+        .simultaneousGesture(
+            TapGesture().onEnded {
+                HapticManager.fire(.impactLight, enabled: !reduceMotion)
+            }
+        )
         .transition(.asymmetric(
             insertion: .scale(scale: 0.95).combined(with: .opacity),
             removal: .opacity
         ))
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: primaryShiftForSelectedDate?.id)
+        .animation(
+            reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.8),
+            value: primaryShiftForSelectedDate?.id
+        )
     }
 
     private func timeDisplay(for shift: Shift) -> String {
@@ -541,7 +550,7 @@ struct ScheduleView: View {
                 .background(ShiftProColors.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
-            .buttonStyle(.plain)
+            .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: .selection)
             .accessibilityLabel("Jump to date")
 
             Spacer()
@@ -553,6 +562,9 @@ struct ScheduleView: View {
             }
             .pickerStyle(.segmented)
             .frame(width: 180)
+            .onChange(of: viewMode) { _, _ in
+                HapticManager.fire(.selection, enabled: !reduceMotion)
+            }
         }
     }
 
@@ -564,6 +576,10 @@ struct ScheduleView: View {
                 monthGrid
             }
         }
+        .animation(
+            reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.8),
+            value: viewMode
+        )
         .gesture(
             DragGesture(minimumDistance: 20, coordinateSpace: .local)
                 .onEnded { value in
@@ -592,9 +608,11 @@ struct ScheduleView: View {
     }
 
     private func goToToday() {
-        withAnimation {
+        let animation = reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.8)
+        withAnimation(animation) {
             selectedDate = Date()
         }
+        HapticManager.fire(.selection, enabled: !reduceMotion)
     }
 
     private var calendarStrip: some View {
@@ -609,6 +627,7 @@ struct ScheduleView: View {
                         }
                         HapticManager.fire(.selection, enabled: !reduceMotion)
                     }
+                    .shiftProHoverLift()
             }
         }
         .accessibilityIdentifier(AccessibilityIdentifiers.scheduleCalendarStrip)
@@ -637,10 +656,12 @@ struct ScheduleView: View {
                         let dayShifts = shiftsByDay[dayKey] ?? []
                         monthDayCell(for: date, shifts: dayShifts)
                             .onTapGesture {
-                                withAnimation(.easeInOut(duration: 0.2)) {
+                                withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)) {
                                     selectedDate = date
                                 }
+                                HapticManager.fire(.selection, enabled: !reduceMotion)
                             }
+                            .shiftProHoverLift()
                     } else {
                         Color.clear
                             .frame(height: 36)
