@@ -171,6 +171,7 @@
 		D64E57AC177648939F973F45 /* PremiumStatCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D7D1070BB143FCA57F7957 /* PremiumStatCard.swift */; };
 		FE8D590F49FC4B168CAA1DCE /* PremiumHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0C4A282DE174DACA379ED84 /* PremiumHeroCard.swift */; };
 		D8552DA4789140A98B1A2C37 /* PremiumShiftRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A09273E35A741FE84129852 /* PremiumShiftRow.swift */; };
+		A1C3E5F708B94D2E9F4A6B81 /* PremiumSettingsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D9F2E405A6481B8E3C0A72 /* PremiumSettingsCard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -356,6 +357,7 @@
 		43D7D1070BB143FCA57F7957 /* PremiumStatCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumStatCard.swift; sourceTree = "<group>"; };
 		B0C4A282DE174DACA379ED84 /* PremiumHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumHeroCard.swift; sourceTree = "<group>"; };
 		5A09273E35A741FE84129852 /* PremiumShiftRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumShiftRow.swift; sourceTree = "<group>"; };
+		C7D9F2E405A6481B8E3C0A72 /* PremiumSettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumSettingsCard.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -646,6 +648,7 @@
 				43D7D1070BB143FCA57F7957 /* PremiumStatCard.swift */,
 				B0C4A282DE174DACA379ED84 /* PremiumHeroCard.swift */,
 				5A09273E35A741FE84129852 /* PremiumShiftRow.swift */,
+				C7D9F2E405A6481B8E3C0A72 /* PremiumSettingsCard.swift */,
 			);
 			name = Components;
 			path = Components;
@@ -1101,6 +1104,7 @@
 				D64E57AC177648939F973F45 /* PremiumStatCard.swift in Sources */,
 				FE8D590F49FC4B168CAA1DCE /* PremiumHeroCard.swift in Sources */,
 				D8552DA4789140A98B1A2C37 /* PremiumShiftRow.swift in Sources */,
+				A1C3E5F708B94D2E9F4A6B81 /* PremiumSettingsCard.swift in Sources */,
 				711E6B935A247BCDF0948FEB /* ExportOptionsView.swift in Sources */,
 				DBED9B65F3DB47FF369503D2 /* ImportView.swift in Sources */,
 				91B470BC6D46B83EAE5245A8 /* HoursDashboard.swift in Sources */,

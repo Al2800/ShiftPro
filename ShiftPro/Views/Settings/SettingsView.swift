@@ -31,158 +31,204 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        List {
-            if !skippedSteps.isEmpty {
-                Section {
-                    Button {
-                        resumeOnboarding()
-                    } label: {
-                        HStack(spacing: ShiftProSpacing.medium) {
-                            Image(systemName: "checkmark.circle.badge.questionmark")
-                                .foregroundStyle(ShiftProColors.warning)
-                            VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
-                                Text("Complete Setup")
-                                    .font(ShiftProTypography.body)
-                                    .foregroundStyle(ShiftProColors.ink)
-                                Text(skippedStepsDescription)
-                                    .font(ShiftProTypography.caption)
-                                    .foregroundStyle(ShiftProColors.inkSubtle)
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(ShiftProColors.inkSubtle)
-                        }
-                        .padding(.vertical, ShiftProSpacing.extraExtraSmall)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("settings.completeSetup")
-                }
-            }
+        ZStack {
+            // Premium animated background
+            AnimatedMeshBackground()
 
-            Section("Profile") {
-                if let profile = profile {
-                    NavigationLink {
-                        ProfileDetailView(profile: profile)
-                    } label: {
-                        settingRow(icon: "person.crop.circle", title: "My Profile", detail: profile.displayName)
-                    }
+            ScrollView {
+                VStack(spacing: ShiftProSpacing.large) {
+                    // Header
+                    premiumHeader
+                        .padding(.top, ShiftProSpacing.medium)
 
-                    NavigationLink {
-                        ProfileDetailView(profile: profile)
-                    } label: {
-                        settingRow(icon: "briefcase", title: "Workplace", detail: profile.workplace ?? "Not set")
-                    }
-
-                    NavigationLink {
-                        ProfileDetailView(profile: profile)
-                    } label: {
-                        settingRow(icon: "person.text.rectangle", title: "Role", detail: profile.jobTitle ?? "Not set")
-                    }
-
-                    NavigationLink {
-                        ProfileDetailView(profile: profile)
-                    } label: {
-                        settingRow(icon: "number", title: "Employee ID", detail: profile.employeeId ?? "Not set")
-                    }
-                } else {
-                    Button {
-                        createProfileAndEdit()
-                    } label: {
-                        settingRow(icon: "person.crop.circle.badge.plus", title: "Set Up Profile", detail: "Add workplace and pay details")
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-
-            Section("Schedule") {
-                NavigationLink {
-                    if patterns.isEmpty {
-                        PatternLibraryView()
+                    // Profile Card
+                    if let profile = profile {
+                        premiumProfileSection(profile: profile)
                     } else {
-                        DefaultPatternPickerView(patterns: patterns)
+                        setupProfileCard
                     }
-                } label: {
-                    settingRow(icon: "calendar", title: "Default Pattern", detail: defaultPatternName)
-                }
-            }
 
-            Section("Integrations & Notifications") {
-                NavigationLink {
-                    CalendarSettingsView()
-                } label: {
-                    settingRow(icon: "calendar.badge.clock", title: "Calendar Settings", detail: "Sync & permissions")
-                }
+                    // Setup reminder
+                    if !skippedSteps.isEmpty {
+                        setupReminderCard
+                    }
 
-                NavigationLink {
-                    ICloudSyncStatusView(manager: cloudKitManager)
-                } label: {
-                    settingRow(icon: "icloud", title: "iCloud Sync", detail: iCloudStatusDetail)
-                }
-
-                NavigationLink {
-                    NotificationSettingsView()
-                } label: {
-                    settingRow(icon: "bell", title: "Notifications", detail: "Schedule & alerts")
-                }
-            }
-
-            Section("Security & Privacy") {
-                NavigationLink {
-                    SecuritySettingsView()
-                } label: {
-                    settingRow(icon: "lock.shield", title: "Security", detail: "PIN & Face ID")
-                }
-                .accessibilityIdentifier(AccessibilityIdentifiers.settingsSecurity)
-
-                NavigationLink {
-                    PrivacySettingsView()
-                } label: {
-                    settingRow(icon: "hand.raised", title: "Privacy", detail: "Data & permissions")
-                }
-                .accessibilityIdentifier(AccessibilityIdentifiers.settingsPrivacy)
-            }
-
-            Section("Data & Reports") {
-                NavigationLink {
-                    AnalyticsDashboard()
-                } label: {
-                    settingRow(icon: "chart.bar.xaxis", title: "Analytics", detail: "Insights & trends")
-                }
-
-                NavigationLink {
-                    ExportOptionsView(period: currentPeriod, shifts: currentPeriodShifts)
-                } label: {
-                    settingRow(icon: "square.and.arrow.up", title: "Export Data", detail: "Share reports")
-                }
-
-                NavigationLink {
-                    ImportView()
-                } label: {
-                    settingRow(icon: "square.and.arrow.down", title: "Import Data", detail: "Restore backups")
-                }
-            }
-
-            Section("Plan") {
-                NavigationLink {
+                    // Premium upgrade card (for free users)
                     if entitlementManager.state.tier == .free {
-                        PremiumView()
-                    } else {
-                        SubscriptionSettingsView()
+                        PremiumUpgradeCard(currentPlan: "Free") {
+                            // Navigate to premium
+                        }
                     }
-                } label: {
-                    settingRow(
-                        icon: "star.circle",
-                        title: premiumRowTitle,
-                        detail: premiumRowDetail
-                    )
-                }
-                .accessibilityIdentifier("settings.plan")
-            }
 
+                    // Schedule section
+                    PremiumSettingsSection(title: "Schedule", icon: "calendar") {
+                        NavigationLink {
+                            if patterns.isEmpty {
+                                PatternLibraryView()
+                            } else {
+                                DefaultPatternPickerView(patterns: patterns)
+                            }
+                        } label: {
+                            PremiumSettingsRow(
+                                icon: "calendar.badge.clock",
+                                title: "Default Pattern",
+                                detail: defaultPatternName,
+                                iconColor: ShiftProColors.accent
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+
+                    // Integrations section
+                    PremiumSettingsSection(title: "Integrations", icon: "link") {
+                        NavigationLink {
+                            CalendarSettingsView()
+                        } label: {
+                            PremiumSettingsRow(
+                                icon: "calendar.badge.plus",
+                                title: "Calendar Settings",
+                                detail: "Sync & permissions",
+                                iconColor: ShiftProColors.success
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+
+                        SettingsDivider()
+
+                        NavigationLink {
+                            ICloudSyncStatusView(manager: cloudKitManager)
+                        } label: {
+                            PremiumSettingsRow(
+                                icon: "icloud",
+                                title: "iCloud Sync",
+                                detail: iCloudStatusDetail,
+                                iconColor: Color.blue
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+
+                        SettingsDivider()
+
+                        NavigationLink {
+                            NotificationSettingsView()
+                        } label: {
+                            PremiumSettingsRow(
+                                icon: "bell.badge",
+                                title: "Notifications",
+                                detail: "Schedule & alerts",
+                                iconColor: ShiftProColors.warning
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+
+                    // Security section
+                    PremiumSettingsSection(title: "Security & Privacy", icon: "lock.shield") {
+                        NavigationLink {
+                            SecuritySettingsView()
+                        } label: {
+                            PremiumSettingsRow(
+                                icon: "faceid",
+                                title: "Security",
+                                detail: "PIN & Face ID",
+                                iconColor: ShiftProColors.success
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .accessibilityIdentifier(AccessibilityIdentifiers.settingsSecurity)
+
+                        SettingsDivider()
+
+                        NavigationLink {
+                            PrivacySettingsView()
+                        } label: {
+                            PremiumSettingsRow(
+                                icon: "hand.raised.fill",
+                                title: "Privacy",
+                                detail: "Data & permissions",
+                                iconColor: Color.purple
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .accessibilityIdentifier(AccessibilityIdentifiers.settingsPrivacy)
+                    }
+
+                    // Data section
+                    PremiumSettingsSection(title: "Data & Reports", icon: "chart.bar.doc.horizontal") {
+                        NavigationLink {
+                            AnalyticsDashboard()
+                        } label: {
+                            PremiumSettingsRow(
+                                icon: "chart.bar.xaxis",
+                                title: "Analytics",
+                                detail: "Insights & trends",
+                                iconColor: Color.orange
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+
+                        SettingsDivider()
+
+                        NavigationLink {
+                            ExportOptionsView(period: currentPeriod, shifts: currentPeriodShifts)
+                        } label: {
+                            PremiumSettingsRow(
+                                icon: "square.and.arrow.up",
+                                title: "Export Data",
+                                detail: "Share reports",
+                                iconColor: ShiftProColors.accent
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+
+                        SettingsDivider()
+
+                        NavigationLink {
+                            ImportView()
+                        } label: {
+                            PremiumSettingsRow(
+                                icon: "square.and.arrow.down",
+                                title: "Import Data",
+                                detail: "Restore backups",
+                                iconColor: Color.teal
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+
+                    // Plan section
+                    PremiumSettingsSection(title: "Plan", icon: "star.circle") {
+                        NavigationLink {
+                            if entitlementManager.state.tier == .free {
+                                PremiumView()
+                            } else {
+                                SubscriptionSettingsView()
+                            }
+                        } label: {
+                            PremiumSettingsRow(
+                                icon: planIcon,
+                                title: premiumRowTitle,
+                                detail: premiumRowDetail,
+                                iconColor: planIconColor,
+                                badge: entitlementManager.state.tier == .premium ? "PRO" : nil,
+                                badgeColor: ShiftProColors.accent
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .accessibilityIdentifier("settings.plan")
+                    }
+
+                    // App info footer
+                    appInfoFooter
+                        .padding(.top, ShiftProSpacing.medium)
+                        .padding(.bottom, ShiftProSpacing.extraLarge)
+                }
+                .padding(.horizontal, ShiftProSpacing.medium)
+            }
         }
-        .listStyle(.insetGrouped)
         .navigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .task {
             await cloudKitManager.refreshStatus()
             cloudKitManager.startMonitoringAccountChanges()
@@ -195,6 +241,227 @@ struct SettingsView: View {
             }
         }
     }
+
+    // MARK: - Premium Header
+
+    private var premiumHeader: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Settings")
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundStyle(ShiftProColors.ink)
+
+                Text("Manage your preferences")
+                    .font(ShiftProTypography.subheadline)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+            }
+
+            Spacer()
+
+            // Settings icon with gradient
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                ShiftProColors.accent.opacity(0.2),
+                                ShiftProColors.accent.opacity(0.1)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 48, height: 48)
+
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(ShiftProColors.accent)
+            }
+        }
+        .padding(.horizontal, ShiftProSpacing.small)
+    }
+
+    // MARK: - Profile Section
+
+    private func premiumProfileSection(profile: UserProfile) -> some View {
+        NavigationLink {
+            ProfileDetailView(profile: profile)
+        } label: {
+            PremiumProfileHeader(
+                name: profile.displayName,
+                subtitle: profile.workplace ?? profile.jobTitle ?? "Tap to edit profile",
+                avatarIcon: "person.crop.circle.fill"
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
+    private var setupProfileCard: some View {
+        Button {
+            createProfileAndEdit()
+        } label: {
+            HStack(spacing: ShiftProSpacing.medium) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    ShiftProColors.accent.opacity(0.2),
+                                    ShiftProColors.accent.opacity(0.1)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 56, height: 56)
+
+                    Image(systemName: "person.crop.circle.badge.plus")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundStyle(ShiftProColors.accent)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Set Up Profile")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundStyle(ShiftProColors.ink)
+
+                    Text("Add workplace and pay details")
+                        .font(ShiftProTypography.subheadline)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(ShiftProColors.inkSubtle.opacity(0.5))
+            }
+            .padding(ShiftProSpacing.medium)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(ShiftProColors.surface)
+
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    ShiftProColors.accent.opacity(0.05),
+                                    Color.clear
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.1),
+                                    Color.white.opacity(0.03)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                }
+            )
+            .shadow(color: Color.black.opacity(0.12), radius: 8, x: 0, y: 4)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .scalePress(0.98)
+    }
+
+    // MARK: - Setup Reminder
+
+    private var setupReminderCard: some View {
+        Button {
+            resumeOnboarding()
+        } label: {
+            HStack(spacing: ShiftProSpacing.medium) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    ShiftProColors.warning.opacity(0.2),
+                                    ShiftProColors.warning.opacity(0.1)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 44, height: 44)
+
+                    Image(systemName: "checkmark.circle.badge.questionmark")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(ShiftProColors.warning)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Complete Setup")
+                        .font(ShiftProTypography.headline)
+                        .foregroundStyle(ShiftProColors.ink)
+
+                    Text(skippedStepsDescription)
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(ShiftProColors.inkSubtle.opacity(0.5))
+            }
+            .padding(ShiftProSpacing.medium)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(ShiftProColors.surface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .strokeBorder(ShiftProColors.warning.opacity(0.3), lineWidth: 1)
+                    )
+            )
+            .shadow(color: ShiftProColors.warning.opacity(0.15), radius: 8, x: 0, y: 4)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .scalePress(0.98)
+        .accessibilityIdentifier("settings.completeSetup")
+    }
+
+    // MARK: - App Info Footer
+
+    private var appInfoFooter: some View {
+        VStack(spacing: ShiftProSpacing.small) {
+            Image(systemName: "clock.badge.checkmark")
+                .font(.system(size: 32))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [ShiftProColors.accent, ShiftProColors.accent.opacity(0.6)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            Text("ShiftPro")
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .foregroundStyle(ShiftProColors.ink)
+
+            Text("Version 1.0.0")
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(ShiftProColors.inkSubtle)
+
+            Text("Made with care for shift workers")
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(ShiftProColors.inkSubtle.opacity(0.7))
+        }
+        .padding(.vertical, ShiftProSpacing.large)
+    }
+
+    // MARK: - Computed Properties
 
     private var profile: UserProfile? {
         profiles.first
@@ -218,6 +485,28 @@ struct SettingsView: View {
             return "Checking..."
         case .unavailable:
             return "Unavailable"
+        }
+    }
+
+    private var planIcon: String {
+        switch entitlementManager.state.tier {
+        case .free:
+            return "star.circle"
+        case .premium:
+            return "star.circle.fill"
+        case .enterprise:
+            return "building.2.crop.circle.fill"
+        }
+    }
+
+    private var planIconColor: Color {
+        switch entitlementManager.state.tier {
+        case .free:
+            return Color.gray
+        case .premium:
+            return Color(red: 0.85, green: 0.65, blue: 0.25)
+        case .enterprise:
+            return Color.purple
         }
     }
 
@@ -259,22 +548,6 @@ struct SettingsView: View {
         showProfileEditor = true
     }
 
-    private func settingRow(icon: String, title: String, detail: String) -> some View {
-        HStack(spacing: ShiftProSpacing.medium) {
-            Image(systemName: icon)
-                .foregroundStyle(ShiftProColors.accent)
-            VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
-                Text(title)
-                    .font(ShiftProTypography.body)
-                    .foregroundStyle(ShiftProColors.ink)
-                Text(detail)
-                    .font(ShiftProTypography.caption)
-                    .foregroundStyle(ShiftProColors.inkSubtle)
-            }
-        }
-        .padding(.vertical, ShiftProSpacing.extraExtraSmall)
-    }
-
     private var skippedStepsDescription: String {
         let count = skippedSteps.count
         if count == 1 {
@@ -284,10 +557,8 @@ struct SettingsView: View {
     }
 
     private func resumeOnboarding() {
-        // Prepare the onboarding manager to resume at skipped steps
         let manager = OnboardingManager()
         manager.resumeAtSkippedSteps()
-        // Trigger onboarding view
         NotificationCenter.default.post(name: .resumeOnboarding, object: nil)
     }
 }
@@ -298,64 +569,82 @@ private struct ICloudSyncStatusView: View {
     @ObservedObject var manager: CloudKitManager
 
     var body: some View {
-        List {
-            Section {
-                HStack {
-                    Text("Status")
-                    Spacer()
-                    HStack(spacing: ShiftProSpacing.extraSmall) {
-                        Circle()
-                            .fill(statusColor)
-                            .frame(width: 8, height: 8)
-                        Text(statusText)
+        ZStack {
+            AnimatedMeshBackground()
+
+            ScrollView {
+                VStack(spacing: ShiftProSpacing.large) {
+                    // Status card
+                    VStack(spacing: ShiftProSpacing.medium) {
+                        HStack {
+                            Text("Status")
+                                .font(ShiftProTypography.headline)
+                                .foregroundStyle(ShiftProColors.ink)
+                            Spacer()
+                            HStack(spacing: ShiftProSpacing.extraSmall) {
+                                Circle()
+                                    .fill(statusColor)
+                                    .frame(width: 10, height: 10)
+                                Text(statusText)
+                                    .font(ShiftProTypography.body)
+                                    .foregroundStyle(ShiftProColors.inkSubtle)
+                            }
+                        }
+                    }
+                    .padding(ShiftProSpacing.medium)
+                    .depthCard(cornerRadius: 20, elevation: 8)
+
+                    // Guidance card
+                    VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
+                        Text(guidanceTitle)
+                            .font(.system(size: 18, weight: .bold, design: .rounded))
+                            .foregroundStyle(ShiftProColors.ink)
+
+                        Text(guidanceMessage)
+                            .font(ShiftProTypography.body)
                             .foregroundStyle(ShiftProColors.inkSubtle)
-                    }
-                }
-            }
 
-            Section {
-                VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
-                    Text(guidanceTitle)
-                        .font(ShiftProTypography.headline)
-                        .foregroundStyle(ShiftProColors.ink)
-
-                    Text(guidanceMessage)
-                        .font(ShiftProTypography.body)
-                        .foregroundStyle(ShiftProColors.inkSubtle)
-
-                    if manager.status == .noAccount || manager.status == .restricted {
-                        Button("Open Settings") {
-                            if let url = URL(string: UIApplication.openSettingsURLString) {
-                                UIApplication.shared.open(url)
+                        if manager.status == .noAccount || manager.status == .restricted {
+                            PremiumButton(title: "Open Settings", icon: "gear", style: .primary) {
+                                if let url = URL(string: UIApplication.openSettingsURLString) {
+                                    UIApplication.shared.open(url)
+                                }
                             }
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(ShiftProColors.accent)
-                    }
 
-                    if manager.status == .temporarilyUnavailable || manager.status == .couldNotDetermine {
-                        Button("Check Again") {
-                            Task {
-                                await manager.refreshStatus()
+                        if manager.status == .temporarilyUnavailable || manager.status == .couldNotDetermine {
+                            PremiumButton(title: "Check Again", icon: "arrow.clockwise", style: .secondary) {
+                                Task {
+                                    await manager.refreshStatus()
+                                }
                             }
                         }
-                        .buttonStyle(.bordered)
-                        .tint(ShiftProColors.accent)
+                    }
+                    .padding(ShiftProSpacing.large)
+                    .depthCard(cornerRadius: 24, elevation: 12)
+
+                    // Info section
+                    VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
+                        Text("About iCloud Sync")
+                            .font(ShiftProTypography.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(ShiftProColors.inkSubtle)
+                            .textCase(.uppercase)
+                            .tracking(0.5)
+
+                        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+                            infoRow(icon: "arrow.triangle.2.circlepath", text: "Automatic backup of your shifts and patterns")
+                            infoRow(icon: "iphone.and.ipad", text: "Sync across all your Apple devices")
+                            infoRow(icon: "lock.shield", text: "Your data is encrypted end-to-end")
+                        }
+                        .padding(ShiftProSpacing.medium)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(ShiftProColors.surface)
+                        )
                     }
                 }
-                .padding(.vertical, ShiftProSpacing.small)
-            } header: {
-                Text("Guidance")
-            }
-
-            Section {
-                VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
-                    infoRow(icon: "arrow.triangle.2.circlepath", text: "Automatic backup of your shifts and patterns")
-                    infoRow(icon: "iphone.and.ipad", text: "Sync across all your Apple devices")
-                    infoRow(icon: "lock.shield", text: "Your data is encrypted end-to-end")
-                }
-            } header: {
-                Text("About iCloud Sync")
+                .padding(ShiftProSpacing.medium)
             }
         }
         .navigationTitle("iCloud Sync")
@@ -437,7 +726,7 @@ private struct ICloudSyncStatusView: View {
                 .foregroundStyle(ShiftProColors.accent)
                 .frame(width: 24)
             Text(text)
-                .font(ShiftProTypography.caption)
+                .font(ShiftProTypography.subheadline)
                 .foregroundStyle(ShiftProColors.inkSubtle)
         }
     }
@@ -451,49 +740,99 @@ private struct DefaultPatternPickerView: View {
     let patterns: [ShiftPattern]
 
     var body: some View {
-        List {
-            Section {
-                ForEach(patterns, id: \.id) { pattern in
-                    Button {
-                        setAsDefault(pattern)
-                    } label: {
-                        HStack {
-                            VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
-                                Text(pattern.name)
-                                    .font(ShiftProTypography.body)
-                                    .foregroundStyle(ShiftProColors.ink)
-                                if let notes = pattern.notes, !notes.isEmpty {
-                                    Text(notes)
-                                        .font(ShiftProTypography.caption)
-                                        .foregroundStyle(ShiftProColors.inkSubtle)
+        ZStack {
+            AnimatedMeshBackground()
+
+            ScrollView {
+                VStack(spacing: ShiftProSpacing.large) {
+                    PremiumSettingsSection(title: "Your Patterns", icon: "calendar.badge.clock") {
+                        ForEach(Array(patterns.enumerated()), id: \.element.id) { index, pattern in
+                            if index > 0 {
+                                SettingsDivider()
+                            }
+
+                            Button {
+                                setAsDefault(pattern)
+                            } label: {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(pattern.name)
+                                            .font(ShiftProTypography.body)
+                                            .foregroundStyle(ShiftProColors.ink)
+                                        if let notes = pattern.notes, !notes.isEmpty {
+                                            Text(notes)
+                                                .font(ShiftProTypography.caption)
+                                                .foregroundStyle(ShiftProColors.inkSubtle)
+                                        }
+                                    }
+                                    Spacer()
+                                    if isDefault(pattern) {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .font(.system(size: 20))
+                                            .foregroundStyle(ShiftProColors.accent)
+                                    }
                                 }
+                                .padding(.horizontal, ShiftProSpacing.medium)
+                                .padding(.vertical, ShiftProSpacing.small)
                             }
-                            Spacer()
-                            if isDefault(pattern) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(ShiftProColors.accent)
-                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
-                    .buttonStyle(.plain)
-                }
-            } header: {
-                Text("Your Patterns")
-            } footer: {
-                Text("The default pattern is used when creating new shifts.")
-            }
 
-            Section {
-                NavigationLink {
-                    PatternLibraryView()
-                } label: {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                            .foregroundStyle(ShiftProColors.accent)
-                        Text("Create from Template")
-                            .foregroundStyle(ShiftProColors.accent)
+                    // Add pattern
+                    NavigationLink {
+                        PatternLibraryView()
+                    } label: {
+                        HStack(spacing: ShiftProSpacing.medium) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                ShiftProColors.accent.opacity(0.2),
+                                                ShiftProColors.accent.opacity(0.1)
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 36, height: 36)
+
+                                Image(systemName: "plus")
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundStyle(ShiftProColors.accent)
+                            }
+
+                            Text("Create from Template")
+                                .font(ShiftProTypography.body)
+                                .foregroundStyle(ShiftProColors.accent)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(ShiftProColors.inkSubtle.opacity(0.5))
+                        }
+                        .padding(ShiftProSpacing.medium)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .fill(ShiftProColors.surface)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                        .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                )
+                        )
+                        .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
                     }
+                    .buttonStyle(PlainButtonStyle())
+
+                    Text("The default pattern is used when creating new shifts.")
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, ShiftProSpacing.large)
                 }
+                .padding(ShiftProSpacing.medium)
             }
         }
         .navigationTitle("Default Pattern")
@@ -504,8 +843,6 @@ private struct DefaultPatternPickerView: View {
     }
 
     private func setAsDefault(_ pattern: ShiftPattern) {
-        // Move pattern to beginning by updating createdAt
-        // This ensures it appears as the "first" pattern
         pattern.createdAt = Date()
         try? context.save()
         dismiss()
