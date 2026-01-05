@@ -527,6 +527,10 @@ struct ScheduleView: View {
 
     private var monthGrid: some View {
         let columns = Array(repeating: GridItem(.flexible(), spacing: ShiftProSpacing.extraSmall), count: 7)
+        let shiftsByDay = Dictionary(grouping: shifts) { shift in
+            calendar.startOfDay(for: shift.scheduledStart)
+        }
+
         return VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             HStack(spacing: ShiftProSpacing.extraSmall) {
                 ForEach(calendar.shortStandaloneWeekdaySymbols, id: \.self) { symbol in
@@ -540,7 +544,9 @@ struct ScheduleView: View {
             LazyVGrid(columns: columns, spacing: ShiftProSpacing.extraSmall) {
                 ForEach(monthDates.indices, id: \.self) { index in
                     if let date = monthDates[index] {
-                        monthDayCell(for: date)
+                        let dayKey = calendar.startOfDay(for: date)
+                        let dayShifts = shiftsByDay[dayKey] ?? []
+                        monthDayCell(for: date, shifts: dayShifts)
                             .onTapGesture {
                                 withAnimation(.easeInOut(duration: 0.2)) {
                                     selectedDate = date
@@ -634,37 +640,82 @@ struct ScheduleView: View {
         return "\(base), \(dayShifts.count) shifts"
     }
 
-    private func monthDayCell(for date: Date) -> some View {
+    private func monthDayCell(for date: Date, shifts dayShifts: [Shift]) -> some View {
         let isSelected = calendar.isDate(date, inSameDayAs: selectedDate)
         let isToday = calendar.isDateInToday(date)
-        let hasShifts = shifts.contains { calendar.isDate($0.scheduledStart, inSameDayAs: date) }
+        let hasShifts = !dayShifts.isEmpty
 
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "d"
 
-        return VStack(spacing: 4) {
+        let barScale = shiftBarScale(for: dayShifts.count)
+        let barHeight = shiftBarHeight(for: dayShifts.count)
+        let barColor = isSelected ? Color.white : shiftStatusColor(for: dayShifts)
+
+        return VStack(spacing: ShiftProSpacing.extraExtraSmall) {
             Text(dateFormatter.string(from: date))
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(isSelected ? .white : ShiftProColors.ink)
 
             if hasShifts {
-                Circle()
-                    .fill(isSelected ? .white : ShiftProColors.accent)
-                    .frame(width: 5, height: 5)
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .fill(barColor)
+                    .frame(height: barHeight)
+                    .frame(maxWidth: .infinity)
+                    .scaleEffect(x: barScale, y: 1, anchor: .center)
+                    .padding(.horizontal, 6)
             } else {
-                Circle()
-                    .fill(Color.clear)
-                    .frame(width: 5, height: 5)
+                Color.clear
+                    .frame(height: barHeight)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 36)
-        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity, minHeight: 42)
+        .padding(.vertical, ShiftProSpacing.extraSmall)
         .background(isSelected ? ShiftProColors.accent : ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(isToday && !isSelected ? ShiftProColors.accent : .clear, lineWidth: 2)
         )
+        .contentShape(Rectangle())
+        .accessibilityLabel(dayAccessibilityLabel(for: date, shifts: dayShifts))
+    }
+
+    private func shiftStatusColor(for dayShifts: [Shift]) -> Color {
+        if dayShifts.contains(where: { $0.status == .inProgress }) {
+            return ShiftProColors.success
+        }
+        if dayShifts.contains(where: { $0.status == .scheduled }) {
+            return ShiftProColors.accent
+        }
+        if dayShifts.contains(where: { $0.status == .cancelled }) {
+            return ShiftProColors.danger
+        }
+        return ShiftProColors.inkSubtle
+    }
+
+    private func shiftBarScale(for count: Int) -> CGFloat {
+        switch count {
+        case 0:
+            return 0
+        case 1:
+            return 0.6
+        case 2:
+            return 0.8
+        default:
+            return 1.0
+        }
+    }
+
+    private func shiftBarHeight(for count: Int) -> CGFloat {
+        switch count {
+        case 2:
+            return 4
+        case 3...:
+            return 5
+        default:
+            return 3
+        }
     }
 
     #if DEBUG
