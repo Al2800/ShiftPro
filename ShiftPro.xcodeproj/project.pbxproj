@@ -36,6 +36,7 @@
 		21B9684FC50BB49CED4DEE6E /* PermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 382B1BAB5F3661139DD2FB7C /* PermissionsView.swift */; };
 		224FE53DCCDAC1B91C79A9B6 /* TestUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6EE95D8765585AD9946DABA /* TestUtilities.swift */; };
 		2296130F8B900F163AE5B4C7 /* StatusIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4526C83364443E8E8FBACB86 /* StatusIndicator.swift */; };
+		SHIFTPREV001A2B3C4D5E6F7890 /* ShiftPreviewPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHIFTPREV002A2B3C4D5E6F789 /* ShiftPreviewPill.swift */; };
 		A1B2C3D4E5F67890ABCDEF12 /* ShiftStatusBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1N2O3P4Q5R67890ABCDEF34 /* ShiftStatusBanner.swift */; };
 		251E1A25572E3D9C336CBF12 /* CalendarSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40F169ED40E2C5EDF04133D9 /* CalendarSetupView.swift */; };
 		2596334C9AC3B1A0F79D9F0B /* UITestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C170FC40C801460CA2C1E20D /* UITestSupport.swift */; };
@@ -234,6 +235,7 @@
 		3E3DEBAF9E45EDF80F9151E3 /* SecureStorage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SecureStorage.swift; sourceTree = "<group>"; };
 		40F169ED40E2C5EDF04133D9 /* CalendarSetupView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarSetupView.swift; sourceTree = "<group>"; };
 		4526C83364443E8E8FBACB86 /* StatusIndicator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatusIndicator.swift; sourceTree = "<group>"; };
+		SHIFTPREV002A2B3C4D5E6F789 /* ShiftPreviewPill.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShiftPreviewPill.swift; sourceTree = "<group>"; };
 		M1N2O3P4Q5R67890ABCDEF34 /* ShiftStatusBanner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShiftStatusBanner.swift; sourceTree = "<group>"; };
 		4B37B4F822397D6090614B03 /* PDFGenerator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PDFGenerator.swift; sourceTree = "<group>"; };
 		D7C5A3603DF24D3D9FE184D9 /* ShiftDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShiftDetailView.swift; sourceTree = "<group>"; };
@@ -627,6 +629,7 @@
 				3420E40EA019A424B667D023 /* RateBadge.swift */,
 				DC9B37BCCDA5AEBAEBA20BAB /* ShiftCardView.swift */,
 				A5B6C7D8E9F0123456789012 /* ShiftProSurfaceStyle.swift */,
+				SHIFTPREV002A2B3C4D5E6F789 /* ShiftPreviewPill.swift */,
 				M1N2O3P4Q5R67890ABCDEF34 /* ShiftStatusBanner.swift */,
 				4526C83364443E8E8FBACB86 /* StatusIndicator.swift */,
 			);
@@ -998,6 +1001,7 @@
 				A1B2C3D4E5F67890ABCDEF12 /* ShiftStatusBanner.swift in Sources */,
 				067AF8A5C900D4FD2B48838E4 /* EmptyStateView.swift in Sources */,
 				F3A4B5C6D7E8901234567890 /* ShiftProSurfaceStyle.swift in Sources */,
+				SHIFTPREV001A2B3C4D5E6F7890 /* ShiftPreviewPill.swift in Sources */,
 				2296130F8B900F163AE5B4C7 /* StatusIndicator.swift in Sources */,
 				F2CC4FF4989FCBA5F625C77D /* ContentView.swift in Sources */,
 				14A3CC4BB53946A1EC178872 /* ModelContainer.swift in Sources */,
