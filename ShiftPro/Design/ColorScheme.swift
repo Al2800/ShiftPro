@@ -2,30 +2,34 @@ import SwiftUI
 import UIKit
 
 enum ShiftProColors {
+    // Premium dark mode: near-black with subtle blue undertone (#08090C)
     static let background = Color(UIColor { trait in
         if trait.userInterfaceStyle == .dark {
-            return UIColor(red: 0.06, green: 0.07, blue: 0.09, alpha: 1.0)
+            return UIColor(red: 0.031, green: 0.035, blue: 0.047, alpha: 1.0)
         }
         return UIColor(red: 0.95, green: 0.96, blue: 0.98, alpha: 1.0)
     })
 
+    // Surface level 1: Primary cards and sections (#12141A)
     static let surface = Color(UIColor { trait in
         if trait.userInterfaceStyle == .dark {
-            return UIColor(red: 0.12, green: 0.13, blue: 0.17, alpha: 1.0)
+            return UIColor(red: 0.071, green: 0.078, blue: 0.102, alpha: 1.0)
         }
         return UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
     })
 
+    // Surface level 2: Elevated cards that pop more (#1A1D24)
     static let surfaceElevated = Color(UIColor { trait in
         if trait.userInterfaceStyle == .dark {
-            return UIColor(red: 0.16, green: 0.17, blue: 0.22, alpha: 1.0)
+            return UIColor(red: 0.102, green: 0.114, blue: 0.141, alpha: 1.0)
         }
         return UIColor(red: 0.98, green: 0.99, blue: 1.0, alpha: 1.0)
     })
 
+    // Surface muted: Subtle backgrounds between bg and surface (#0E1014)
     static let surfaceMuted = Color(UIColor { trait in
         if trait.userInterfaceStyle == .dark {
-            return UIColor(red: 0.14, green: 0.15, blue: 0.19, alpha: 1.0)
+            return UIColor(red: 0.055, green: 0.063, blue: 0.078, alpha: 1.0)
         }
         return UIColor(red: 0.92, green: 0.94, blue: 0.96, alpha: 1.0)
     })
@@ -96,23 +100,34 @@ enum ShiftProColors {
         return UIColor(red: 0.40, green: 0.44, blue: 0.50, alpha: 1.0)
     })
 
+    // Steel: Structural borders and separators (#1C1F28)
     static let steel = Color(UIColor { trait in
         if trait.userInterfaceStyle == .dark {
-            return UIColor(red: 0.14, green: 0.15, blue: 0.20, alpha: 1.0)
+            return UIColor(red: 0.110, green: 0.122, blue: 0.157, alpha: 1.0)
         }
         return UIColor(red: 0.94, green: 0.95, blue: 0.98, alpha: 1.0)
     })
 
+    // Premium glow for elevated surfaces (accent-tinted shadow)
+    static let elevationGlow = Color(UIColor { trait in
+        if trait.userInterfaceStyle == .dark {
+            return UIColor(red: 0.40, green: 0.58, blue: 0.88, alpha: 0.12)
+        }
+        return UIColor(red: 0.09, green: 0.32, blue: 0.66, alpha: 0.06)
+    })
+
+    // Surface level 3: Featured cards and hero sections (#22262F)
     static let card = Color(UIColor { trait in
         if trait.userInterfaceStyle == .dark {
-            return UIColor(red: 0.18, green: 0.20, blue: 0.26, alpha: 1.0)
+            return UIColor(red: 0.133, green: 0.149, blue: 0.184, alpha: 1.0)
         }
         return UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
     })
 
+    // Divider: More visible on deep backgrounds (#262A35)
     static let divider = Color(UIColor { trait in
         if trait.userInterfaceStyle == .dark {
-            return UIColor(red: 0.30, green: 0.32, blue: 0.38, alpha: 1.0)
+            return UIColor(red: 0.149, green: 0.165, blue: 0.208, alpha: 1.0)
         }
         return UIColor(red: 0.82, green: 0.84, blue: 0.88, alpha: 1.0)
     })

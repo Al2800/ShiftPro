@@ -63,9 +63,32 @@ enum ShiftProSurfaceLevel {
         case .standard:
             return .clear
         case .elevated:
-            return ShiftProColors.accent.opacity(0.15)
+            return ShiftProColors.elevationGlow
         case .hero:
-            return ShiftProColors.accent.opacity(0.25)
+            return ShiftProColors.accent.opacity(0.18)
+        }
+    }
+
+    /// Secondary glow for premium elevation effect
+    var glowColor: Color {
+        switch self {
+        case .standard:
+            return .clear
+        case .elevated:
+            return ShiftProColors.accent.opacity(0.08)
+        case .hero:
+            return ShiftProColors.accent.opacity(0.12)
+        }
+    }
+
+    var glowRadius: CGFloat {
+        switch self {
+        case .standard:
+            return 0
+        case .elevated:
+            return 20
+        case .hero:
+            return 28
         }
     }
 
@@ -116,11 +139,19 @@ struct ShiftProSurfaceStyle: ViewModifier {
                 RoundedRectangle(cornerRadius: level.cornerRadius, style: .continuous)
                     .stroke(level.borderColor, lineWidth: 1)
             )
+            // Primary shadow for depth
             .shadow(
                 color: level.shadowColor,
                 radius: level.shadowRadius,
                 x: level.shadowX,
                 y: level.shadowY
+            )
+            // Secondary glow for premium elevation effect
+            .shadow(
+                color: level.glowColor,
+                radius: level.glowRadius,
+                x: 0,
+                y: 0
             )
     }
 }
@@ -140,11 +171,19 @@ extension View {
             .padding(padding)
             .background(ShiftProColors.surface)
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            // Primary depth shadow
             .shadow(
-                color: shadow ? ShiftProColors.accent.opacity(0.1) : .clear,
-                radius: shadow ? 8 : 0,
+                color: shadow ? ShiftProColors.elevationGlow : .clear,
+                radius: shadow ? 10 : 0,
                 x: 0,
                 y: shadow ? 4 : 0
+            )
+            // Secondary glow for premium feel
+            .shadow(
+                color: shadow ? ShiftProColors.accent.opacity(0.06) : .clear,
+                radius: shadow ? 16 : 0,
+                x: 0,
+                y: 0
             )
     }
 
