@@ -124,6 +124,7 @@ struct SimplePatternBuilderView: View {
                 }
                 customLengthButton
             }
+            .padding(.trailing, ShiftProSpacing.medium)
         }
     }
 
@@ -278,11 +279,12 @@ struct SimplePatternBuilderView: View {
     }
 
     private var createButtonTitle: String {
-        let resolved = resolvedPatternName
-        if resolved.isEmpty {
+        guard !workDays.isEmpty else {
             return "Create Pattern"
         }
-        return "Create \"\(resolved)\""
+        let workCount = workDays.count
+        let offCount = cycleLength - workCount
+        return "Create \(workCount) on, \(offCount) off Pattern"
     }
 
     private var customLengthLabel: String {
