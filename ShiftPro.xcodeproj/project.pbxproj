@@ -166,6 +166,11 @@
 		F612C5FB04F9513A237DC6E6 /* ShiftCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9B37BCCDA5AEBAEBA20BAB /* ShiftCardView.swift */; };
 		F77FF4A4CCBF46CB30B7AC70 /* PayPeriod.swift in Sources */ = {isa = PBXBuildFile; fileRef = D042D0A8F919E74AABA4B2C8 /* PayPeriod.swift */; };
 		FD6800EB7D5BE53388D3DFED /* PrivacySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A88C77D52E69591DF60368 /* PrivacySettingsView.swift */; };
+		29D1AB7A17CD41799BF3409F /* PremiumEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23AA378169E4605AE97DBE6 /* PremiumEffects.swift */; };
+		BB877E225E5947D191B3729D /* PremiumButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B65E1124E234B9991F12160 /* PremiumButton.swift */; };
+		D64E57AC177648939F973F45 /* PremiumStatCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D7D1070BB143FCA57F7957 /* PremiumStatCard.swift */; };
+		FE8D590F49FC4B168CAA1DCE /* PremiumHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0C4A282DE174DACA379ED84 /* PremiumHeroCard.swift */; };
+		D8552DA4789140A98B1A2C37 /* PremiumShiftRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A09273E35A741FE84129852 /* PremiumShiftRow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -346,6 +351,11 @@
 		FC3A4431886FA0DA7579D307 /* RateBreakdownChart.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RateBreakdownChart.swift; sourceTree = "<group>"; };
 		FCD660B98E0C62E3F2D8D849 /* ExportOptionsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExportOptionsView.swift; sourceTree = "<group>"; };
 		FF5772607BE66ACD9C6DEC35 /* NotificationSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotificationSettings.swift; sourceTree = "<group>"; };
+		D23AA378169E4605AE97DBE6 /* PremiumEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumEffects.swift; sourceTree = "<group>"; };
+		7B65E1124E234B9991F12160 /* PremiumButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumButton.swift; sourceTree = "<group>"; };
+		43D7D1070BB143FCA57F7957 /* PremiumStatCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumStatCard.swift; sourceTree = "<group>"; };
+		B0C4A282DE174DACA379ED84 /* PremiumHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumHeroCard.swift; sourceTree = "<group>"; };
+		5A09273E35A741FE84129852 /* PremiumShiftRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumShiftRow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -632,6 +642,10 @@
 				SHIFTPREV002A2B3C4D5E6F789 /* ShiftPreviewPill.swift */,
 				M1N2O3P4Q5R67890ABCDEF34 /* ShiftStatusBanner.swift */,
 				4526C83364443E8E8FBACB86 /* StatusIndicator.swift */,
+				7B65E1124E234B9991F12160 /* PremiumButton.swift */,
+				43D7D1070BB143FCA57F7957 /* PremiumStatCard.swift */,
+				B0C4A282DE174DACA379ED84 /* PremiumHeroCard.swift */,
+				5A09273E35A741FE84129852 /* PremiumShiftRow.swift */,
 			);
 			name = Components;
 			path = Components;
@@ -840,6 +854,7 @@
 				9D258A23DF0D1ED5D6F0F946 /* ColorScheme.swift */,
 				A022EF02F20941D0BB7CD364 /* LegacyAliases.swift */,
 				B9F00F78851C0C1D72FC95DB /* Typography.swift */,
+				D23AA378169E4605AE97DBE6 /* PremiumEffects.swift */,
 			);
 			name = Design;
 			path = Design;
@@ -1081,6 +1096,11 @@
 				C2B7B9A787178FE4BD8F9E4D /* InsightsView.swift in Sources */,
 				F2F60119EB6244C40A507A24 /* TrendChartsView.swift in Sources */,
 				440E6F372F60FC144F196C08 /* DashboardView.swift in Sources */,
+				29D1AB7A17CD41799BF3409F /* PremiumEffects.swift in Sources */,
+				BB877E225E5947D191B3729D /* PremiumButton.swift in Sources */,
+				D64E57AC177648939F973F45 /* PremiumStatCard.swift in Sources */,
+				FE8D590F49FC4B168CAA1DCE /* PremiumHeroCard.swift in Sources */,
+				D8552DA4789140A98B1A2C37 /* PremiumShiftRow.swift in Sources */,
 				711E6B935A247BCDF0948FEB /* ExportOptionsView.swift in Sources */,
 				DBED9B65F3DB47FF369503D2 /* ImportView.swift in Sources */,
 				91B470BC6D46B83EAE5245A8 /* HoursDashboard.swift in Sources */,

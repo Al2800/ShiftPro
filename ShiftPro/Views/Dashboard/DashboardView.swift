@@ -3,6 +3,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var animateIn = false
     @State private var showingAddShift = false
     @State private var showingLogBreak = false
@@ -21,122 +22,53 @@ struct DashboardView: View {
     private let calculator = PayPeriodCalculator()
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
-                // App branding header
-                HStack {
-                    (Text("Shift")
-                        .foregroundStyle(ShiftProColors.ink)
-                    +
-                    Text("Pro")
-                        .foregroundStyle(ShiftProColors.accent))
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
-                    Spacer()
+        ZStack {
+            // Premium animated background
+            AnimatedMeshBackground()
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
+                    // Premium branding header
+                    premiumHeader
+                        .opacity(animateIn ? 1 : 0)
+                        .offset(y: animateIn ? 0 : -10)
+
+                    // Premium hero card
+                    premiumHeroSection
+                        .opacity(animateIn ? 1 : 0)
+                        .offset(y: animateIn ? 0 : 20)
+                        .animation(reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.8).delay(0.1), value: animateIn)
+
+                    // Hours & earnings section
+                    hoursSection
+                        .opacity(animateIn ? 1 : 0)
+                        .offset(y: animateIn ? 0 : 16)
+                        .animation(reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.8).delay(0.2), value: animateIn)
+
+                    // Upcoming shifts section
+                    upcomingSection
+                        .opacity(animateIn ? 1 : 0)
+                        .offset(y: animateIn ? 0 : 12)
+                        .animation(reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.8).delay(0.3), value: animateIn)
+
+                    // Quick actions
+                    premiumQuickActions
+                        .opacity(animateIn ? 1 : 0)
+                        .offset(y: animateIn ? 0 : 8)
+                        .animation(reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.8).delay(0.4), value: animateIn)
                 }
-                .padding(.bottom, ShiftProSpacing.small)
-
-                heroCard
-                    .opacity(animateIn ? 1 : 0)
-                    .offset(y: animateIn ? 0 : 16)
-                    .animation(AnimationManager.shared.animation(for: .slow), value: animateIn)
-
-                VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
-                    HStack {
-                        Text("Upcoming")
-                            .font(ShiftProTypography.headline)
-                            .foregroundStyle(ShiftProColors.ink)
-
-                        Spacer()
-
-                        if !upcomingShifts.isEmpty {
-                            Button {
-                                NotificationCenter.default.post(name: .switchToScheduleTab, object: nil)
-                            } label: {
-                                HStack(spacing: 4) {
-                                    Text("See all")
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 10, weight: .semibold))
-                                }
-                                .font(ShiftProTypography.subheadline)
-                                .foregroundStyle(ShiftProColors.accent)
-                            }
-                            .accessibilityIdentifier("dashboard.seeAllUpcoming")
-                        }
-                    }
-
-                    if dashboardShifts.isEmpty {
-                        EmptyStateView(
-                            icon: "clock.badge.questionmark",
-                            title: "No upcoming shifts",
-                            subtitle: "Your next scheduled shift will appear here",
-                            actionTitle: "Add Shift",
-                            action: { showingAddShift = true }
-                        )
-                    } else {
-                        ForEach(dashboardShifts, id: \.id) { shift in
-                            ShiftCardView(
-                                title: shift.pattern?.name ?? "Shift",
-                                timeRange: "\(shift.dateFormatted) • \(shift.timeRangeFormatted)",
-                                location: shift.locationDisplay,
-                                status: statusIndicator(for: shift),
-                                rateMultiplier: shift.rateMultiplier,
-                                notes: shift.notes,
-                                accessibilityIdentifier: shiftAccessibilityIdentifier(for: shift)
-                            )
-                        }
-                    }
-                }
-                .opacity(animateIn ? 1 : 0)
-                .offset(y: animateIn ? 0 : 12)
-                .animation(AnimationManager.shared.animation(for: .standard), value: animateIn)
-
-                VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
-                    Text("Hours")
-                        .font(ShiftProTypography.headline)
-                        .foregroundStyle(ShiftProColors.ink)
-
-                    if periodShifts.isEmpty {
-                        EmptyStateView(
-                            icon: "chart.bar.xaxis",
-                            title: "No hours this period",
-                            subtitle: "Complete a shift to track your hours",
-                            actionTitle: "Add Shift",
-                            action: { showingAddShift = true }
-                        )
-                    } else {
-                        HoursDisplay(
-                            totalHours: summary.totalHours,
-                            regularHours: summary.regularHours,
-                            overtimeHours: summary.premiumHours,
-                            trendDelta: hoursTrend,
-                            estimatedPay: estimatedPay
-                        )
-                    }
-                }
-                .opacity(animateIn ? 1 : 0)
-                .offset(y: animateIn ? 0 : 10)
-                .animation(AnimationManager.shared.animation(for: .standard), value: animateIn)
-
-                quickActions
-                    .opacity(animateIn ? 1 : 0)
-                    .offset(y: animateIn ? 0 : 8)
-                    .animation(AnimationManager.shared.animation(for: .standard), value: animateIn)
+                .padding(.horizontal, ShiftProSpacing.medium)
+                .padding(.vertical, ShiftProSpacing.large)
             }
-            .padding(.horizontal, ShiftProSpacing.medium)
-            .padding(.vertical, ShiftProSpacing.large)
         }
-        .background(ShiftProColors.background.ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                EmptyView() // Hide default title, using custom header instead
+                EmptyView()
             }
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
+                PremiumIconButton(icon: "bell.badge", style: .secondary) {
                     showingNotifications = true
-                } label: {
-                    Image(systemName: "bell.badge")
-                        .foregroundStyle(ShiftProColors.accent)
                 }
                 .accessibilityLabel("Notifications")
             }
@@ -155,7 +87,9 @@ struct DashboardView: View {
         }
         .onAppear {
             guard !animateIn else { return }
-            animateIn = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                animateIn = true
+            }
         }
         .sheet(isPresented: $showingAddShift) {
             ShiftFormView()
@@ -169,6 +103,295 @@ struct DashboardView: View {
             Text(actionError ?? "An error occurred")
         }
         .disabled(isProcessingAction)
+    }
+
+    // MARK: - Premium Header
+
+    private var premiumHeader: some View {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 0) {
+                    Text("Shift")
+                        .foregroundStyle(ShiftProColors.ink)
+                    Text("Pro")
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.35, green: 0.55, blue: 0.98),
+                                    Color(red: 0.55, green: 0.40, blue: 0.92)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                }
+                .font(.system(size: 28, weight: .bold, design: .rounded))
+
+                Text(greetingText)
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+            }
+
+            Spacer()
+        }
+    }
+
+    private var greetingText: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5..<12: return "Good morning"
+        case 12..<17: return "Good afternoon"
+        case 17..<21: return "Good evening"
+        default: return "Good night"
+        }
+    }
+
+    // MARK: - Premium Hero Section
+
+    @ViewBuilder
+    private var premiumHeroSection: some View {
+        if let shift = currentShift {
+            PremiumHeroCard(
+                title: "On Shift Now",
+                subtitle: elapsedTimeDescription(for: shift),
+                badge: "In Progress",
+                estimatedPay: heroPayEstimate,
+                actionTitle: isProcessingAction ? "..." : "End Shift",
+                actionIcon: "stop.fill",
+                isLoading: isProcessingAction,
+                style: .success,
+                breakInfo: .init(
+                    currentMinutes: shift.breakMinutes,
+                    quickOptions: [5, 15, 30]
+                ),
+                action: { Task { await handleStartEndShift() } },
+                onBreakTap: { minutes in
+                    Task { await logQuickBreak(minutes: minutes, for: shift) }
+                }
+            )
+            .accessibilityIdentifier(AccessibilityIdentifiers.dashboardHeroCard)
+        } else if let nextShift = upcomingShifts.first {
+            PremiumHeroCard(
+                title: heroTitle,
+                subtitle: heroSubtitle,
+                estimatedPay: heroPayEstimate,
+                actionTitle: isProcessingAction ? "..." : "Start Shift",
+                actionIcon: "play.fill",
+                isLoading: isProcessingAction,
+                style: .primary,
+                action: { Task { await handleStartEndShift() } }
+            )
+            .accessibilityIdentifier(AccessibilityIdentifiers.dashboardHeroCard)
+        } else {
+            // Empty state hero
+            VStack(spacing: ShiftProSpacing.medium) {
+                Image(systemName: "calendar.badge.plus")
+                    .font(.system(size: 48, weight: .light))
+                    .foregroundStyle(ShiftProColors.accent.opacity(0.6))
+                    .floatingAnimation()
+
+                Text("No Upcoming Shifts")
+                    .font(ShiftProTypography.title)
+                    .foregroundStyle(ShiftProColors.ink)
+
+                Text("Add your first shift to get started")
+                    .font(ShiftProTypography.subheadline)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+                    .multilineTextAlignment(.center)
+
+                PremiumButton(
+                    title: "Add Shift",
+                    icon: "plus",
+                    style: .primary,
+                    showShimmer: true
+                ) {
+                    showingAddShift = true
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(ShiftProSpacing.extraLarge)
+            .glassMorphism(intensity: 0.8, cornerRadius: 28)
+        }
+    }
+
+    private func elapsedTimeDescription(for shift: Shift) -> String {
+        guard let start = shift.actualStart else { return "Just started" }
+        let elapsed = Date().timeIntervalSince(start)
+        let hours = Int(elapsed) / 3600
+        let minutes = (Int(elapsed) % 3600) / 60
+
+        if hours > 0 {
+            return "Started \(hours)h \(minutes)m ago"
+        } else {
+            return "Started \(minutes) minutes ago"
+        }
+    }
+
+    // MARK: - Hours Section
+
+    @ViewBuilder
+    private var hoursSection: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
+            sectionHeader(title: "This Period", icon: "chart.bar.fill")
+
+            if periodShifts.isEmpty {
+                EmptyStateView(
+                    icon: "chart.bar.xaxis",
+                    title: "No hours yet",
+                    subtitle: "Complete a shift to track your hours",
+                    actionTitle: "Add Shift",
+                    action: { showingAddShift = true }
+                )
+            } else {
+                // Earnings highlight
+                if let pay = estimatedPay, pay > 0 {
+                    EarningsHighlightCard(
+                        amount: pay,
+                        label: "Estimated Earnings",
+                        subtitle: periodLabel
+                    )
+                }
+
+                // Stats grid
+                HStack(spacing: ShiftProSpacing.small) {
+                    PremiumStatCard(
+                        title: "Total Hours",
+                        value: summary.totalHours,
+                        unit: "hrs",
+                        icon: "clock.fill",
+                        trend: hoursTrend.map { .init(delta: $0, label: "vs last period") },
+                        showRing: true,
+                        ringProgress: min(summary.totalHours / 40.0, 1.0)
+                    )
+                }
+
+                // Mini stats
+                StatGrid(stats: [
+                    ("Regular", String(format: "%.1f hrs", summary.regularHours), "sun.max.fill", ShiftProColors.accent),
+                    ("Overtime", String(format: "%.1f hrs", summary.premiumHours), "flame.fill", ShiftProColors.warning),
+                    ("Shifts", "\(periodShifts.count)", "calendar", ShiftProColors.success),
+                    ("Avg/Shift", avgHoursPerShift, "chart.line.uptrend.xyaxis", ShiftProColors.inkSubtle)
+                ])
+            }
+        }
+    }
+
+    private var periodLabel: String {
+        let type = profile?.payPeriodType ?? .biweekly
+        switch type {
+        case .weekly: return "This week"
+        case .biweekly: return "This pay period"
+        case .monthly: return "This month"
+        }
+    }
+
+    private var avgHoursPerShift: String {
+        guard !periodShifts.isEmpty else { return "0 hrs" }
+        let avg = summary.totalHours / Double(periodShifts.count)
+        return String(format: "%.1f hrs", avg)
+    }
+
+    // MARK: - Upcoming Section
+
+    @ViewBuilder
+    private var upcomingSection: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
+            HStack {
+                sectionHeader(title: "Upcoming", icon: "calendar.badge.clock")
+
+                Spacer()
+
+                if !upcomingShifts.isEmpty {
+                    Button {
+                        NotificationCenter.default.post(name: .switchToScheduleTab, object: nil)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("See all")
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 10, weight: .semibold))
+                        }
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.accent)
+                    }
+                    .accessibilityIdentifier("dashboard.seeAllUpcoming")
+                }
+            }
+
+            if dashboardShifts.isEmpty && currentShift == nil {
+                // Already handled in hero section
+                EmptyView()
+            } else {
+                ForEach(Array(dashboardShifts.filter { $0.id != currentShift?.id }.prefix(3).enumerated()), id: \.element.id) { index, shift in
+                    PremiumShiftRow(
+                        shift: shift,
+                        profile: profile,
+                        onTap: {
+                            NotificationCenter.default.post(name: .switchToScheduleTab, object: nil)
+                        }
+                    )
+                    .transition(.asymmetric(
+                        insertion: .scale(scale: 0.95).combined(with: .opacity),
+                        removal: .opacity
+                    ))
+                }
+            }
+        }
+    }
+
+    // MARK: - Quick Actions
+
+    private var premiumQuickActions: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
+            sectionHeader(title: "Quick Actions", icon: "bolt.fill")
+
+            HStack(spacing: ShiftProSpacing.small) {
+                PremiumButton(
+                    title: "Add Shift",
+                    icon: "plus",
+                    style: .primary,
+                    fullWidth: true
+                ) {
+                    showingAddShift = true
+                }
+                .accessibilityIdentifier(AccessibilityIdentifiers.dashboardAddShift)
+
+                PremiumButton(
+                    title: "Schedule",
+                    icon: "calendar",
+                    style: .secondary,
+                    fullWidth: true
+                ) {
+                    NotificationCenter.default.post(name: .switchToScheduleTab, object: nil)
+                }
+                .accessibilityIdentifier("dashboard.viewSchedule")
+            }
+
+            if currentShift != nil {
+                PremiumButton(
+                    title: "Log Break",
+                    icon: "cup.and.saucer",
+                    style: .ghost,
+                    fullWidth: true
+                ) {
+                    handleLogBreak()
+                }
+                .accessibilityIdentifier("dashboard.logBreak")
+            }
+        }
+    }
+
+    // MARK: - Section Header Helper
+
+    private func sectionHeader(title: String, icon: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(ShiftProColors.accent)
+
+            Text(title)
+                .font(ShiftProTypography.headline)
+                .foregroundStyle(ShiftProColors.ink)
+        }
     }
 
     private var profile: UserProfile? {
@@ -312,90 +535,6 @@ struct DashboardView: View {
         return formatter.string(from: NSNumber(value: earnings))
     }
 
-    private var heroCard: some View {
-        ZStack(alignment: .bottomLeading) {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(ShiftProColors.heroGradient)
-                .frame(maxWidth: .infinity)
-                .frame(minHeight: currentShift != nil ? 240 : 200)
-
-            VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
-                Text(heroTitle)
-                    .font(ShiftProTypography.title)
-                    .foregroundStyle(.white)
-
-                Text(heroSubtitle)
-                    .font(ShiftProTypography.subheadline)
-                    .foregroundStyle(.white.opacity(0.85))
-
-                if let payEstimate = heroPayEstimate {
-                    Text("Est. \(payEstimate)")
-                        .font(ShiftProTypography.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white.opacity(0.95))
-                }
-
-                // Inline break controls for in-progress shifts
-                if let shift = currentShift {
-                    inlineBreakControls(for: shift)
-                }
-
-                QuickActionButton(
-                    title: heroActionTitle,
-                    systemImage: heroActionIcon,
-                    action: { Task { await handleStartEndShift() } },
-                    accessibilityIdentifier: AccessibilityIdentifiers.dashboardStartShift
-                )
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding(ShiftProSpacing.large)
-        }
-        .shadow(color: ShiftProColors.accent.opacity(0.25), radius: 18, x: 0, y: 12)
-        .accessibilityIdentifier(AccessibilityIdentifiers.dashboardHeroCard)
-    }
-
-    @ViewBuilder
-    private func inlineBreakControls(for shift: Shift) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                Image(systemName: "cup.and.saucer.fill")
-                    .font(.system(size: 12))
-                Text("Break: \(shift.breakMinutes) min")
-                    .font(ShiftProTypography.caption)
-                    .fontWeight(.medium)
-            }
-            .foregroundStyle(.white.opacity(0.9))
-
-            HStack(spacing: 8) {
-                ForEach([5, 15, 30], id: \.self) { minutes in
-                    Button {
-                        HapticManager.fire(.impactLight)
-                        Task { await logQuickBreak(minutes: minutes, for: shift) }
-                    } label: {
-                        Text("+\(minutes)m")
-                            .font(ShiftProTypography.caption)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(ShiftProColors.midnight)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(.white.opacity(0.9))
-                            )
-                    }
-                    .shiftProPressable(scale: 0.95, opacity: 0.9, haptic: nil)
-                    .disabled(isProcessingAction)
-                    .accessibilityLabel("Add \(minutes) minute break")
-                    .accessibilityIdentifier("dashboard.quickBreak.\(minutes)")
-                }
-
-                Text("→ \(shift.breakMinutes + 15) min")
-                    .font(ShiftProTypography.caption)
-                    .foregroundStyle(.white.opacity(0.7))
-            }
-        }
-        .padding(.top, 4)
-    }
 
     private func logQuickBreak(minutes: Int, for shift: Shift) async {
         isProcessingAction = true
@@ -443,52 +582,6 @@ struct DashboardView: View {
         return nil
     }
 
-    private var quickActions: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
-            Text("Quick Actions")
-                .font(ShiftProTypography.headline)
-                .foregroundStyle(ShiftProColors.ink)
-
-            VStack(spacing: ShiftProSpacing.small) {
-                HStack(spacing: ShiftProSpacing.small) {
-                    QuickActionButton(
-                        title: "Add Shift",
-                        systemImage: "plus",
-                        action: { showingAddShift = true },
-                        accessibilityIdentifier: AccessibilityIdentifiers.dashboardAddShift
-                    )
-                    .frame(maxWidth: .infinity)
-
-                    QuickActionButton(
-                        title: "Schedule",
-                        systemImage: "calendar",
-                        action: {
-                            NotificationCenter.default.post(name: .switchToScheduleTab, object: nil)
-                        },
-                        accessibilityIdentifier: "dashboard.viewSchedule"
-                    )
-                    .frame(maxWidth: .infinity)
-                }
-
-                if currentShift != nil {
-                    QuickActionButton(
-                        title: "Log Break",
-                        systemImage: "cup.and.saucer",
-                        action: handleLogBreak,
-                        accessibilityIdentifier: "dashboard.logBreak"
-                    )
-                    .frame(maxWidth: .infinity)
-                }
-            }
-            .padding(ShiftProSpacing.medium)
-            .frame(maxWidth: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(ShiftProColors.surface)
-                    .shadow(color: ShiftProColors.accent.opacity(0.1), radius: 8, x: 0, y: 4)
-            )
-        }
-    }
 
     // MARK: - Action Handlers
 
