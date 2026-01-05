@@ -21,6 +21,7 @@ struct SimplePatternBuilderView: View {
     @State private var errorMessage = ""
     @State private var isNameCustomized = false
     @State private var isSettingAutoName = false
+    @State private var isCustomLength = false
 
     private let engine = PatternEngine()
 
@@ -59,23 +60,57 @@ struct SimplePatternBuilderView: View {
 
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: ShiftProSpacing.small) {
-                                ForEach([4, 5, 6, 7, 8, 14], id: \.self) { length in
+                                ForEach([4, 5, 7, 14, 21, 28], id: \.self) { length in
                                     Button {
                                         withAnimation(.easeInOut(duration: 0.2)) {
                                             cycleLength = length
-                                            workDays = workDays.filter { $0 < length }
-                                            currentDayInCycle = min(currentDayInCycle, length - 1)
+                                            isCustomLength = false
+                                            normalizeCycleLength()
                                         }
                                         HapticManager.fire(.selection, enabled: !reduceMotion)
                                     } label: {
                                         Text("\(length)")
                                             .font(ShiftProTypography.headline)
                                             .frame(width: 48, height: 48)
-                                            .background(cycleLength == length ? ShiftProColors.accent : ShiftProColors.surface)
-                                            .foregroundStyle(cycleLength == length ? .white : ShiftProColors.ink)
+                                            .background(cycleLength == length && !isCustomLength ? ShiftProColors.accent : ShiftProColors.surface)
+                                            .foregroundStyle(cycleLength == length && !isCustomLength ? .white : ShiftProColors.ink)
                                             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                                     }
                                 }
+
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        isCustomLength = true
+                                    }
+                                    HapticManager.fire(.selection, enabled: !reduceMotion)
+                                } label: {
+                                    Text("Custom")
+                                        .font(ShiftProTypography.subheadline)
+                                        .frame(width: 80, height: 48)
+                                        .background(isCustomLength ? ShiftProColors.accent : ShiftProColors.surface)
+                                        .foregroundStyle(isCustomLength ? .white : ShiftProColors.ink)
+                                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                }
+                            }
+                        }
+
+                        if isCustomLength {
+                            VStack(alignment: .leading, spacing: ShiftProSpacing.extraSmall) {
+                                Text(customLengthLabel)
+                                    .font(ShiftProTypography.caption)
+                                    .foregroundStyle(ShiftProColors.inkSubtle)
+
+                                Slider(
+                                    value: Binding(
+                                        get: { Double(cycleLength) },
+                                        set: { newValue in
+                                            cycleLength = Int(newValue)
+                                            normalizeCycleLength()
+                                        }
+                                    ),
+                                    in: 2...42,
+                                    step: 1
+                                )
                             }
                         }
                     }
@@ -178,6 +213,7 @@ struct SimplePatternBuilderView: View {
                 updateAutoName()
             }
             .onChange(of: cycleLength) { _, _ in
+                normalizeCycleLength()
                 updateAutoName()
             }
             .alert("Pattern Created!", isPresented: $showSuccess) {
@@ -207,49 +243,53 @@ struct SimplePatternBuilderView: View {
         return "Create \"\(resolved)\""
     }
 
-    private var workDaysGrid: some View {
-        let columns = Array(repeating: GridItem(.flexible(), spacing: ShiftProSpacing.small), count: min(cycleLength, 7))
+    private var customLengthLabel: String {
+        let weeks = cycleLength / 7
+        let days = cycleLength % 7
+        if weeks > 0 {
+            return "\(cycleLength) days (\(weeks)w \(days)d)"
+        }
+        return "\(cycleLength) days"
+    }
 
-        return LazyVGrid(columns: columns, spacing: ShiftProSpacing.small) {
-            ForEach(0..<cycleLength, id: \.self) { day in
-                let isWorkDay = workDays.contains(day)
-                Button {
-                    withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
-                        if isWorkDay {
-                            workDays.remove(day)
-                        } else {
-                            workDays.insert(day)
+    private var workDaysGrid: some View {
+        if cycleLength > 14 {
+            let weekCount = Int(ceil(Double(cycleLength) / 7.0))
+            return AnyView(
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: ShiftProSpacing.small) {
+                        ForEach(0..<weekCount, id: \.self) { weekIndex in
+                            VStack(spacing: ShiftProSpacing.extraSmall) {
+                                Text("Week \(weekIndex + 1)")
+                                    .font(ShiftProTypography.caption)
+                                    .foregroundStyle(ShiftProColors.inkSubtle)
+
+                                ForEach(daysInWeek(weekIndex: weekIndex), id: \.self) { day in
+                                    dayToggleCell(for: day)
+                                }
+                            }
+                            .frame(width: 70)
                         }
                     }
-                    HapticManager.fire(.selection, enabled: !reduceMotion)
-                } label: {
-                    VStack(spacing: ShiftProSpacing.extraExtraSmall) {
-                        Text("Day \(day + 1)")
-                            .font(ShiftProTypography.caption)
-                        Text(isWorkDay ? "Work" : "Off")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(isWorkDay ? .white.opacity(0.9) : ShiftProColors.inkSubtle)
-                        Image(systemName: isWorkDay ? "briefcase.fill" : "moon.zzz.fill")
-                            .font(.system(size: 22))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 76)
-                    .background(isWorkDay ? ShiftProColors.accent : ShiftProColors.surface)
-                    .foregroundStyle(isWorkDay ? .white : ShiftProColors.inkSubtle)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(isWorkDay ? ShiftProColors.accent : ShiftProColors.divider, lineWidth: 2)
-                    )
+                    .padding(.horizontal, ShiftProSpacing.medium)
+                }
+            )
+        }
+
+        let columns = Array(repeating: GridItem(.flexible(), spacing: ShiftProSpacing.small), count: min(cycleLength, 7))
+        return AnyView(
+            LazyVGrid(columns: columns, spacing: ShiftProSpacing.small) {
+                ForEach(0..<cycleLength, id: \.self) { day in
+                    dayToggleCell(for: day)
                 }
             }
-        }
+        )
     }
 
     private var patternPreviewCalendar: some View {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        let previewDays = 14
+        let previewDays = cycleLength <= 14 ? 14 : min(cycleLength + 7, 42)
 
         return VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
             HStack {
@@ -260,34 +300,36 @@ struct SimplePatternBuilderView: View {
                 Stepper("", value: $currentDayInCycle, in: 0...(max(0, cycleLength - 1)))
                     .labelsHidden()
             }
-            HStack(spacing: 4) {
-                ForEach(0..<previewDays, id: \.self) { offset in
-                    let date = calendar.date(byAdding: .day, value: offset, to: today) ?? today
-                    let dayInCycle = ((offset - currentDayInCycle) % cycleLength + cycleLength) % cycleLength
-                    let isWorkDay = workDays.contains(dayInCycle)
-                    let isToday = offset == 0
+            ScrollView(previewDays > 14 ? .horizontal : .vertical, showsIndicators: false) {
+                HStack(spacing: 4) {
+                    ForEach(0..<previewDays, id: \.self) { offset in
+                        let date = calendar.date(byAdding: .day, value: offset, to: today) ?? today
+                        let dayInCycle = ((offset - currentDayInCycle) % cycleLength + cycleLength) % cycleLength
+                        let isWorkDay = workDays.contains(dayInCycle)
+                        let isToday = offset == 0
 
-                    VStack(spacing: 2) {
-                        Text(dayAbbreviation(for: date))
-                            .font(.system(size: 9))
-                            .foregroundStyle(ShiftProColors.inkSubtle)
+                        VStack(spacing: 2) {
+                            Text(dayAbbreviation(for: date))
+                                .font(.system(size: 9))
+                                .foregroundStyle(ShiftProColors.inkSubtle)
 
-                        Text("\(calendar.component(.day, from: date))")
-                            .font(.system(size: 11, weight: isToday ? .bold : .regular))
-                            .foregroundStyle(isWorkDay ? .white : ShiftProColors.ink)
-                            .frame(width: 22, height: 22)
-                            .background(isWorkDay ? ShiftProColors.accent : ShiftProColors.surface)
-                            .clipShape(Circle())
-                            .overlay(
-                                Circle()
-                                    .stroke(isToday ? ShiftProColors.success : .clear, lineWidth: 2)
-                            )
+                            Text("\(calendar.component(.day, from: date))")
+                                .font(.system(size: 11, weight: isToday ? .bold : .regular))
+                                .foregroundStyle(isWorkDay ? .white : ShiftProColors.ink)
+                                .frame(width: 22, height: 22)
+                                .background(isWorkDay ? ShiftProColors.accent : ShiftProColors.surface)
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle()
+                                        .stroke(isToday ? ShiftProColors.success : .clear, lineWidth: 2)
+                                )
+                        }
                     }
                 }
+                .padding(ShiftProSpacing.small)
+                .background(ShiftProColors.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
             }
-            .padding(ShiftProSpacing.small)
-            .background(ShiftProColors.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
 
             // Summary text
             let workCount = workDays.count
@@ -295,6 +337,50 @@ struct SimplePatternBuilderView: View {
             Text("\(workCount) work days, \(offCount) off - repeating every \(cycleLength) days")
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(ShiftProColors.inkSubtle)
+        }
+    }
+
+    private func normalizeCycleLength() {
+        workDays = workDays.filter { $0 < cycleLength }
+        currentDayInCycle = min(currentDayInCycle, max(0, cycleLength - 1))
+    }
+
+    private func daysInWeek(weekIndex: Int) -> [Int] {
+        let start = weekIndex * 7
+        let end = min(start + 7, cycleLength)
+        return Array(start..<end)
+    }
+
+    private func dayToggleCell(for day: Int) -> some View {
+        let isWorkDay = workDays.contains(day)
+        return Button {
+            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
+                if isWorkDay {
+                    workDays.remove(day)
+                } else {
+                    workDays.insert(day)
+                }
+            }
+            HapticManager.fire(.selection, enabled: !reduceMotion)
+        } label: {
+            VStack(spacing: ShiftProSpacing.extraExtraSmall) {
+                Text("Day \(day + 1)")
+                    .font(ShiftProTypography.caption)
+                Text(isWorkDay ? "Work" : "Off")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(isWorkDay ? .white.opacity(0.9) : ShiftProColors.inkSubtle)
+                Image(systemName: isWorkDay ? "briefcase.fill" : "moon.zzz.fill")
+                    .font(.system(size: 22))
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 76)
+            .background(isWorkDay ? ShiftProColors.accent : ShiftProColors.surface)
+            .foregroundStyle(isWorkDay ? .white : ShiftProColors.inkSubtle)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isWorkDay ? ShiftProColors.accent : ShiftProColors.divider, lineWidth: 2)
+            )
         }
     }
 
