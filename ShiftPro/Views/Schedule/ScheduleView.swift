@@ -62,15 +62,18 @@ struct ScheduleView: View {
             AnimatedMeshBackground()
 
             ScrollView {
-                VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
-                    // Prominent shift banner at top
-                    if let primaryShift = primaryShiftForSelectedDate {
-                        premiumActiveShiftBanner(shift: primaryShift)
-                    }
-
+                VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
+                    // Calendar header and grid FIRST - this is the core feature
                     premiumCalendarHeader
+                        .padding(.top, ShiftProSpacing.small)
 
                     premiumCalendarContent
+
+                    // Shift banner below calendar
+                    if let primaryShift = primaryShiftForSelectedDate {
+                        premiumActiveShiftBanner(shift: primaryShift)
+                            .padding(.top, ShiftProSpacing.small)
+                    }
 
                     VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
                         HStack {
@@ -561,91 +564,95 @@ struct ScheduleView: View {
     // MARK: - Premium Calendar Header
 
     private var premiumCalendarHeader: some View {
-        HStack(spacing: ShiftProSpacing.small) {
-            Button {
-                pendingDate = selectedDate
-                showingDatePicker = true
-            } label: {
-                HStack(spacing: 6) {
-                    Text(currentMonthName)
-                        .font(ShiftProTypography.subheadline)
-                        .fontWeight(.semibold)
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 10, weight: .bold))
-                }
-                .foregroundStyle(ShiftProColors.ink)
-                .padding(.vertical, 8)
-                .padding(.horizontal, 14)
-                .background(
-                    Capsule()
-                        .fill(ShiftProColors.surface)
-                        .overlay(
-                            Capsule()
-                                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                        )
-                )
-            }
-            .scalePress(0.96)
-            .accessibilityLabel("Jump to date")
-
-            Button {
-                goToToday()
-            } label: {
-                Text("Today")
-                    .font(ShiftProTypography.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(ShiftProColors.accent)
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .background(
-                        Capsule()
-                            .fill(ShiftProColors.accent.opacity(0.12))
-                    )
-            }
-            .scalePress(0.96)
-
-            Spacer()
-
-            HStack(spacing: 4) {
+        VStack(spacing: ShiftProSpacing.small) {
+            // Row 1: Month title with navigation
+            HStack {
                 Button {
                     navigate(by: -1)
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(ShiftProColors.ink)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 40, height: 40)
                         .background(
                             Circle()
                                 .fill(ShiftProColors.surface)
+                                .overlay(
+                                    Circle()
+                                        .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                )
                         )
                 }
                 .scalePress(0.92)
+
+                Spacer()
+
+                Button {
+                    pendingDate = selectedDate
+                    showingDatePicker = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Text(currentMonthName)
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 12, weight: .bold))
+                    }
+                    .foregroundStyle(ShiftProColors.ink)
+                }
+                .scalePress(0.96)
+                .accessibilityLabel("Jump to date")
+
+                Spacer()
 
                 Button {
                     navigate(by: 1)
                 } label: {
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(ShiftProColors.ink)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 40, height: 40)
                         .background(
                             Circle()
                                 .fill(ShiftProColors.surface)
+                                .overlay(
+                                    Circle()
+                                        .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                )
                         )
                 }
                 .scalePress(0.92)
             }
 
-            Picker("View", selection: $viewMode) {
-                ForEach(ViewMode.allCases) { mode in
-                    Text(mode.title).tag(mode)
+            // Row 2: Today button and view mode picker
+            HStack {
+                Button {
+                    goToToday()
+                } label: {
+                    Text("Today")
+                        .font(ShiftProTypography.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(ShiftProColors.accent)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .background(
+                            Capsule()
+                                .fill(ShiftProColors.accent.opacity(0.12))
+                        )
                 }
-            }
-            .pickerStyle(.segmented)
-            .frame(width: 140)
-            .fixedSize()
-            .onChange(of: viewMode) { _, _ in
-                HapticManager.fire(.selection, enabled: !reduceMotion)
+                .scalePress(0.96)
+
+                Spacer()
+
+                Picker("View", selection: $viewMode) {
+                    ForEach(ViewMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 140)
+                .onChange(of: viewMode) { _, _ in
+                    HapticManager.fire(.selection, enabled: !reduceMotion)
+                }
             }
         }
     }
@@ -724,17 +731,40 @@ struct ScheduleView: View {
     private var premiumCalendarStrip: some View {
         let columns = Array(repeating: GridItem(.flexible(), spacing: ShiftProSpacing.extraSmall), count: 7)
 
-        return LazyVGrid(columns: columns, spacing: ShiftProSpacing.small) {
-            ForEach(weekDates, id: \.self) { date in
-                premiumDayCell(for: date, shifts: shifts(for: date))
-                    .onTapGesture {
-                        withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)) {
-                            selectedDate = date
+        return VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+            // Weekday headers for week view too
+            HStack(spacing: ShiftProSpacing.extraSmall) {
+                ForEach(calendar.shortStandaloneWeekdaySymbols, id: \.self) { symbol in
+                    Text(symbol)
+                        .font(ShiftProTypography.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(.bottom, 4)
+
+            LazyVGrid(columns: columns, spacing: ShiftProSpacing.small) {
+                ForEach(weekDates, id: \.self) { date in
+                    premiumDayCell(for: date, shifts: shifts(for: date))
+                        .onTapGesture {
+                            withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)) {
+                                selectedDate = date
+                            }
+                            HapticManager.fire(.selection, enabled: !reduceMotion)
                         }
-                        HapticManager.fire(.selection, enabled: !reduceMotion)
-                    }
+                }
             }
         }
+        .padding(ShiftProSpacing.medium)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(ShiftProColors.surface.opacity(0.5))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+        )
         .accessibilityIdentifier(AccessibilityIdentifiers.scheduleCalendarStrip)
     }
 
