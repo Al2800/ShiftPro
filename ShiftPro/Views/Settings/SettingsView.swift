@@ -202,6 +202,8 @@ struct SettingsView: View {
             return "Temporarily unavailable"
         case .couldNotDetermine:
             return "Checking..."
+        case .unavailable:
+            return "Unavailable"
         }
     }
 
@@ -356,6 +358,8 @@ private struct ICloudSyncStatusView: View {
             return ShiftProColors.warning
         case .temporarilyUnavailable, .couldNotDetermine:
             return ShiftProColors.inkSubtle
+        case .unavailable:
+            return ShiftProColors.inkSubtle
         }
     }
 
@@ -371,6 +375,8 @@ private struct ICloudSyncStatusView: View {
             return "Temporarily unavailable"
         case .couldNotDetermine:
             return "Checking..."
+        case .unavailable:
+            return "Unavailable"
         }
     }
 
@@ -386,6 +392,8 @@ private struct ICloudSyncStatusView: View {
             return "iCloud is temporarily unavailable"
         case .couldNotDetermine:
             return "Checking status..."
+        case .unavailable:
+            return "iCloud is unavailable"
         }
     }
 
@@ -404,6 +412,8 @@ private struct ICloudSyncStatusView: View {
             return "iCloud services are temporarily unavailable. Please try again later."
         case .couldNotDetermine:
             return "We're checking your iCloud status. Please wait a moment."
+        case .unavailable:
+            return "iCloud sync isn't configured for this build of ShiftPro."
         }
     }
 

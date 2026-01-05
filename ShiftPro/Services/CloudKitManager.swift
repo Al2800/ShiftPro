@@ -1,5 +1,6 @@
 import CloudKit
 import Foundation
+import Security
 
 @MainActor
 final class CloudKitManager: ObservableObject {
@@ -9,12 +10,25 @@ final class CloudKitManager: ObservableObject {
         case restricted
         case couldNotDetermine
         case temporarilyUnavailable
+        case unavailable
     }
 
-    @Published private(set) var status: Status = .couldNotDetermine
+    @Published private(set) var status: Status
+    private let isCloudKitConfigured: Bool
     private var isMonitoring = false
 
+    init() {
+        let hasEntitlement = Self.hasCloudKitEntitlement()
+        isCloudKitConfigured = hasEntitlement
+        status = hasEntitlement ? .couldNotDetermine : .unavailable
+    }
+
     func refreshStatus() async {
+        guard isCloudKitConfigured else {
+            status = .unavailable
+            return
+        }
+
         do {
             let accountStatus = try await CKContainer.default().accountStatus()
             switch accountStatus {
@@ -37,6 +51,7 @@ final class CloudKitManager: ObservableObject {
     }
 
     func startMonitoringAccountChanges() {
+        guard isCloudKitConfigured else { return }
         guard !isMonitoring else { return }
         isMonitoring = true
         NotificationCenter.default.addObserver(
@@ -51,5 +66,15 @@ final class CloudKitManager: ObservableObject {
         Task {
             await refreshStatus()
         }
+    }
+
+    private static func hasCloudKitEntitlement() -> Bool {
+        guard let task = SecTaskCreateFromSelf(nil) else { return false }
+        let entitlementKey = "com.apple.developer.icloud-container-identifiers" as CFString
+        let entitlement = SecTaskCopyValueForEntitlement(task, entitlementKey, nil)
+        if let containers = entitlement as? [String] {
+            return !containers.isEmpty
+        }
+        return entitlement != nil
     }
 }
