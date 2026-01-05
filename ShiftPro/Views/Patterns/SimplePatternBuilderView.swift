@@ -76,7 +76,7 @@ struct SimplePatternBuilderView: View {
 
     private var headerSection: some View {
         Text("Build Your Pattern")
-            .font(ShiftProTypography.title2)
+            .font(ShiftProTypography.title)
             .foregroundStyle(ShiftProColors.ink)
     }
 
