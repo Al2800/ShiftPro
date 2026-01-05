@@ -1,11 +1,14 @@
 import SwiftUI
+import UIKit
 
 // MARK: - ShiftPro Surface Style Guide
 //
 // Surface Levels:
-// - .standard (22pt radius): Default cards, form sections, list items
+// - .flat (22pt radius): Flat surfaces without elevation
+// - .standard (22pt radius): Subtle lift for default cards, form sections, list items
 // - .elevated (24pt radius): Important cards, summaries, featured content
 // - .hero (28pt radius): Hero cards, primary CTAs, dashboard highlights
+// - .floating (30pt radius): Floating panels, modals, popovers
 //
 // Usage:
 // - Cards: .shiftProSurface(.standard) or .shiftProSurface(.elevated)
@@ -13,9 +16,11 @@ import SwiftUI
 // - Form sections: .shiftProCardSection() for styled form rows
 //
 // Shadow Rules:
-// - .standard: No shadow (flat surface)
-// - .elevated: Subtle shadow (8pt blur, 0.15 opacity)
-// - .hero: Prominent shadow (18pt blur, 0.25 opacity)
+// - .flat: No shadow (flat surface)
+// - .standard: Subtle depth + soft glow
+// - .elevated: Layered depth + standard glow
+// - .hero: Prominent depth + noticeable glow
+// - .floating: Strong depth + wide glow
 //
 // Corner Radius Reference:
 // - Small elements (chips, pills): 12-14pt
@@ -23,29 +28,39 @@ import SwiftUI
 // - Featured/hero: 24-28pt
 
 enum ShiftProSurfaceLevel {
+    case flat
     case standard
     case elevated
     case hero
+    case floating
 
     var cornerRadius: CGFloat {
         switch self {
+        case .flat:
+            return 22
         case .standard:
             return 22
         case .elevated:
             return 24
         case .hero:
             return 28
+        case .floating:
+            return 30
         }
     }
 
     var backgroundColor: Color {
         switch self {
+        case .flat:
+            return ShiftProColors.surface
         case .standard:
             return ShiftProColors.surface
         case .elevated:
             return ShiftProColors.surfaceElevated
         case .hero:
             return ShiftProColors.surfaceElevated
+        case .floating:
+            return ShiftProColors.card
         }
     }
 
@@ -53,73 +68,107 @@ enum ShiftProSurfaceLevel {
         switch self {
         case .hero:
             return ShiftProColors.accent
+        case .floating:
+            return ShiftProColors.accent.opacity(0.3)
         default:
             return ShiftProColors.accentMuted
         }
     }
 
-    var shadowColor: Color {
+    var primaryShadowOpacity: Double {
         switch self {
+        case .flat:
+            return 0
         case .standard:
-            return .clear
+            return 0.18
         case .elevated:
-            return ShiftProColors.elevationGlow
+            return 0.28
         case .hero:
-            return ShiftProColors.accent.opacity(0.18)
+            return 0.36
+        case .floating:
+            return 0.42
         }
     }
 
-    /// Secondary glow for premium elevation effect
-    var glowColor: Color {
+    var primaryShadowRadius: CGFloat {
+        switch self {
+        case .flat:
+            return 0
+        case .standard:
+            return 6
+        case .elevated:
+            return 10
+        case .hero:
+            return 14
+        case .floating:
+            return 18
+        }
+    }
+
+    var primaryShadowY: CGFloat {
+        switch self {
+        case .flat:
+            return 0
+        case .standard:
+            return 3
+        case .elevated:
+            return 6
+        case .hero:
+            return 10
+        case .floating:
+            return 12
+        }
+    }
+
+    var glowIntensity: GlowIntensity {
         switch self {
         case .standard:
-            return .clear
+            return .subtle
         case .elevated:
-            return ShiftProColors.accent.opacity(0.08)
+            return .standard
         case .hero:
-            return ShiftProColors.accent.opacity(0.12)
+            return .prominent
+        case .floating:
+            return .prominent
+        case .flat:
+            return .none
         }
     }
 
     var glowRadius: CGFloat {
         switch self {
-        case .standard:
+        case .flat:
             return 0
+        case .standard:
+            return 14
         case .elevated:
             return 20
         case .hero:
             return 28
+        case .floating:
+            return 34
         }
     }
 
-    var shadowRadius: CGFloat {
-        switch self {
-        case .standard:
-            return 0
-        case .elevated:
-            return 12
-        case .hero:
-            return 18
-        }
+    var primaryShadowColor: Color {
+        let opacity = primaryShadowOpacity
+        return Color(UIColor { trait in
+            let adjusted = trait.userInterfaceStyle == .dark ? opacity : opacity * 0.6
+            return UIColor(white: 0.0, alpha: adjusted)
+        })
     }
 
-    var shadowX: CGFloat { 0 }
-    var shadowY: CGFloat {
-        switch self {
-        case .standard:
-            return 0
-        case .elevated:
-            return 8
-        case .hero:
-            return 10
-        }
+    var glowColor: Color {
+        ShiftProColors.glow(glowIntensity)
     }
 
     var contentPadding: CGFloat {
         switch self {
+        case .flat:
+            return ShiftProSpacing.medium
         case .standard:
             return ShiftProSpacing.large
-        case .elevated, .hero:
+        case .elevated, .hero, .floating:
             return ShiftProSpacing.extraLarge
         }
     }
@@ -141,10 +190,10 @@ struct ShiftProSurfaceStyle: ViewModifier {
             )
             // Primary shadow for depth
             .shadow(
-                color: level.shadowColor,
-                radius: level.shadowRadius,
-                x: level.shadowX,
-                y: level.shadowY
+                color: level.primaryShadowColor,
+                radius: level.primaryShadowRadius,
+                x: 0,
+                y: level.primaryShadowY
             )
             // Secondary glow for premium elevation effect
             .shadow(
@@ -167,21 +216,22 @@ extension View {
         padding: CGFloat = ShiftProSpacing.medium,
         shadow: Bool = true
     ) -> some View {
+        let level: ShiftProSurfaceLevel = shadow ? .standard : .flat
         self
             .padding(padding)
-            .background(ShiftProColors.surface)
+            .background(level.backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             // Primary depth shadow
             .shadow(
-                color: shadow ? ShiftProColors.elevationGlow : .clear,
-                radius: shadow ? 10 : 0,
+                color: level.primaryShadowColor,
+                radius: shadow ? level.primaryShadowRadius : 0,
                 x: 0,
-                y: shadow ? 4 : 0
+                y: shadow ? level.primaryShadowY : 0
             )
             // Secondary glow for premium feel
             .shadow(
-                color: shadow ? ShiftProColors.accent.opacity(0.06) : .clear,
-                radius: shadow ? 16 : 0,
+                color: shadow ? level.glowColor : .clear,
+                radius: shadow ? level.glowRadius : 0,
                 x: 0,
                 y: 0
             )
@@ -214,6 +264,9 @@ enum ShiftProCornerRadius {
 
     /// Hero cards and primary CTAs (28pt)
     static let hero: CGFloat = 28
+
+    /// Floating panels and popovers (30pt)
+    static let floating: CGFloat = 30
 }
 
 extension View {

@@ -1,6 +1,16 @@
 import SwiftUI
 import UIKit
 
+// Scale values relative to ShiftProColors.elevationGlow (standard intensity).
+enum GlowIntensity: Double, CaseIterable {
+    case none = 0.0
+    case subtle = 0.5
+    case standard = 1.0
+    case prominent = 1.5
+
+    var scale: Double { rawValue }
+}
+
 enum ShiftProColors {
     // Premium dark mode: near-black with subtle blue undertone (#08090C)
     static let background = Color(UIColor { trait in
@@ -108,12 +118,12 @@ enum ShiftProColors {
         return UIColor(red: 0.94, green: 0.95, blue: 0.98, alpha: 1.0)
     })
 
-    // Premium glow for elevated surfaces (accent-tinted shadow)
+    // Premium glow base for elevated surfaces (accent-tinted shadow)
     static let elevationGlow = Color(UIColor { trait in
         if trait.userInterfaceStyle == .dark {
-            return UIColor(red: 0.40, green: 0.58, blue: 0.88, alpha: 0.12)
+            return UIColor(red: 0.40, green: 0.58, blue: 0.88, alpha: 0.08)
         }
-        return UIColor(red: 0.09, green: 0.32, blue: 0.66, alpha: 0.06)
+        return UIColor(red: 0.09, green: 0.32, blue: 0.66, alpha: 0.04)
     })
 
     // Surface level 3: Featured cards and hero sections (#22262F)
@@ -149,5 +159,9 @@ enum ShiftProColors {
         default:
             return success
         }
+    }
+
+    static func glow(_ intensity: GlowIntensity) -> Color {
+        elevationGlow.opacity(intensity.scale)
     }
 }
