@@ -11,7 +11,16 @@ struct ShiftPreviewPill: View {
     /// Uses 24-hour format (e.g., "07-15") instead of 12-hour (e.g., "7a-3p")
     var use24Hour: Bool = false
 
-    // MARK: - Status Color
+    // MARK: - Shift Color
+
+    /// Returns the pattern's custom color if available, otherwise falls back to status color
+    private var shiftColor: Color {
+        // Use pattern's custom color if available
+        if let pattern = shift.pattern, !pattern.colorHex.isEmpty {
+            return Color(hex: pattern.colorHex) ?? statusColor
+        }
+        return statusColor
+    }
 
     private var statusColor: Color {
         switch shift.status {
@@ -85,9 +94,9 @@ struct ShiftPreviewPill: View {
 
     var body: some View {
         HStack(spacing: ShiftProSpacing.extraExtraSmall) {
-            // Left accent bar
+            // Left accent bar with pattern color
             RoundedRectangle(cornerRadius: 1.5)
-                .fill(statusColor)
+                .fill(shiftColor)
                 .frame(width: 3)
 
             // Time range (abbreviated)
@@ -111,7 +120,7 @@ struct ShiftPreviewPill: View {
         .frame(height: 20)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(statusColor.opacity(0.12))
+                .fill(shiftColor.opacity(0.12))
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityDescription)

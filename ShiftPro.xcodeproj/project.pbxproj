@@ -172,6 +172,7 @@
 		FE8D590F49FC4B168CAA1DCE /* PremiumHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0C4A282DE174DACA379ED84 /* PremiumHeroCard.swift */; };
 		D8552DA4789140A98B1A2C37 /* PremiumShiftRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A09273E35A741FE84129852 /* PremiumShiftRow.swift */; };
 		A1C3E5F708B94D2E9F4A6B81 /* PremiumSettingsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D9F2E405A6481B8E3C0A72 /* PremiumSettingsCard.swift */; };
+		B2F8E4A6C9D1F3E7A5B0C8D4 /* CurrencyFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A9F3B2D6C8E1F4A7B0C5D3 /* CurrencyFormatter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -358,6 +359,7 @@
 		B0C4A282DE174DACA379ED84 /* PremiumHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumHeroCard.swift; sourceTree = "<group>"; };
 		5A09273E35A741FE84129852 /* PremiumShiftRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumShiftRow.swift; sourceTree = "<group>"; };
 		C7D9F2E405A6481B8E3C0A72 /* PremiumSettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumSettingsCard.swift; sourceTree = "<group>"; };
+		E5A9F3B2D6C8E1F4A7B0C5D3 /* CurrencyFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyFormatter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -516,6 +518,7 @@
 			children = (
 				9EE5A172D5AF5D18A2F4F87D /* AccessibilityIdentifiers.swift */,
 				7BE09E9C6A33B5AAEF8585C3 /* CSVFormatter.swift */,
+				E5A9F3B2D6C8E1F4A7B0C5D3 /* CurrencyFormatter.swift */,
 				AB432775C85B825815D9CE16 /* DataError.swift */,
 				E86FDAF94206EDADD6AD95F3 /* DateExtensions.swift */,
 				03B337B62AE68B252EC2ACA2 /* DateMath.swift */,
@@ -1105,6 +1108,7 @@
 				FE8D590F49FC4B168CAA1DCE /* PremiumHeroCard.swift in Sources */,
 				D8552DA4789140A98B1A2C37 /* PremiumShiftRow.swift in Sources */,
 				A1C3E5F708B94D2E9F4A6B81 /* PremiumSettingsCard.swift in Sources */,
+				B2F8E4A6C9D1F3E7A5B0C8D4 /* CurrencyFormatter.swift in Sources */,
 				711E6B935A247BCDF0948FEB /* ExportOptionsView.swift in Sources */,
 				DBED9B65F3DB47FF369503D2 /* ImportView.swift in Sources */,
 				91B470BC6D46B83EAE5245A8 /* HoursDashboard.swift in Sources */,

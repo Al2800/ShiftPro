@@ -35,11 +35,7 @@ struct PremiumShiftRow: View {
         let hours = Double(paidMinutes) / 60.0
         let pay = hours * Double(baseRateCents) / 100.0 * shift.rateMultiplier
         guard pay > 0 else { return nil }
-
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = Locale.current
-        return formatter.string(from: NSNumber(value: pay))
+        return CurrencyFormatter.format(pay)
     }
 
     var body: some View {
@@ -263,11 +259,7 @@ struct LiveShiftCard: View {
         let hours = Double(paidMinutes) / 60.0
         let pay = hours * Double(baseRateCents) / 100.0 * shift.rateMultiplier
         guard pay > 0 else { return nil }
-
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = Locale.current
-        return formatter.string(from: NSNumber(value: pay))
+        return CurrencyFormatter.format(pay)
     }
 
     var body: some View {

@@ -478,9 +478,8 @@ struct ScheduleView: View {
     private var currencyFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        if let code = Locale.current.currency?.identifier {
-            formatter.currencyCode = code
-        }
+        formatter.currencyCode = "GBP"
+        formatter.locale = Locale(identifier: "en_GB")
         return formatter
     }
 
@@ -1155,15 +1154,25 @@ struct ScheduleView: View {
         return "\(displayHour)\(isPM ? "p" : "a")"
     }
 
+    /// Returns the color for a shift - prioritizes pattern color, then falls back to status
+    private func shiftColor(for shift: Shift) -> Color {
+        // Use pattern's custom color if available
+        if let pattern = shift.pattern, !pattern.colorHex.isEmpty {
+            return Color(hex: pattern.colorHex) ?? ShiftProColors.accent
+        }
+        // Fallback to status color
+        switch shift.status {
+        case .inProgress: return ShiftProColors.success
+        case .scheduled: return ShiftProColors.accent
+        case .cancelled: return ShiftProColors.danger
+        case .completed: return ShiftProColors.inkSubtle
+        }
+    }
+
     private func shiftStatusColor(for dayShifts: [Shift]) -> Color {
-        if dayShifts.contains(where: { $0.status == .inProgress }) {
-            return ShiftProColors.success
-        }
-        if dayShifts.contains(where: { $0.status == .scheduled }) {
-            return ShiftProColors.accent
-        }
-        if dayShifts.contains(where: { $0.status == .cancelled }) {
-            return ShiftProColors.danger
+        // Use first shift's pattern color if available
+        if let firstShift = dayShifts.first {
+            return shiftColor(for: firstShift)
         }
         return ShiftProColors.inkSubtle
     }

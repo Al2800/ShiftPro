@@ -98,10 +98,7 @@ struct HoursDisplay: View {
     // MARK: - Currency Formatting
 
     private func formatCurrency(_ amount: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = Locale.current
-        return formatter.string(from: NSNumber(value: amount)) ?? "$\(String(format: "%.2f", amount))"
+        CurrencyFormatter.format(amount) ?? "£\(String(format: "%.2f", amount))"
     }
 }
 

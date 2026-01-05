@@ -164,4 +164,53 @@ enum ShiftProColors {
     static func glow(_ intensity: GlowIntensity) -> Color {
         elevationGlow.opacity(intensity.scale)
     }
+
+    /// Predefined shift pattern colors for user selection
+    static let patternColors: [String] = [
+        "#5B8DEF", // Blue (default)
+        "#54C785", // Green
+        "#F5A623", // Orange
+        "#E85C5C", // Red
+        "#9B6DD7", // Purple
+        "#4ECDC4", // Teal
+        "#FF6B9D", // Pink
+        "#8B9DC3", // Slate
+        "#F7DC6F", // Yellow
+        "#2ECC71", // Emerald
+    ]
+}
+
+// MARK: - Color Hex Extension
+
+extension Color {
+    /// Initialize Color from a hex string (e.g., "#FF5733" or "FF5733")
+    init?(hex: String) {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
+
+        guard hexSanitized.count == 6 else { return nil }
+
+        var rgbValue: UInt64 = 0
+        guard Scanner(string: hexSanitized).scanHexInt64(&rgbValue) else { return nil }
+
+        let red = Double((rgbValue & 0xFF0000) >> 16) / 255.0
+        let green = Double((rgbValue & 0x00FF00) >> 8) / 255.0
+        let blue = Double(rgbValue & 0x0000FF) / 255.0
+
+        self.init(red: red, green: green, blue: blue)
+    }
+
+    /// Convert Color to hex string
+    func toHex() -> String? {
+        guard let components = UIColor(self).cgColor.components else { return nil }
+
+        let red = components.count > 0 ? components[0] : 0
+        let green = components.count > 1 ? components[1] : 0
+        let blue = components.count > 2 ? components[2] : 0
+
+        return String(format: "#%02X%02X%02X",
+                      Int(red * 255),
+                      Int(green * 255),
+                      Int(blue * 255))
+    }
 }
