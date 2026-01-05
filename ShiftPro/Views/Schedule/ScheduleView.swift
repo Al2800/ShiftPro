@@ -66,11 +66,7 @@ struct ScheduleView: View {
 
                 calendarHeader
 
-                if viewMode == .week {
-                    calendarStrip
-                } else {
-                    monthGrid
-                }
+                calendarContent
 
                 VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
                     HStack {
@@ -172,59 +168,6 @@ struct ScheduleView: View {
         .background(ShiftProColors.background.ignoresSafeArea())
         .navigationTitle("Schedule")
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                HStack(spacing: ShiftProSpacing.small) {
-                    Button {
-                        navigate(by: -1)
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .foregroundStyle(ShiftProColors.accent)
-                    }
-                    .accessibilityLabel("Previous week")
-
-                    Button {
-                        withAnimation {
-                            selectedDate = Date()
-                        }
-                    } label: {
-                        Text("Today")
-                            .font(ShiftProTypography.caption)
-                            .foregroundStyle(ShiftProColors.accent)
-                    }
-                    .accessibilityLabel("Go to today")
-
-                    Button {
-                        navigate(by: 1)
-                    } label: {
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(ShiftProColors.accent)
-                    }
-                    .accessibilityLabel("Next week")
-                }
-            }
-
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    pendingDate = selectedDate
-                    showingDatePicker = true
-                } label: {
-                    Image(systemName: "calendar")
-                        .foregroundStyle(ShiftProColors.accent)
-                }
-                .accessibilityLabel("Jump to date")
-            }
-
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showingPatterns = true
-                } label: {
-                    Image(systemName: "repeat")
-                        .foregroundStyle(ShiftProColors.accent)
-                }
-                .accessibilityLabel("Shift patterns")
-                .accessibilityIdentifier("schedule.patterns")
-            }
-
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     if !activePatterns.isEmpty {
@@ -236,6 +179,14 @@ struct ScheduleView: View {
                                     Label(pattern.name, systemImage: "repeat")
                                 }
                             }
+                        }
+                    }
+
+                    Section("Patterns") {
+                        Button {
+                            showingPatterns = true
+                        } label: {
+                            Label("Pattern Library", systemImage: "repeat")
                         }
                     }
 
@@ -574,9 +525,24 @@ struct ScheduleView: View {
 
     private var calendarHeader: some View {
         HStack(spacing: ShiftProSpacing.small) {
-            Text(currentMonthName)
-                .font(ShiftProTypography.subheadline)
+            Button {
+                pendingDate = selectedDate
+                showingDatePicker = true
+            } label: {
+                HStack(spacing: 6) {
+                    Text(currentMonthName)
+                        .font(ShiftProTypography.subheadline)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 11, weight: .semibold))
+                }
                 .foregroundStyle(ShiftProColors.inkSubtle)
+                .padding(.vertical, 4)
+                .padding(.horizontal, 8)
+                .background(ShiftProColors.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Jump to date")
 
             Spacer()
 
@@ -587,6 +553,47 @@ struct ScheduleView: View {
             }
             .pickerStyle(.segmented)
             .frame(width: 180)
+        }
+    }
+
+    private var calendarContent: some View {
+        Group {
+            if viewMode == .week {
+                calendarStrip
+            } else {
+                monthGrid
+            }
+        }
+        .gesture(
+            DragGesture(minimumDistance: 20, coordinateSpace: .local)
+                .onEnded { value in
+                    handleSwipe(value)
+                }
+        )
+        .onTapGesture(count: 2) {
+            goToToday()
+        }
+        .accessibilityAction(named: "Previous") {
+            navigate(by: -1)
+        }
+        .accessibilityAction(named: "Next") {
+            navigate(by: 1)
+        }
+        .accessibilityAction(named: "Today") {
+            goToToday()
+        }
+    }
+
+    private func handleSwipe(_ value: DragGesture.Value) {
+        let horizontal = value.translation.width
+        let vertical = value.translation.height
+        guard abs(horizontal) > abs(vertical), abs(horizontal) > 40 else { return }
+        navigate(by: horizontal < 0 ? 1 : -1)
+    }
+
+    private func goToToday() {
+        withAnimation {
+            selectedDate = Date()
         }
     }
 
