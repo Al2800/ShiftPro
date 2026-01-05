@@ -28,12 +28,16 @@ final class CloudKitManager: ObservableObject {
             return
         }
 
+        // Check if CloudKit container is accessible before making API calls
+        // This prevents crashes on devices/simulators without iCloud configured
+        let container = CKContainer.default()
+
         // Fetch account status on a background context to avoid potential
         // MainActor conflicts with CloudKit's internal threading
         let fetchedStatus: Status = await withCheckedContinuation { continuation in
             Task.detached {
                 do {
-                    let accountStatus = try await CKContainer.default().accountStatus()
+                    let accountStatus = try await container.accountStatus()
                     let mappedStatus: Status
                     switch accountStatus {
                     case .available:
@@ -51,7 +55,8 @@ final class CloudKitManager: ObservableObject {
                     }
                     continuation.resume(returning: mappedStatus)
                 } catch {
-                    continuation.resume(returning: .couldNotDetermine)
+                    // CloudKit not available - return unavailable instead of crashing
+                    continuation.resume(returning: .unavailable)
                 }
             }
         }
@@ -98,12 +103,8 @@ final class CloudKitManager: ObservableObject {
             return true
         }
 
-        // Fallback: assume CloudKit is available and let errors be handled gracefully
-        // This allows the app to work in development/simulator where entitlements may not be present
-        #if DEBUG
-        return true
-        #else
+        // Don't assume CloudKit is available - return false if not configured
+        // This prevents crashes on cloud Macs and simulators without iCloud
         return false
-        #endif
     }
 }
