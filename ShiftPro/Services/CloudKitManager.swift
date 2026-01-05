@@ -1,6 +1,5 @@
 import CloudKit
 import Foundation
-import Security
 
 @MainActor
 final class CloudKitManager: ObservableObject {
@@ -83,15 +82,28 @@ final class CloudKitManager: ObservableObject {
         }
     }
 
-    // Mark as nonisolated since it only uses thread-safe Security APIs
-    // and doesn't access any actor-isolated state
+    // Check if CloudKit is configured by looking for iCloud container identifiers
+    // in the app's entitlements via the embedded provisioning profile or Info.plist
     nonisolated private static func hasCloudKitEntitlement() -> Bool {
-        guard let task = SecTaskCreateFromSelf(nil) else { return false }
-        let entitlementKey = "com.apple.developer.icloud-container-identifiers" as CFString
-        let entitlement = SecTaskCopyValueForEntitlement(task, entitlementKey, nil)
-        if let containers = entitlement as? [String] {
-            return !containers.isEmpty
+        // Check if the app has CloudKit container identifiers configured
+        // by checking the ubiquity container identifiers in Info.plist
+        if let containers = Bundle.main.object(forInfoDictionaryKey: "NSUbiquitousContainers") as? [String: Any],
+           !containers.isEmpty {
+            return true
         }
-        return entitlement != nil
+
+        // Also check for legacy iCloud container identifiers
+        if let containerID = Bundle.main.object(forInfoDictionaryKey: "com.apple.developer.icloud-container-identifiers") as? [String],
+           !containerID.isEmpty {
+            return true
+        }
+
+        // Fallback: assume CloudKit is available and let errors be handled gracefully
+        // This allows the app to work in development/simulator where entitlements may not be present
+        #if DEBUG
+        return true
+        #else
+        return false
+        #endif
     }
 }

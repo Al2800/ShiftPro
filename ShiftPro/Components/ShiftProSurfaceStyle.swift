@@ -217,7 +217,7 @@ extension View {
         shadow: Bool = true
     ) -> some View {
         let level: ShiftProSurfaceLevel = shadow ? .standard : .flat
-        self
+        return self
             .padding(padding)
             .background(level.backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
