@@ -323,7 +323,7 @@ struct ScheduleView: View {
     }
 
     private func navigate(by value: Int) {
-        let animation = reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.8)
+        let animation: Animation? = reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.8)
         withAnimation(animation) {
             let component: Calendar.Component = viewMode == .month ? .month : .weekOfYear
             if let newDate = calendar.date(byAdding: component, value: value, to: selectedDate) {
@@ -608,7 +608,7 @@ struct ScheduleView: View {
     }
 
     private func goToToday() {
-        let animation = reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.8)
+        let animation: Animation? = reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.8)
         withAnimation(animation) {
             selectedDate = Date()
         }

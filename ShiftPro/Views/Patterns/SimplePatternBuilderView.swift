@@ -62,7 +62,8 @@ struct SimplePatternBuilderView: View {
                             HStack(spacing: ShiftProSpacing.small) {
                                 ForEach([4, 5, 7, 14, 21, 28], id: \.self) { length in
                                     Button {
-                                        withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)) {
+                                        let anim: Animation? = reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)
+                                        withAnimation(anim) {
                                             cycleLength = length
                                             isCustomLength = false
                                             normalizeCycleLength()
@@ -80,7 +81,8 @@ struct SimplePatternBuilderView: View {
                                 }
 
                                 Button {
-                                    withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)) {
+                                    let anim: Animation? = reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)
+                                    withAnimation(anim) {
                                         isCustomLength = true
                                     }
                                     HapticManager.fire(.selection, enabled: !reduceMotion)
@@ -357,7 +359,8 @@ struct SimplePatternBuilderView: View {
     private func dayToggleCell(for day: Int) -> some View {
         let isWorkDay = workDays.contains(day)
         return Button {
-            withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)) {
+            let anim: Animation? = reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)
+            withAnimation(anim) {
                 if isWorkDay {
                     workDays.remove(day)
                 } else {
