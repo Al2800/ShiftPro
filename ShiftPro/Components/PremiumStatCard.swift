@@ -249,10 +249,7 @@ struct EarningsHighlightCard: View {
     var subtitle: String?
 
     private var formattedAmount: String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = Locale.current
-        return formatter.string(from: NSNumber(value: amount)) ?? "$\(String(format: "%.2f", amount))"
+        CurrencyFormatter.format(amount) ?? "£\(String(format: "%.2f", amount))"
     }
 
     var body: some View {

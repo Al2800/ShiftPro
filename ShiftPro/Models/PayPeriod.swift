@@ -115,16 +115,10 @@ extension PayPeriod {
         return Double(cents) / 100.0
     }
 
-    /// Formatted estimated pay (e.g., "$1,234.56")
+    /// Formatted estimated pay (e.g., "£1,234.56")
     var estimatedPayFormatted: String? {
         guard let dollars = estimatedPayDollars else { return nil }
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = Locale.current
-        if let currencyCode = Locale.current.currency?.identifier {
-            formatter.currencyCode = currencyCode
-        }
-        return formatter.string(from: NSNumber(value: dollars))
+        return CurrencyFormatter.format(dollars)
     }
 
     /// Period date range formatted (e.g., "Dec 1 - Dec 14")

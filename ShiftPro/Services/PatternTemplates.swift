@@ -58,7 +58,7 @@ enum PatternTemplates {
     )
 
     static var all: [PatternDefinition] {
-        [weeklyNineToFive, fourOnFourOff, pitman, continental, duPont]
+        [weeklyNineToFive, fourOnFourOff, continental]
     }
 
     private static func rotationPattern(_ workDays: [Bool]) -> [PatternDefinition.RotationDayDefinition] {

@@ -56,83 +56,94 @@ struct PremiumSettingsRow: View {
     var action: (() -> Void)?
 
     var body: some View {
-        Button(action: { action?() }) {
-            HStack(spacing: ShiftProSpacing.medium) {
-                // Icon with gradient background
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    iconColor.opacity(0.2),
-                                    iconColor.opacity(0.1)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 36, height: 36)
-
-                    Image(systemName: icon)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(iconColor)
-                }
-
-                // Title and detail
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Text(title)
-                            .font(ShiftProTypography.body)
-                            .foregroundStyle(ShiftProColors.ink)
-
-                        if let badge {
-                            Text(badge)
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(
-                                    Capsule()
-                                        .fill(badgeColor)
-                                )
+        // Only wrap in Button if action is provided, otherwise just render content
+        // This allows NavigationLink to work when wrapping this component
+        if let action {
+            Button(action: action) {
+                rowContent
+            }
+            .buttonStyle(PlainButtonStyle())
+            .scaleEffect(isPressed ? 0.98 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        if !isPressed {
+                            isPressed = true
+                            HapticManager.fire(.impactLight, enabled: !reduceMotion)
                         }
                     }
+                    .onEnded { _ in
+                        isPressed = false
+                    }
+            )
+        } else {
+            rowContent
+                .contentShape(Rectangle())
+        }
+    }
 
-                    if let detail {
-                        Text(detail)
-                            .font(ShiftProTypography.caption)
-                            .foregroundStyle(ShiftProColors.inkSubtle)
+    private var rowContent: some View {
+        HStack(spacing: ShiftProSpacing.medium) {
+            // Icon with gradient background
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                iconColor.opacity(0.2),
+                                iconColor.opacity(0.1)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 36, height: 36)
+
+                Image(systemName: icon)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(iconColor)
+            }
+
+            // Title and detail
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(title)
+                        .font(ShiftProTypography.body)
+                        .foregroundStyle(ShiftProColors.ink)
+
+                    if let badge {
+                        Text(badge)
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(
+                                Capsule()
+                                    .fill(badgeColor)
+                            )
                     }
                 }
 
-                Spacer()
-
-                if showChevron {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(ShiftProColors.inkSubtle.opacity(0.5))
+                if let detail {
+                    Text(detail)
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
                 }
             }
-            .padding(.horizontal, ShiftProSpacing.medium)
-            .padding(.vertical, ShiftProSpacing.small + 2)
-            .background(Color.clear)
-            .contentShape(Rectangle())
+
+            Spacer()
+
+            if showChevron {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(ShiftProColors.inkSubtle.opacity(0.5))
+            }
         }
-        .buttonStyle(PlainButtonStyle())
-        .scaleEffect(isPressed ? 0.98 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    if !isPressed {
-                        isPressed = true
-                        HapticManager.fire(.impactLight, enabled: !reduceMotion)
-                    }
-                }
-                .onEnded { _ in
-                    isPressed = false
-                }
-        )
+        .padding(.horizontal, ShiftProSpacing.medium)
+        .padding(.vertical, ShiftProSpacing.small + 2)
+        .background(Color.clear)
+        .contentShape(Rectangle())
     }
 }
 
@@ -200,86 +211,97 @@ struct PremiumProfileHeader: View {
     var action: (() -> Void)?
 
     var body: some View {
-        Button(action: { action?() }) {
-            HStack(spacing: ShiftProSpacing.medium) {
-                // Avatar
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color(red: 0.30, green: 0.50, blue: 0.98),
-                                    Color(red: 0.45, green: 0.40, blue: 0.92)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 56, height: 56)
-
-                    Image(systemName: avatarIcon)
-                        .font(.system(size: 24, weight: .semibold))
-                        .foregroundStyle(.white)
-                }
-                .shadow(color: ShiftProColors.accent.opacity(0.3), radius: 8, x: 0, y: 4)
-
-                // Name and subtitle
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(name)
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .foregroundStyle(ShiftProColors.ink)
-
-                    if let subtitle {
-                        Text(subtitle)
-                            .font(ShiftProTypography.subheadline)
-                            .foregroundStyle(ShiftProColors.inkSubtle)
-                    }
-                }
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(ShiftProColors.inkSubtle.opacity(0.5))
+        // Only wrap in Button if action is provided, otherwise just render content
+        // This allows NavigationLink to work when wrapping this component
+        if let action {
+            Button(action: action) {
+                headerContent
             }
-            .padding(ShiftProSpacing.medium)
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(ShiftProColors.surface)
-
-                    // Gradient overlay
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    ShiftProColors.accent.opacity(0.05),
-                                    Color.clear
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-
-                    // Border
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.1),
-                                    Color.white.opacity(0.03)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                }
-            )
-            .shadow(color: Color.black.opacity(0.12), radius: 8, x: 0, y: 4)
+            .buttonStyle(PlainButtonStyle())
+            .scalePress(0.98)
+        } else {
+            headerContent
+                .contentShape(Rectangle())
         }
-        .buttonStyle(PlainButtonStyle())
-        .scalePress(0.98)
+    }
+
+    private var headerContent: some View {
+        HStack(spacing: ShiftProSpacing.medium) {
+            // Avatar
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.30, green: 0.50, blue: 0.98),
+                                Color(red: 0.45, green: 0.40, blue: 0.92)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 56, height: 56)
+
+                Image(systemName: avatarIcon)
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            .shadow(color: ShiftProColors.accent.opacity(0.3), radius: 8, x: 0, y: 4)
+
+            // Name and subtitle
+            VStack(alignment: .leading, spacing: 4) {
+                Text(name)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(ShiftProColors.ink)
+
+                if let subtitle {
+                    Text(subtitle)
+                        .font(ShiftProTypography.subheadline)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                }
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(ShiftProColors.inkSubtle.opacity(0.5))
+        }
+        .padding(ShiftProSpacing.medium)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(ShiftProColors.surface)
+
+                // Gradient overlay
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                ShiftProColors.accent.opacity(0.05),
+                                Color.clear
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+
+                // Border
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.1),
+                                Color.white.opacity(0.03)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            }
+        )
+        .shadow(color: Color.black.opacity(0.12), radius: 8, x: 0, y: 4)
     }
 }
 

@@ -642,7 +642,8 @@ struct ScheduleView: View {
                 }
             }
             .pickerStyle(.segmented)
-            .frame(width: 130)
+            .frame(width: 140)
+            .fixedSize()
             .onChange(of: viewMode) { _, _ in
                 HapticManager.fire(.selection, enabled: !reduceMotion)
             }

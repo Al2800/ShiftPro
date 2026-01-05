@@ -529,10 +529,7 @@ struct DashboardView: View {
         let earnings = hours * shift.rateMultiplier * Double(baseRateCents) / 100.0
 
         // Format as currency
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = Locale.current
-        return formatter.string(from: NSNumber(value: earnings))
+        return CurrencyFormatter.format(earnings)
     }
 
 

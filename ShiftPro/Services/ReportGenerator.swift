@@ -143,13 +143,7 @@ final class ReportGenerator {
             let hours = Double(paidMinutes(for: shift)) / 60.0
             return total + (Double(baseRateCents) * hours * shift.rateMultiplier / 100.0)
         }
-
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        if let currencyCode = Locale.current.currency?.identifier {
-            formatter.currencyCode = currencyCode
-        }
-        return formatter.string(from: NSNumber(value: totalPay))
+        return CurrencyFormatter.format(totalPay)
     }
 
     enum ReportError: Error {

@@ -86,15 +86,9 @@ extension Double {
         String(format: "%.1fh", self)
     }
 
-    /// Formats as currency (e.g., "$1,234.56")
+    /// Formats as currency (e.g., "£1,234.56")
     var currencyFormatted: String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = Locale.current
-        if let currencyCode = Locale.current.currency?.identifier {
-            formatter.currencyCode = currencyCode
-        }
-        return formatter.string(from: NSNumber(value: self)) ?? String(format: "$%.2f", self)
+        CurrencyFormatter.format(self) ?? String(format: "£%.2f", self)
     }
 }
 
