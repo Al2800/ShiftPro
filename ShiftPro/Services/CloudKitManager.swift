@@ -4,7 +4,7 @@ import Security
 
 @MainActor
 final class CloudKitManager: ObservableObject {
-    enum Status: String {
+    enum Status: String, Sendable {
         case available
         case noAccount
         case restricted
@@ -29,31 +29,44 @@ final class CloudKitManager: ObservableObject {
             return
         }
 
-        do {
-            let accountStatus = try await CKContainer.default().accountStatus()
-            switch accountStatus {
-            case .available:
-                status = .available
-            case .noAccount:
-                status = .noAccount
-            case .restricted:
-                status = .restricted
-            case .couldNotDetermine:
-                status = .couldNotDetermine
-            case .temporarilyUnavailable:
-                status = .temporarilyUnavailable
-            @unknown default:
-                status = .couldNotDetermine
+        // Fetch account status on a background context to avoid potential
+        // MainActor conflicts with CloudKit's internal threading
+        let fetchedStatus: Status = await withCheckedContinuation { continuation in
+            Task.detached {
+                do {
+                    let accountStatus = try await CKContainer.default().accountStatus()
+                    let mappedStatus: Status
+                    switch accountStatus {
+                    case .available:
+                        mappedStatus = .available
+                    case .noAccount:
+                        mappedStatus = .noAccount
+                    case .restricted:
+                        mappedStatus = .restricted
+                    case .couldNotDetermine:
+                        mappedStatus = .couldNotDetermine
+                    case .temporarilyUnavailable:
+                        mappedStatus = .temporarilyUnavailable
+                    @unknown default:
+                        mappedStatus = .couldNotDetermine
+                    }
+                    continuation.resume(returning: mappedStatus)
+                } catch {
+                    continuation.resume(returning: .couldNotDetermine)
+                }
             }
-        } catch {
-            status = .couldNotDetermine
         }
+
+        // Update on MainActor
+        status = fetchedStatus
     }
 
     func startMonitoringAccountChanges() {
         guard isCloudKitConfigured else { return }
         guard !isMonitoring else { return }
         isMonitoring = true
+
+        // Use MainActor.run for the notification observer setup
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleAccountChange),
@@ -62,13 +75,17 @@ final class CloudKitManager: ObservableObject {
         )
     }
 
+    // @objc methods can be called from any thread by NotificationCenter.
+    // Use explicit @MainActor Task to ensure proper isolation.
     @objc private func handleAccountChange() {
-        Task {
-            await refreshStatus()
+        Task { @MainActor [weak self] in
+            await self?.refreshStatus()
         }
     }
 
-    private static func hasCloudKitEntitlement() -> Bool {
+    // Mark as nonisolated since it only uses thread-safe Security APIs
+    // and doesn't access any actor-isolated state
+    nonisolated private static func hasCloudKitEntitlement() -> Bool {
         guard let task = SecTaskCreateFromSelf(nil) else { return false }
         let entitlementKey = "com.apple.developer.icloud-container-identifiers" as CFString
         let entitlement = SecTaskCopyValueForEntitlement(task, entitlementKey, nil)
