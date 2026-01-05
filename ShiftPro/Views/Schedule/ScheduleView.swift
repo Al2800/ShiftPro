@@ -30,6 +30,7 @@ struct ScheduleView: View {
     }
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query(filter: #Predicate<Shift> { $0.deletedAt == nil }, sort: [SortDescriptor(\Shift.scheduledStart, order: .forward)])
     private var shifts: [Shift]
     @Query(sort: [SortDescriptor(\UserProfile.createdAt, order: .forward)])
@@ -335,6 +336,12 @@ struct ScheduleView: View {
         }
     }
 
+    private func shifts(for date: Date) -> [Shift] {
+        shifts
+            .filter { calendar.isDate($0.scheduledStart, inSameDayAs: date) }
+            .sorted(by: { $0.scheduledStart < $1.scheduledStart })
+    }
+
     /// Primary shift for selected date - prioritizes in-progress, then upcoming, then any
     private var primaryShiftForSelectedDate: Shift? {
         let dayShifts = shiftsForSelectedDate
@@ -502,19 +509,20 @@ struct ScheduleView: View {
     }
 
     private var calendarStrip: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
-            HStack(spacing: ShiftProSpacing.small) {
-                ForEach(weekDates, id: \.self) { date in
-                    calendarDayCell(for: date)
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                selectedDate = date
-                            }
+        let columns = Array(repeating: GridItem(.flexible(), spacing: ShiftProSpacing.extraSmall), count: 7)
+
+        return LazyVGrid(columns: columns, spacing: ShiftProSpacing.small) {
+            ForEach(weekDates, id: \.self) { date in
+                calendarDayCell(for: date, shifts: shifts(for: date))
+                    .onTapGesture {
+                        withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)) {
+                            selectedDate = date
                         }
-                }
+                        HapticManager.fire(.selection, enabled: !reduceMotion)
+                    }
             }
-            .accessibilityIdentifier(AccessibilityIdentifiers.scheduleCalendarStrip)
         }
+        .accessibilityIdentifier(AccessibilityIdentifiers.scheduleCalendarStrip)
     }
 
     private var monthGrid: some View {
@@ -566,10 +574,11 @@ struct ScheduleView: View {
         return dates
     }
 
-    private func calendarDayCell(for date: Date) -> some View {
+    private func calendarDayCell(for date: Date, shifts dayShifts: [Shift]) -> some View {
         let isSelected = calendar.isDate(date, inSameDayAs: selectedDate)
         let isToday = calendar.isDateInToday(date)
-        let hasShifts = shifts.contains { calendar.isDate($0.scheduledStart, inSameDayAs: date) }
+        let hasShifts = !dayShifts.isEmpty
+        let previewShift = dayShifts.first
 
         let dayFormatter = DateFormatter()
         dayFormatter.dateFormat = "EEE"
@@ -584,14 +593,24 @@ struct ScheduleView: View {
             Text(dateFormatter.string(from: date))
                 .font(ShiftProTypography.subheadline)
                 .foregroundStyle(isSelected ? .white : ShiftProColors.ink)
-            if hasShifts {
+
+            if let previewShift {
+                ShiftPreviewPill(shift: previewShift, compact: true)
+            }
+
+            if dayShifts.count > 1 {
+                Text("+\(dayShifts.count - 1)")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(isSelected ? .white.opacity(0.9) : ShiftProColors.accent)
+            } else if hasShifts {
                 Circle()
                     .fill(isSelected ? .white : ShiftProColors.accent)
                     .frame(width: 6, height: 6)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, ShiftProSpacing.extraSmall)
+        .padding(.vertical, ShiftProSpacing.small)
+        .padding(.horizontal, ShiftProSpacing.extraExtraSmall)
         .background(
             isSelected ? ShiftProColors.accent : (isToday ? ShiftProColors.accentMuted : ShiftProColors.surface)
         )
@@ -600,6 +619,19 @@ struct ScheduleView: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(isToday && !isSelected ? ShiftProColors.accent : .clear, lineWidth: 2)
         )
+        .contentShape(Rectangle())
+        .accessibilityLabel(dayAccessibilityLabel(for: date, shifts: dayShifts))
+    }
+
+    private func dayAccessibilityLabel(for date: Date, shifts dayShifts: [Shift]) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMM d"
+        let base = formatter.string(from: date)
+        guard !dayShifts.isEmpty else { return base }
+        if dayShifts.count == 1, let shift = dayShifts.first {
+            return "\(base), \(shift.timeRangeFormatted)"
+        }
+        return "\(base), \(dayShifts.count) shifts"
     }
 
     private func monthDayCell(for date: Date) -> some View {
