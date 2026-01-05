@@ -51,6 +51,7 @@ struct ShiftProApp: App {
                     }
                     .environmentObject(entitlementManager)
                     .modelContainer(sharedModelContainer)
+                    .preferredColorScheme(.dark)
             } else {
                 StorageUnavailableView()
             }

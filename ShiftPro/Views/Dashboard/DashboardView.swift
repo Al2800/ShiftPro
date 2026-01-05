@@ -23,6 +23,18 @@ struct DashboardView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
+                // App branding header
+                HStack {
+                    (Text("Shift")
+                        .foregroundStyle(ShiftProColors.ink)
+                    +
+                    Text("Pro")
+                        .foregroundStyle(ShiftProColors.accent))
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                    Spacer()
+                }
+                .padding(.bottom, ShiftProSpacing.small)
+
                 heroCard
                     .opacity(animateIn ? 1 : 0)
                     .offset(y: animateIn ? 0 : 16)
@@ -114,8 +126,11 @@ struct DashboardView: View {
             .padding(.vertical, ShiftProSpacing.large)
         }
         .background(ShiftProColors.background.ignoresSafeArea())
-        .navigationTitle("Dashboard")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                EmptyView() // Hide default title, using custom header instead
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     showingNotifications = true

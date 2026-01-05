@@ -758,28 +758,36 @@ struct ScheduleView: View {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "d"
 
-        let barScale = shiftBarScale(for: dayShifts.count)
-        let barHeight = shiftBarHeight(for: dayShifts.count)
         let barColor = isSelected ? Color.white : shiftStatusColor(for: dayShifts)
+        let firstShift = dayShifts.first
 
-        return VStack(spacing: ShiftProSpacing.extraExtraSmall) {
+        return VStack(spacing: 2) {
             Text(dateFormatter.string(from: date))
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(isSelected ? .white : ShiftProColors.ink)
 
-            if hasShifts {
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .fill(barColor)
-                    .frame(height: barHeight)
-                    .frame(maxWidth: .infinity)
-                    .scaleEffect(x: barScale, y: 1, anchor: .center)
-                    .padding(.horizontal, 6)
+            if hasShifts, let shift = firstShift {
+                // Show shift time icon based on time of day
+                Image(systemName: shiftTimeIcon(for: shift))
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(barColor)
+
+                // Show shift count or time
+                if dayShifts.count > 1 {
+                    Text("\(dayShifts.count)")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(isSelected ? .white.opacity(0.9) : ShiftProColors.accent)
+                } else {
+                    Text(shortTimeLabel(for: shift))
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundStyle(isSelected ? .white.opacity(0.8) : ShiftProColors.inkSubtle)
+                }
             } else {
                 Color.clear
-                    .frame(height: barHeight)
+                    .frame(height: 16)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 42)
+        .frame(maxWidth: .infinity, minHeight: 52)
         .padding(.vertical, ShiftProSpacing.extraSmall)
         .background(isSelected ? ShiftProColors.accent : ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -789,6 +797,29 @@ struct ScheduleView: View {
         )
         .contentShape(Rectangle())
         .accessibilityLabel(dayAccessibilityLabel(for: date, shifts: dayShifts))
+    }
+
+    /// Returns an icon based on shift start time (morning/afternoon/evening/night)
+    private func shiftTimeIcon(for shift: Shift) -> String {
+        let hour = calendar.component(.hour, from: shift.scheduledStart)
+        switch hour {
+        case 5..<12:
+            return "sunrise.fill"
+        case 12..<17:
+            return "sun.max.fill"
+        case 17..<21:
+            return "sunset.fill"
+        default:
+            return "moon.fill"
+        }
+    }
+
+    /// Returns a short time label like "9a" or "2p"
+    private func shortTimeLabel(for shift: Shift) -> String {
+        let hour = calendar.component(.hour, from: shift.scheduledStart)
+        let isPM = hour >= 12
+        let displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour)
+        return "\(displayHour)\(isPM ? "p" : "a")"
     }
 
     private func shiftStatusColor(for dayShifts: [Shift]) -> Color {
@@ -804,29 +835,6 @@ struct ScheduleView: View {
         return ShiftProColors.inkSubtle
     }
 
-    private func shiftBarScale(for count: Int) -> CGFloat {
-        switch count {
-        case 0:
-            return 0
-        case 1:
-            return 0.6
-        case 2:
-            return 0.8
-        default:
-            return 1.0
-        }
-    }
-
-    private func shiftBarHeight(for count: Int) -> CGFloat {
-        switch count {
-        case 2:
-            return 4
-        case 3...:
-            return 5
-        default:
-            return 3
-        }
-    }
 
     #if DEBUG
     private var testControls: some View {

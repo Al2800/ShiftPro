@@ -68,9 +68,23 @@ struct SettingsView: View {
                         settingRow(icon: "person.crop.circle", title: "My Profile", detail: profile.displayName)
                     }
 
-                    settingRow(icon: "briefcase", title: "Workplace", detail: profile.workplace ?? "Not set")
-                    settingRow(icon: "person.text.rectangle", title: "Role", detail: profile.jobTitle ?? "Not set")
-                    settingRow(icon: "number", title: "Employee ID", detail: profile.employeeId ?? "Not set")
+                    NavigationLink {
+                        ProfileDetailView(profile: profile)
+                    } label: {
+                        settingRow(icon: "briefcase", title: "Workplace", detail: profile.workplace ?? "Not set")
+                    }
+
+                    NavigationLink {
+                        ProfileDetailView(profile: profile)
+                    } label: {
+                        settingRow(icon: "person.text.rectangle", title: "Role", detail: profile.jobTitle ?? "Not set")
+                    }
+
+                    NavigationLink {
+                        ProfileDetailView(profile: profile)
+                    } label: {
+                        settingRow(icon: "number", title: "Employee ID", detail: profile.employeeId ?? "Not set")
+                    }
                 } else {
                     Button {
                         createProfileAndEdit()
