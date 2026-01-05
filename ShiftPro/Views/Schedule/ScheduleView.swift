@@ -391,6 +391,8 @@ struct ScheduleView: View {
     private func activeShiftBanner(shift: Shift) -> some View {
         let isInProgress = shift.status == .inProgress
         let statusColor = isInProgress ? ShiftProColors.success : ShiftProColors.accent
+        let statusText = isInProgress ? "In Progress" : (calendar.isDateInToday(selectedDate) ? "Today's Shift" : sectionTitle)
+        let estimatedPay = estimatedPayLabel(for: shift)
 
         NavigationLink {
             ShiftDetailView(
@@ -403,62 +405,142 @@ struct ScheduleView: View {
                 notes: shift.notes
             )
         } label: {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
-                HStack {
+            HStack(spacing: 0) {
+                Rectangle()
+                    .fill(statusColor)
+                    .frame(width: 4)
+
+                VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+                    HStack {
+                        if isInProgress {
+                            Circle()
+                                .fill(statusColor)
+                                .frame(width: 8, height: 8)
+                        }
+                        Text(statusText)
+                            .font(ShiftProTypography.caption)
+                            .foregroundStyle(statusColor)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(ShiftProColors.inkSubtle)
+                    }
+
+                    Text(shift.pattern?.name ?? "Shift")
+                        .font(ShiftProTypography.title)
+                        .foregroundStyle(ShiftProColors.ink)
+
+                    Text(timeDisplay(for: shift))
+                        .font(ShiftProTypography.headline)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+
+                    HStack(spacing: ShiftProSpacing.medium) {
+                        if let location = shift.locationDisplay, !location.isEmpty {
+                            Label(location, systemImage: "mappin")
+                                .font(ShiftProTypography.subheadline)
+                                .foregroundStyle(ShiftProColors.inkSubtle)
+                        }
+
+                        if let estimatedPay {
+                            Label("Est. \(estimatedPay)", systemImage: "dollarsign.circle")
+                                .font(ShiftProTypography.subheadline)
+                                .foregroundStyle(ShiftProColors.inkSubtle)
+                        }
+                    }
+
                     if isInProgress {
-                        Circle()
-                            .fill(ShiftProColors.success)
-                            .frame(width: 8, height: 8)
-                    }
-                    Text(isInProgress ? "In Progress" : (calendar.isDateInToday(selectedDate) ? "Today's Shift" : sectionTitle))
-                        .font(ShiftProTypography.caption)
-                        .foregroundStyle(statusColor)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(ShiftProColors.fog)
-                }
-
-                Text(shift.pattern?.name ?? "Shift")
-                    .font(ShiftProTypography.title)
-                    .foregroundStyle(.white)
-
-                HStack(spacing: ShiftProSpacing.medium) {
-                    Label(shift.timeRangeFormatted, systemImage: "clock")
-                        .font(ShiftProTypography.subheadline)
-                        .foregroundStyle(.white.opacity(0.9))
-
-                    if let location = shift.locationDisplay, !location.isEmpty {
-                        Label(location, systemImage: "mappin")
-                            .font(ShiftProTypography.subheadline)
-                            .foregroundStyle(.white.opacity(0.9))
+                        ShiftProgressBar(
+                            progress: shiftProgress(for: shift),
+                            remaining: remainingTimeLabel(for: shift),
+                            tint: statusColor
+                        )
                     }
                 }
-
-                if shift.rateMultiplier > 1.0 {
-                    Text(shift.rateLabel ?? String(format: "%.1fx", shift.rateMultiplier))
-                        .font(ShiftProTypography.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(ShiftProColors.midnight)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Capsule().fill(ShiftProColors.warning))
-                }
+                .padding(ShiftProSpacing.large)
             }
-            .padding(ShiftProSpacing.large)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(
-                        isInProgress
-                            ? LinearGradient(colors: [ShiftProColors.success, ShiftProColors.success.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                            : ShiftProColors.heroGradient
-                    )
-            )
-            .shadow(color: statusColor.opacity(0.25), radius: 12, x: 0, y: 6)
+            .background(ShiftProColors.surfaceElevated)
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .shadow(color: Color.black.opacity(0.25), radius: 8, x: 0, y: 4)
+            .shadow(color: statusColor.opacity(0.12), radius: 18, x: 0, y: 0)
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("schedule.primaryShiftBanner")
+        .transition(.asymmetric(
+            insertion: .scale(scale: 0.95).combined(with: .opacity),
+            removal: .opacity
+        ))
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: primaryShiftForSelectedDate?.id)
+    }
+
+    private func timeDisplay(for shift: Shift) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        let start = formatter.string(from: shift.effectiveStart)
+        let end = formatter.string(from: shift.effectiveEnd)
+        return "\(start) → \(end)"
+    }
+
+    private func estimatedPayLabel(for shift: Shift) -> String? {
+        guard let baseRateCents = profile?.baseRateCents, baseRateCents > 0 else { return nil }
+        let paidMinutes = shift.paidMinutes > 0 ? shift.paidMinutes : max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
+        guard paidMinutes > 0 else { return nil }
+        let hours = Double(paidMinutes) / 60.0
+        let pay = hours * Double(baseRateCents) / 100.0 * shift.rateMultiplier
+        guard pay > 0 else { return nil }
+        return currencyFormatter.string(from: NSNumber(value: pay))
+    }
+
+    private func shiftProgress(for shift: Shift) -> Double {
+        let start = shift.effectiveStart
+        let end = shift.effectiveEnd
+        let total = end.timeIntervalSince(start)
+        guard total > 0 else { return 0 }
+        let elapsed = max(0, min(Date().timeIntervalSince(start), total))
+        return elapsed / total
+    }
+
+    private func remainingTimeLabel(for shift: Shift) -> String {
+        let remaining = max(0, shift.effectiveEnd.timeIntervalSince(Date()))
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute]
+        formatter.unitsStyle = .abbreviated
+        formatter.maximumUnitCount = 2
+        return formatter.string(from: remaining) ?? "0m"
+    }
+
+    private var currencyFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        if let code = Locale.current.currency?.identifier {
+            formatter.currencyCode = code
+        }
+        return formatter
+    }
+
+    private struct ShiftProgressBar: View {
+        let progress: Double
+        let remaining: String
+        let tint: Color
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: ShiftProSpacing.extraExtraSmall) {
+                GeometryReader { proxy in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(tint.opacity(0.15))
+                            .frame(height: 6)
+                        Capsule()
+                            .fill(tint)
+                            .frame(width: max(0, min(1, progress)) * proxy.size.width, height: 6)
+                    }
+                }
+                .frame(height: 6)
+                Text("\(remaining) remaining")
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+            }
+        }
     }
 
     private var emptyState: some View {
