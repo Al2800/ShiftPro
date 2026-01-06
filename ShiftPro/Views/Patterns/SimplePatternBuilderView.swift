@@ -23,6 +23,7 @@ struct SimplePatternBuilderView: View {
     @State private var isSettingAutoName = false
     @State private var isCustomLength = false
     @State private var selectedColorHex = ShiftProColors.patternColors[1]  // Default green
+    @State private var selectedShiftCode = "E"  // Default Early
 
     private let engine = PatternEngine()
 
@@ -62,6 +63,7 @@ struct SimplePatternBuilderView: View {
                 cycleLengthSection
                 workDaysSection
                 shiftTimesSection
+                shiftLabelSection
                 colorPickerSection
                 previewSection
                 createButtonSection
@@ -240,6 +242,79 @@ struct SimplePatternBuilderView: View {
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    // MARK: - Shift Label Section
+
+    private var shiftLabelSection: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+            Text("Shift Label")
+                .font(ShiftProTypography.headline)
+                .foregroundStyle(ShiftProColors.ink)
+
+            Text("Single letter shown on calendar (E=Early, N=Night, etc.)")
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(ShiftProColors.inkSubtle)
+
+            shiftLabelPicker
+        }
+    }
+
+    private var shiftLabelPicker: some View {
+        HStack(spacing: 12) {
+            ForEach(["E", "N", "L", "D", "M", "A"], id: \.self) { code in
+                shiftCodeButton(code)
+            }
+
+            Spacer()
+
+            // Custom input
+            TextField("", text: $selectedShiftCode)
+                .textFieldStyle(.plain)
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundStyle(ShiftProColors.ink)
+                .frame(width: 44, height: 44)
+                .multilineTextAlignment(.center)
+                .background(ShiftProColors.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
+                )
+                .onChange(of: selectedShiftCode) { _, new in
+                    selectedShiftCode = String(new.prefix(1)).uppercased()
+                }
+        }
+        .padding(ShiftProSpacing.medium)
+        .background(ShiftProColors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func shiftCodeButton(_ code: String) -> some View {
+        let isSelected = selectedShiftCode == code
+        let color = ShiftProColors.shiftCodeColor(for: code)
+
+        return Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                selectedShiftCode = code
+            }
+            HapticManager.fire(.selection, enabled: !reduceMotion)
+        } label: {
+            Text(code)
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundStyle(isSelected ? .white : color)
+                .frame(width: 44, height: 44)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(isSelected ? color : color.opacity(0.15))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(isSelected ? color : .clear, lineWidth: 2)
+                )
+                .scaleEffect(isSelected ? 1.05 : 1.0)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 
     private var colorPickerSection: some View {
@@ -583,6 +658,7 @@ struct SimplePatternBuilderView: View {
         let pattern = engine.buildPattern(from: definition, owner: profile)
         pattern.cycleStartDate = cycleStartDate
         pattern.colorHex = selectedColorHex
+        pattern.shortCode = selectedShiftCode
         modelContext.insert(pattern)
 
         for rotationDay in pattern.rotationDays {

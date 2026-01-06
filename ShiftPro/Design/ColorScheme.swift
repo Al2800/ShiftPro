@@ -178,6 +178,20 @@ enum ShiftProColors {
         "#F7DC6F", // Yellow
         "#2ECC71", // Emerald
     ]
+
+    /// Distinct colors for different shift codes - makes calendar scannable
+    static func shiftCodeColor(for code: String) -> Color {
+        switch code.uppercased() {
+        case "E": return Color(hex: "#0D9488") ?? .teal       // Early - Teal
+        case "N": return Color(hex: "#6366F1") ?? .indigo     // Night - Indigo
+        case "L": return Color(hex: "#F59E0B") ?? .orange     // Late - Amber
+        case "D": return Color(hex: "#F97316") ?? .orange     // Day - Coral
+        case "M": return Color(hex: "#8B5CF6") ?? .purple     // Mid - Violet
+        case "A": return Color(hex: "#EC4899") ?? .pink       // Afternoon - Pink
+        case "W": return Color(hex: "#10B981") ?? .green      // Work - Emerald
+        default: return Color(hex: "#10B981") ?? .green       // Default - Emerald
+        }
+    }
 }
 
 // MARK: - Color Hex Extension

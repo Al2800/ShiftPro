@@ -34,6 +34,8 @@ final class ShiftPattern {
     var isActive: Bool
     /// Hex color code for UI display (e.g., "#FF5733")
     var colorHex: String
+    /// Single letter code for calendar display (E=Early, N=Night, L=Late, D=Day)
+    var shortCode: String
     /// System patterns are pre-defined and cannot be deleted
     var isSystem: Bool
 
@@ -64,6 +66,7 @@ final class ShiftPattern {
         cycleStartDate: Date? = nil,
         isActive: Bool = true,
         colorHex: String = "#007AFF",
+        shortCode: String = "W",
         isSystem: Bool = false,
         createdAt: Date = Date(),
         deletedAt: Date? = nil,
@@ -79,6 +82,7 @@ final class ShiftPattern {
         self.cycleStartDate = cycleStartDate
         self.isActive = isActive
         self.colorHex = colorHex
+        self.shortCode = shortCode
         self.isSystem = isSystem
         self.createdAt = createdAt
         self.deletedAt = deletedAt

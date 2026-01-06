@@ -822,8 +822,11 @@ struct ScheduleView: View {
         let isSelected = calendar.isDate(date, inSameDayAs: selectedDate)
         let isToday = calendar.isDateInToday(date)
         let hasShifts = !dayShifts.isEmpty
-        let previewShift = dayShifts.first
-        let shiftColor = hasShifts ? shiftStatusColor(for: dayShifts) : ShiftProColors.success
+        let firstShift = dayShifts.first
+
+        // Get shift code and its color
+        let shiftCode = firstShift?.pattern?.shortCode ?? "W"
+        let shiftColor = hasShifts ? ShiftProColors.shiftCodeColor(for: shiftCode) : ShiftProColors.accent
 
         let dayFormatter = DateFormatter()
         dayFormatter.dateFormat = "EEE"
@@ -831,69 +834,46 @@ struct ScheduleView: View {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "d"
 
-        return VStack(spacing: ShiftProSpacing.extraExtraSmall) {
+        return VStack(spacing: 4) {
+            // Weekday - subtle
             Text(dayFormatter.string(from: date))
-                .font(ShiftProTypography.caption)
-                .foregroundStyle(isSelected ? .white : (hasShifts ? shiftColor.opacity(0.8) : ShiftProColors.inkSubtle))
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(ShiftProColors.inkSubtle)
 
+            // Date number
             Text(dateFormatter.string(from: date))
-                .font(.system(size: 20, weight: .semibold, design: .rounded))
-                .foregroundStyle(isSelected ? .white : (hasShifts ? shiftColor : ShiftProColors.ink))
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .foregroundStyle(isSelected ? .white : ShiftProColors.ink)
 
-            if let previewShift {
-                ShiftPreviewPill(shift: previewShift, compact: true)
-            }
+            // Shift code badge - the star
+            if hasShifts {
+                Text(shiftCode)
+                    .font(.system(size: 20, weight: .black, design: .rounded))
+                    .foregroundStyle(isSelected ? .white : shiftColor)
+                    .frame(width: 32, height: 28)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(isSelected ? .white.opacity(0.2) : shiftColor.opacity(0.15))
+                    )
 
-            if dayShifts.count > 1 {
-                Text("+\(dayShifts.count - 1)")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(isSelected ? .white.opacity(0.9) : shiftColor)
-            } else if hasShifts {
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(isSelected ? .white : shiftColor)
-                    .frame(width: 16, height: 4)
+                if dayShifts.count > 1 {
+                    Text("+\(dayShifts.count - 1)")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(isSelected ? .white.opacity(0.8) : shiftColor.opacity(0.7))
+                }
+            } else {
+                Color.clear.frame(height: 28)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, ShiftProSpacing.small)
-        .padding(.horizontal, ShiftProSpacing.extraExtraSmall)
+        .padding(.vertical, 8)
         .background(
-            ZStack {
-                if isSelected {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(shiftColor)
-                } else if hasShifts {
-                    // Subtle green tint for shift days
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(shiftColor.opacity(0.12))
-                } else if isToday {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(ShiftProColors.accent.opacity(0.15))
-                } else {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(ShiftProColors.surface)
-                }
-
-                // Top highlight
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.1),
-                                Color.white.opacity(0)
-                            ],
-                            startPoint: .top,
-                            endPoint: .center
-                        )
-                    )
-
-                // Border
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(
-                        isToday && !isSelected ? ShiftProColors.accent : Color.white.opacity(0.06),
-                        lineWidth: isToday && !isSelected ? 2 : 1
-                    )
-            }
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(isSelected ? shiftColor : (isToday ? ShiftProColors.accent.opacity(0.08) : ShiftProColors.surface))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(isToday && !isSelected ? ShiftProColors.accent : .clear, lineWidth: 1.5)
         )
         .shadow(color: isSelected ? ShiftProColors.accent.opacity(0.3) : Color.black.opacity(0.1), radius: isSelected ? 12 : 4, x: 0, y: isSelected ? 6 : 2)
         .scaleEffect(isSelected ? 1.02 : 1.0)
@@ -956,57 +936,54 @@ struct ScheduleView: View {
         let isSelected = calendar.isDate(date, inSameDayAs: selectedDate)
         let isToday = calendar.isDateInToday(date)
         let hasShifts = !dayShifts.isEmpty
+        let firstShift = dayShifts.first
 
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "d"
 
-        let shiftColor = hasShifts ? shiftStatusColor(for: dayShifts) : ShiftProColors.inkSubtle
-        let firstShift = dayShifts.first
+        // Get shift code and its color
+        let shiftCode = firstShift?.pattern?.shortCode ?? "W"
+        let shiftColor = hasShifts ? ShiftProColors.shiftCodeColor(for: shiftCode) : ShiftProColors.inkSubtle
 
-        return VStack(spacing: 3) {
+        return VStack(spacing: 2) {
+            // Date number - subtle, secondary
             Text(dateFormatter.string(from: date))
-                .font(.system(size: 15, weight: isSelected || hasShifts ? .bold : .medium, design: .rounded))
-                .foregroundStyle(isSelected ? .white : (hasShifts ? shiftColor : (isToday ? ShiftProColors.accent : ShiftProColors.ink)))
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(
+                    isSelected ? .white.opacity(0.9) :
+                    (isToday ? ShiftProColors.accent : ShiftProColors.inkSubtle)
+                )
 
-            if hasShifts, let shift = firstShift {
-                // Colored bar indicator for shift days
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(isSelected ? Color.white : shiftColor)
-                    .frame(width: 20, height: 4)
+            // Shift code letter - the hero element
+            if hasShifts {
+                Text(shiftCode)
+                    .font(.system(size: 18, weight: .black, design: .rounded))
+                    .foregroundStyle(isSelected ? .white : shiftColor)
 
+                // Multiple shifts indicator
                 if dayShifts.count > 1 {
                     Text("+\(dayShifts.count - 1)")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(isSelected ? .white.opacity(0.9) : shiftColor.opacity(0.8))
-                } else {
-                    Text(shortTimeLabel(for: shift))
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundStyle(isSelected ? .white.opacity(0.8) : shiftColor.opacity(0.8))
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(isSelected ? .white.opacity(0.7) : shiftColor.opacity(0.6))
                 }
             } else {
-                Color.clear
-                    .frame(height: 16)
+                // Empty day - subtle dot
+                Text("·")
+                    .font(.system(size: 14, weight: .light))
+                    .foregroundStyle(ShiftProColors.inkSubtle.opacity(0.3))
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 54)
+        .frame(maxWidth: .infinity, minHeight: 52)
         .background(
-            ZStack {
+            Group {
                 if isSelected {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(shiftColor)
-                } else if hasShifts {
-                    // Subtle tinted background for shift days
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(shiftColor.opacity(0.1))
-                } else {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color.clear)
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(hasShifts ? shiftColor : ShiftProColors.accent)
+                } else if isToday {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(ShiftProColors.accent, lineWidth: 1.5)
                 }
             }
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(isToday && !isSelected ? ShiftProColors.accent : (hasShifts && !isSelected ? shiftColor.opacity(0.3) : .clear), lineWidth: isToday ? 2 : 1)
         )
         .contentShape(Rectangle())
         .scaleEffect(isSelected ? 1.05 : 1.0)
