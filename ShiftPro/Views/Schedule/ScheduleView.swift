@@ -172,7 +172,8 @@ struct ScheduleView: View {
                     #endif
                 }
                 .padding(.horizontal, ShiftProSpacing.medium)
-                .padding(.vertical, ShiftProSpacing.large)
+                .padding(.top, ShiftProSpacing.large)
+                .padding(.bottom, 100) // Extra padding for tab bar
             }
         }
         .navigationTitle("Schedule")
