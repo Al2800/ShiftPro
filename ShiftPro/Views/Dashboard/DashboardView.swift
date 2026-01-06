@@ -51,6 +51,12 @@ struct DashboardView: View {
                         .offset(y: animateIn ? 0 : 12)
                         .animation(reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.8).delay(0.3), value: animateIn)
 
+                    // Overtime shifts section
+                    overtimeSection
+                        .opacity(animateIn ? 1 : 0)
+                        .offset(y: animateIn ? 0 : 10)
+                        .animation(reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.8).delay(0.35), value: animateIn)
+
                     // Quick actions
                     premiumQuickActions
                         .opacity(animateIn ? 1 : 0)
@@ -338,6 +344,67 @@ struct DashboardView: View {
         }
     }
 
+    // MARK: - Overtime Section
+
+    @ViewBuilder
+    private var overtimeSection: some View {
+        if !upcomingOvertimeShifts.isEmpty {
+            VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
+                sectionHeader(title: "Overtime", icon: "flame.fill")
+
+                ForEach(upcomingOvertimeShifts.prefix(3), id: \.id) { shift in
+                    overtimeShiftRow(shift: shift)
+                }
+            }
+        }
+    }
+
+    private func overtimeShiftRow(shift: Shift) -> some View {
+        HStack(spacing: ShiftProSpacing.medium) {
+            // Rate multiplier badge
+            Text(String(format: "%.1fx", shift.rateMultiplier))
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule()
+                        .fill(ShiftProColors.warning)
+                )
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(shift.scheduledStart.relativeFormatted)
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(ShiftProColors.ink)
+
+                Text(shift.timeRangeFormatted)
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+            }
+
+            Spacer()
+
+            if let pay = estimatedPayLabel(for: shift) {
+                Text(pay)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundStyle(ShiftProColors.warning)
+            }
+        }
+        .padding(.horizontal, ShiftProSpacing.medium)
+        .padding(.vertical, ShiftProSpacing.small + 2)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(ShiftProColors.warning.opacity(0.08))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .strokeBorder(ShiftProColors.warning.opacity(0.2), lineWidth: 1)
+                )
+        )
+        .onTapGesture {
+            NotificationCenter.default.post(name: .switchToScheduleTab, object: nil)
+        }
+    }
+
     // MARK: - Quick Actions
 
     private var premiumQuickActions: some View {
@@ -466,6 +533,10 @@ struct DashboardView: View {
         }
     }
 
+    private var upcomingOvertimeShifts: [Shift] {
+        upcomingShifts.filter { $0.rateMultiplier >= 1.3 }
+    }
+
     private var dashboardShifts: [Shift] {
         var items: [Shift] = []
         if let currentShift {
@@ -522,6 +593,13 @@ struct DashboardView: View {
         }
 
         guard let shift else { return nil }
+
+        return estimatedPayLabel(for: shift)
+    }
+
+    /// Projected earnings for a specific shift
+    private func estimatedPayLabel(for shift: Shift) -> String? {
+        guard let baseRateCents = profile?.baseRateCents, baseRateCents > 0 else { return nil }
 
         // Calculate estimated paid minutes (scheduled duration minus break)
         let estimatedPaidMinutes = max(0, shift.scheduledDurationMinutes - shift.breakMinutes)

@@ -22,6 +22,7 @@ struct SimplePatternBuilderView: View {
     @State private var isNameCustomized = false
     @State private var isSettingAutoName = false
     @State private var isCustomLength = false
+    @State private var selectedColorHex = ShiftProColors.patternColors[1]  // Default green
 
     private let engine = PatternEngine()
 
@@ -61,6 +62,7 @@ struct SimplePatternBuilderView: View {
                 cycleLengthSection
                 workDaysSection
                 shiftTimesSection
+                colorPickerSection
                 previewSection
                 createButtonSection
             }
@@ -238,6 +240,60 @@ struct SimplePatternBuilderView: View {
         .padding(ShiftProSpacing.medium)
         .background(ShiftProColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var colorPickerSection: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+            Text("Color")
+                .font(ShiftProTypography.headline)
+                .foregroundStyle(ShiftProColors.ink)
+
+            Text("Choose a color for this pattern in the calendar")
+                .font(ShiftProTypography.caption)
+                .foregroundStyle(ShiftProColors.inkSubtle)
+
+            colorSwatchGrid
+        }
+    }
+
+    private var colorSwatchGrid: some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 5), spacing: 12) {
+            ForEach(ShiftProColors.patternColors, id: \.self) { colorHex in
+                colorSwatch(hex: colorHex)
+            }
+        }
+        .padding(ShiftProSpacing.medium)
+        .background(ShiftProColors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func colorSwatch(hex: String) -> some View {
+        let isSelected = selectedColorHex == hex
+        let color = Color(hex: hex) ?? ShiftProColors.success
+
+        return Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                selectedColorHex = hex
+            }
+            HapticManager.fire(.selection, enabled: !reduceMotion)
+        } label: {
+            Circle()
+                .fill(color)
+                .frame(width: 44, height: 44)
+                .overlay(
+                    Circle()
+                        .strokeBorder(Color.white, lineWidth: isSelected ? 3 : 0)
+                )
+                .overlay(
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(.white)
+                        .opacity(isSelected ? 1 : 0)
+                )
+                .shadow(color: color.opacity(isSelected ? 0.5 : 0.2), radius: isSelected ? 8 : 4, x: 0, y: isSelected ? 4 : 2)
+                .scaleEffect(isSelected ? 1.1 : 1.0)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 
     private var previewSection: some View {
@@ -526,6 +582,7 @@ struct SimplePatternBuilderView: View {
         let profile = profiles.first
         let pattern = engine.buildPattern(from: definition, owner: profile)
         pattern.cycleStartDate = cycleStartDate
+        pattern.colorHex = selectedColorHex
         modelContext.insert(pattern)
 
         for rotationDay in pattern.rotationDays {
