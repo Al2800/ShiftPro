@@ -385,7 +385,7 @@ struct SimplePatternBuilderView: View {
         Button {
             createPattern()
         } label: {
-            HStack {
+            HStack(spacing: 8) {
                 if isApplying {
                     ProgressView()
                         .tint(.white)
@@ -394,6 +394,8 @@ struct SimplePatternBuilderView: View {
                 }
                 Text(createButtonTitle)
                     .fontWeight(.semibold)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity)
             .padding(ShiftProSpacing.medium)
@@ -415,7 +417,7 @@ struct SimplePatternBuilderView: View {
         }
         let workCount = workDays.count
         let offCount = cycleLength - workCount
-        return "Create \(workCount) on, \(offCount) off Pattern"
+        return "\(workCount) on, \(offCount) off"
     }
 
     private var customLengthLabel: String {
