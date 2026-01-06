@@ -64,7 +64,8 @@ struct DashboardView: View {
                         .animation(reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.8).delay(0.4), value: animateIn)
                 }
                 .padding(.horizontal, ShiftProSpacing.medium)
-                .padding(.vertical, ShiftProSpacing.large)
+                .padding(.top, ShiftProSpacing.large)
+                .padding(.bottom, 100) // Extra padding for tab bar
             }
         }
         .navigationBarTitleDisplayMode(.inline)
