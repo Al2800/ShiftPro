@@ -261,32 +261,32 @@ struct SimplePatternBuilderView: View {
     }
 
     private var shiftLabelPicker: some View {
-        HStack(spacing: 12) {
-            ForEach(["E", "N", "L", "D", "M", "A"], id: \.self) { code in
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
+            ForEach(["E", "N", "L", "D", "M", "A", "W"], id: \.self) { code in
                 shiftCodeButton(code)
             }
 
-            Spacer()
-
-            // Custom input
-            TextField("", text: $selectedShiftCode)
+            // Custom input cell
+            TextField("?", text: $selectedShiftCode)
                 .textFieldStyle(.plain)
-                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .font(.system(size: 16, weight: .bold, design: .rounded))
                 .foregroundStyle(ShiftProColors.ink)
-                .frame(width: 44, height: 44)
+                .frame(height: 40)
                 .multilineTextAlignment(.center)
-                .background(ShiftProColors.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(ShiftProColors.surface)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
+                        )
                 )
                 .onChange(of: selectedShiftCode) { _, new in
                     selectedShiftCode = String(new.prefix(1)).uppercased()
                 }
         }
         .padding(ShiftProSpacing.medium)
-        .background(ShiftProColors.surface)
+        .background(ShiftProColors.surface.opacity(0.5))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
@@ -301,18 +301,15 @@ struct SimplePatternBuilderView: View {
             HapticManager.fire(.selection, enabled: !reduceMotion)
         } label: {
             Text(code)
-                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .font(.system(size: 16, weight: .bold, design: .rounded))
                 .foregroundStyle(isSelected ? .white : color)
-                .frame(width: 44, height: 44)
+                .frame(maxWidth: .infinity)
+                .frame(height: 40)
                 .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .fill(isSelected ? color : color.opacity(0.15))
                 )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .strokeBorder(isSelected ? color : .clear, lineWidth: 2)
-                )
-                .scaleEffect(isSelected ? 1.05 : 1.0)
+                .scaleEffect(isSelected ? 1.02 : 1.0)
         }
         .buttonStyle(PlainButtonStyle())
     }
