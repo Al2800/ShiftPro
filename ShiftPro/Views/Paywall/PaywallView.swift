@@ -8,8 +8,8 @@ struct PaywallView: View {
     @Environment(\.openURL) private var openURL
     @State private var purchasingProductID: Product.ID?
 
-    private let termsURL = URL(string: "https://shiftpro.app/terms")
-    private let privacyURL = URL(string: "https://shiftpro.app/privacy")
+    private let termsURL = URL(string: "https://al2800.github.io/ShiftPro/terms.html")
+    private let privacyURL = URL(string: "https://al2800.github.io/ShiftPro/privacy.html")
     private let manageSubscriptionURL = URL(string: "https://apps.apple.com/account/subscriptions")
 
     var body: some View {
