@@ -113,16 +113,16 @@ Welcome to ShiftPro! Initial release featuring:
 - Premium subscription options
 
 ## Privacy URL
-https://shiftpro.app/privacy
+https://al2800.github.io/ShiftPro/privacy.html
 
 ## Support URL
-https://shiftpro.app/support
+https://al2800.github.io/ShiftPro/
 
 ## Marketing URL
-https://shiftpro.app
+https://al2800.github.io/ShiftPro/
 
 ## Copyright
-2025 ShiftPro. All rights reserved.
+2026 ShiftPro. All rights reserved.
 
 ---
 
