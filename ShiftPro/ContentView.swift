@@ -1,13 +1,20 @@
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
+    @Environment(\.modelContext) private var modelContext
     @AppStorage("hasOnboarded") private var hasOnboarded = false
     @State private var showOnboarding = false
 
     var body: some View {
         MainTabView()
             .onAppear {
-                if ProcessInfo.processInfo.arguments.contains("-skip-onboarding") {
+                // Demo mode: seed data and skip onboarding
+                if DemoDataSeeder.isDemoMode {
+                    DemoDataSeeder.seedIfNeeded(context: modelContext)
+                    hasOnboarded = true
+                    showOnboarding = false
+                } else if ProcessInfo.processInfo.arguments.contains("-skip-onboarding") {
                     hasOnboarded = true
                     showOnboarding = false
                 } else {

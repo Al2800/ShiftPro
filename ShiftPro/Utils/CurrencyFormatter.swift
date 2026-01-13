@@ -1,12 +1,14 @@
 import Foundation
 
-/// Shared currency formatter using device locale
+/// Shared currency formatter using GBP (British Pounds)
 enum CurrencyFormatter {
-    /// Shared formatter instance using device locale for currency display
+    /// Shared formatter instance using GBP for currency display
     static let shared: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.locale = Locale.current
+        formatter.locale = Locale(identifier: "en_GB")
+        formatter.currencyCode = "GBP"
+        formatter.currencySymbol = "£"
         return formatter
     }()
 
@@ -37,7 +39,9 @@ enum CurrencyFormatter {
     static func inputFormatter() -> NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.locale = Locale.current
+        formatter.locale = Locale(identifier: "en_GB")
+        formatter.currencyCode = "GBP"
+        formatter.currencySymbol = "£"
         formatter.maximumFractionDigits = 2
         return formatter
     }

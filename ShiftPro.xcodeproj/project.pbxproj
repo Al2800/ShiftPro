@@ -42,6 +42,7 @@
 		A1B2C3D4E5F67890ABCDEF12 /* ShiftStatusBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1N2O3P4Q5R67890ABCDEF34 /* ShiftStatusBanner.swift */; };
 		251E1A25572E3D9C336CBF12 /* CalendarSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40F169ED40E2C5EDF04133D9 /* CalendarSetupView.swift */; };
 		2596334C9AC3B1A0F79D9F0B /* UITestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C170FC40C801460CA2C1E20D /* UITestSupport.swift */; };
+		DEMO001A2B3C4D5E6F7890AB /* DemoDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEMO002A2B3C4D5E6F7890AB /* DemoDataSeeder.swift */; };
 		27904E7DE09BB81BD28C4B51 /* PatternEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2507722745721EF0EBCEF /* PatternEngine.swift */; };
 		27C5AA6FFC1933FFF750F6EA /* ShiftRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB3E5AB8ADA1E8E1F259618 /* ShiftRepository.swift */; };
 		29F209AF3548A31E71E5B5B1 /* MemoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC0563978C6521B24A9E552 /* MemoryManager.swift */; };
@@ -328,6 +329,7 @@
 		A2E7C9D5B8F4A1E3C6D9F0B2 /* OnboardingPersistenceService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingPersistenceService.swift; sourceTree = "<group>"; };
 		E8F3A6B2C9D1E4F7A0B5C3D6 /* OnboardingDataMapping.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingDataMapping.swift; sourceTree = "<group>"; };
 		C170FC40C801460CA2C1E20D /* UITestSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UITestSupport.swift; sourceTree = "<group>"; };
+		DEMO002A2B3C4D5E6F7890AB /* DemoDataSeeder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DemoDataSeeder.swift; sourceTree = "<group>"; };
 		C1E3548A88FB39B642CEF9C9 /* TrendAnalyzer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrendAnalyzer.swift; sourceTree = "<group>"; };
 		C2A0E9CDE7394A8EF1CB24B6 /* OnboardingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		C6CDA08C92277928E81F7D49 /* CalendarIntegrationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarIntegrationService.swift; sourceTree = "<group>"; };
@@ -537,6 +539,7 @@
 				ADBF8810E380F3272094A407 /* PermissionManager.swift */,
 				72AAC9DEBF9B41E1445B7912 /* ReceiptValidator.swift */,
 				C170FC40C801460CA2C1E20D /* UITestSupport.swift */,
+				DEMO002A2B3C4D5E6F7890AB /* DemoDataSeeder.swift */,
 			);
 			name = Utils;
 			path = Utils;
@@ -1114,6 +1117,7 @@
 				D6434EAD43C78BD7C60EA6E1 /* PermissionManager.swift in Sources */,
 				F19959EAC071DD8F81BCEF54 /* ReceiptValidator.swift in Sources */,
 				2596334C9AC3B1A0F79D9F0B /* UITestSupport.swift in Sources */,
+				DEMO001A2B3C4D5E6F7890AB /* DemoDataSeeder.swift in Sources */,
 				935AC043A430B0B2F382E980 /* AnalyticsDashboard.swift in Sources */,
 				C2B7B9A787178FE4BD8F9E4D /* InsightsView.swift in Sources */,
 				F2F60119EB6244C40A507A24 /* TrendChartsView.swift in Sources */,

@@ -54,8 +54,6 @@
     <string>ShiftPro uses your calendars to sync and display shifts.</string>
     <key>NSRemindersUsageDescription</key>
     <string>ShiftPro uses reminders to keep you on schedule.</string>
-    <key>NSUserTrackingUsageDescription</key>
-    <string>ShiftPro may use anonymous analytics to improve the experience.</string>
     <key>UIApplicationSupportsIndirectInputEvents</key>
     <true/>
     <key>UIRequiredDeviceCapabilities</key>
