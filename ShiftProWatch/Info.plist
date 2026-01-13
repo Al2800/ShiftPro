@@ -21,7 +21,7 @@
     <key>WKApplication</key>
     <true/>
     <key>WKCompanionAppBundleIdentifier</key>
-    <string>com.shiftpro.app</string>
+    <string>com.al2800.shiftpro</string>
     <key>WKWatchOnly</key>
     <false/>
 </dict>

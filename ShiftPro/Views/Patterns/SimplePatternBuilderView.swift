@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// A simple, visual pattern builder where users tap on a grid to design their shift cycle
+/// A visual pattern builder where users select shift types and stamp them onto days
 struct SimplePatternBuilderView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -9,110 +9,212 @@ struct SimplePatternBuilderView: View {
     @Query(sort: [SortDescriptor(\UserProfile.createdAt, order: .forward)])
     private var profiles: [UserProfile]
 
+    // Pattern configuration
     @State private var patternName = ""
     @State private var cycleLength = 4
-    @State private var workDays: Set<Int> = [0, 1]  // Days that are work days (0-indexed)
-    @State private var startTime = Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date()
-    @State private var endTime = Calendar.current.date(bySettingHour: 17, minute: 0, second: 0, of: Date()) ?? Date()
-    @State private var currentDayInCycle = 0  // Which day of the pattern are we on today?
+    @State private var currentDayInCycle = 0
+
+    // Shift templates palette
+    @State private var shiftTemplates: [ShiftTemplate] = ShiftTemplate.defaults
+    @State private var selectedTemplate: ShiftTemplate? = ShiftTemplate.defaults.first
+    @State private var dayAssignments: [Int: ShiftTemplate] = [:]  // dayIndex -> template
+    @State private var explicitlyOffDays: Set<Int> = []  // Days explicitly marked as off
+
+    // UI state
+    @State private var isCustomLength = false
     @State private var isApplying = false
     @State private var showSuccess = false
     @State private var showError = false
     @State private var errorMessage = ""
-    @State private var isNameCustomized = false
-    @State private var isSettingAutoName = false
-    @State private var isCustomLength = false
-    @State private var selectedColorHex = ShiftProColors.patternColors[1]  // Default green
-    @State private var selectedShiftCode = "E"  // Default Early
+    @State private var showingAddShiftType = false
+    @State private var editingTemplate: ShiftTemplate? = nil
+    @State private var generationMonths: Int = 12  // How many months ahead to generate
 
     private let engine = PatternEngine()
 
     var body: some View {
         NavigationStack {
-            formScrollView
-                .background(ShiftProColors.background.ignoresSafeArea())
-                .navigationTitle("Build Pattern")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar { cancelToolbarItem }
-                .onAppear { updateAutoName() }
-                .onChange(of: workDays) { _, _ in updateAutoName() }
-                .onChange(of: cycleLength) { _, _ in
-                    normalizeCycleLength()
-                    updateAutoName()
+            ScrollView {
+                VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
+                    headerSection
+                    shiftTypePaletteSection
+                    cycleLengthSection
+                    dayGridSection
+                    previewSection
+                    generationDurationSection
+                    createButtonSection
                 }
-                .alert("Pattern Created!", isPresented: $showSuccess) {
-                    Button("Done") { dismiss() }
-                } message: {
-                    Text("Your pattern '\(resolvedPatternName)' has been created and shifts have been scheduled for the next 2 months.")
-                }
-                .alert("Error", isPresented: $showError) {
-                    Button("OK", role: .cancel) {}
-                } message: {
-                    Text(errorMessage)
-                }
-        }
-    }
-
-    // MARK: - Body Subsections
-
-    private var formScrollView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
-                headerSection
-                patternNameSection
-                cycleLengthSection
-                workDaysSection
-                shiftTimesSection
-                shiftLabelSection
-                colorPickerSection
-                previewSection
-                createButtonSection
+                .padding(ShiftProSpacing.medium)
             }
-            .padding(ShiftProSpacing.medium)
+            .background(ShiftProColors.background.ignoresSafeArea())
+            .navigationTitle("Build Pattern")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+            .sheet(isPresented: $showingAddShiftType) {
+                ShiftTypeEditorSheet(
+                    template: editingTemplate,
+                    onSave: { template in
+                        if let index = shiftTemplates.firstIndex(where: { $0.id == template.id }) {
+                            shiftTemplates[index] = template
+                        } else {
+                            shiftTemplates.append(template)
+                        }
+                        selectedTemplate = template
+                    }
+                )
+            }
+            .alert("Pattern Created!", isPresented: $showSuccess) {
+                Button("Done") { dismiss() }
+            } message: {
+                Text("Your pattern '\(resolvedPatternName)' has been created and shifts have been scheduled for the next \(generationDurationLabel).")
+            }
+            .alert("Error", isPresented: $showError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage)
+            }
         }
     }
 
-    private var cancelToolbarItem: some ToolbarContent {
-        ToolbarItem(placement: .cancellationAction) {
-            Button("Cancel") { dismiss() }
-        }
-    }
+    // MARK: - Header
 
     private var headerSection: some View {
-        Text("Build Your Pattern")
-            .font(ShiftProTypography.title)
-            .foregroundStyle(ShiftProColors.ink)
-    }
-
-    private var patternNameSection: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
-            Text("Shift Name")
-                .font(ShiftProTypography.headline)
+        VStack(alignment: .leading, spacing: ShiftProSpacing.extraSmall) {
+            Text("Build Your Pattern")
+                .font(ShiftProTypography.title)
                 .foregroundStyle(ShiftProColors.ink)
 
-            Text("Name your shift type (e.g., Early, Night, Late)")
-                .font(ShiftProTypography.caption)
+            Text("Select a shift type, then tap days to apply it")
+                .font(ShiftProTypography.subheadline)
                 .foregroundStyle(ShiftProColors.inkSubtle)
-
-            TextField("e.g., Early", text: $patternName)
-                .textFieldStyle(.roundedBorder)
-                .foregroundStyle(ShiftProColors.ink)
-                .onChange(of: patternName) { _, newValue in
-                    guard !isSettingAutoName else { return }
-                    let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if trimmed.isEmpty {
-                        isNameCustomized = false
-                        updateAutoName()
-                    } else {
-                        isNameCustomized = true
-                        // Auto-suggest label from first letter of name
-                        if let firstChar = trimmed.first {
-                            selectedShiftCode = String(firstChar).uppercased()
-                        }
-                    }
-                }
         }
     }
+
+    // MARK: - Shift Type Palette
+
+    private var shiftTypePaletteSection: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+            HStack {
+                Text("Shift Types")
+                    .font(ShiftProTypography.headline)
+                    .foregroundStyle(ShiftProColors.ink)
+
+                Spacer()
+
+                Button {
+                    editingTemplate = nil
+                    showingAddShiftType = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Add")
+                    }
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.accent)
+                }
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: ShiftProSpacing.small) {
+                    // Off button (special)
+                    shiftTypePill(template: nil, isOff: true)
+
+                    // Shift type pills
+                    ForEach(shiftTemplates) { template in
+                        shiftTypePill(template: template, isOff: false)
+                    }
+                }
+                .padding(.horizontal, 2)
+            }
+
+            if let selected = selectedTemplate {
+                HStack(spacing: ShiftProSpacing.extraSmall) {
+                    Circle()
+                        .fill(selected.color)
+                        .frame(width: 8, height: 8)
+                    Text("Tap days below to add '\(selected.name)' shifts")
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                }
+                .padding(.top, ShiftProSpacing.extraSmall)
+            } else {
+                Text("Tap days below to mark them as Off")
+                    .font(ShiftProTypography.caption)
+                    .foregroundStyle(ShiftProColors.inkSubtle)
+                    .padding(.top, ShiftProSpacing.extraSmall)
+            }
+        }
+    }
+
+    private func shiftTypePill(template: ShiftTemplate?, isOff: Bool) -> some View {
+        let isSelected = isOff ? (selectedTemplate == nil) : (selectedTemplate?.id == template?.id)
+        let color = template?.color ?? ShiftProColors.inkSubtle
+        let name = template?.name ?? "Off"
+        let icon = template?.icon ?? "moon.zzz.fill"
+        let timeRange = template?.timeRangeFormatted
+
+        return Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                selectedTemplate = isOff ? nil : template
+            }
+            HapticManager.fire(.selection, enabled: !reduceMotion)
+        } label: {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 18, weight: .medium))
+
+                Text(name)
+                    .font(.system(size: 12, weight: .semibold))
+
+                if let timeRange = timeRange {
+                    Text(timeRange)
+                        .font(.system(size: 9, weight: .medium))
+                        .opacity(0.8)
+                }
+            }
+            .frame(width: 70, height: isOff ? 60 : 72)
+            .foregroundStyle(isSelected ? .white : color)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(isSelected ? color : color.opacity(0.15))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(isSelected ? color : .clear, lineWidth: 2)
+            )
+            .scaleEffect(isSelected ? 1.05 : 1.0)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .contextMenu {
+            if let template = template, !isOff {
+                Button {
+                    editingTemplate = template
+                    showingAddShiftType = true
+                } label: {
+                    Label("Edit", systemImage: "pencil")
+                }
+
+                Button(role: .destructive) {
+                    shiftTemplates.removeAll { $0.id == template.id }
+                    // Clear any assignments using this template
+                    for (day, assigned) in dayAssignments where assigned.id == template.id {
+                        dayAssignments.removeValue(forKey: day)
+                    }
+                    if selectedTemplate?.id == template.id {
+                        selectedTemplate = nil
+                    }
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
+        }
+    }
+
+    // MARK: - Cycle Length
 
     private var cycleLengthSection: some View {
         VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
@@ -120,30 +222,37 @@ struct SimplePatternBuilderView: View {
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.ink)
 
-            cycleLengthButtons
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: ShiftProSpacing.small) {
+                    ForEach([4, 5, 7, 8, 14, 21, 28], id: \.self) { length in
+                        cycleLengthButton(for: length)
+                    }
+                    customLengthButton
+                }
+            }
 
             if isCustomLength {
-                customLengthSlider
-            }
-        }
-    }
+                VStack(alignment: .leading, spacing: ShiftProSpacing.extraSmall) {
+                    Text("\(cycleLength) days")
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
 
-    private var cycleLengthButtons: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: ShiftProSpacing.small) {
-                ForEach([4, 5, 7, 14, 21, 28], id: \.self) { length in
-                    cycleLengthButton(for: length)
+                    Slider(
+                        value: Binding(
+                            get: { Double(cycleLength) },
+                            set: { cycleLength = Int($0); normalizeCycleLength() }
+                        ),
+                        in: 2...42,
+                        step: 1
+                    )
                 }
-                customLengthButton
             }
-            .padding(.trailing, ShiftProSpacing.medium)
         }
     }
 
     private func cycleLengthButton(for length: Int) -> some View {
         Button {
-            let anim: Animation? = reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)
-            withAnimation(anim) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
                 cycleLength = length
                 isCustomLength = false
                 normalizeCycleLength()
@@ -162,8 +271,7 @@ struct SimplePatternBuilderView: View {
 
     private var customLengthButton: some View {
         Button {
-            let anim: Animation? = reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)
-            withAnimation(anim) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
                 isCustomLength = true
             }
             HapticManager.fire(.selection, enabled: !reduceMotion)
@@ -178,203 +286,79 @@ struct SimplePatternBuilderView: View {
         .shiftProPressable(scale: 0.97, opacity: 0.94, haptic: nil)
     }
 
-    private var customLengthSlider: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.extraSmall) {
-            Text(customLengthLabel)
-                .font(ShiftProTypography.caption)
-                .foregroundStyle(ShiftProColors.inkSubtle)
+    // MARK: - Day Grid
 
-            Slider(
-                value: Binding(
-                    get: { Double(cycleLength) },
-                    set: { newValue in
-                        cycleLength = Int(newValue)
-                        normalizeCycleLength()
-                    }
-                ),
-                in: 2...42,
-                step: 1
+    private var dayGridSection: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+            Text("Tap Days to Assign Shifts")
+                .font(ShiftProTypography.headline)
+                .foregroundStyle(ShiftProColors.ink)
+
+            dayGrid
+        }
+    }
+
+    private var dayGrid: some View {
+        let columns = Array(repeating: GridItem(.flexible(), spacing: ShiftProSpacing.small), count: min(cycleLength, 7))
+
+        return LazyVGrid(columns: columns, spacing: ShiftProSpacing.small) {
+            ForEach(0..<cycleLength, id: \.self) { day in
+                dayCell(for: day)
+            }
+        }
+    }
+
+    private func dayCell(for day: Int) -> some View {
+        let assignment = dayAssignments[day]
+        let isWorkDay = assignment != nil
+        let isExplicitlyOff = explicitlyOffDays.contains(day)
+        let color = assignment?.color ?? ShiftProColors.inkSubtle
+        let code = assignment?.shortCode ?? (isExplicitlyOff ? "OFF" : "·")
+        let icon = assignment?.icon ?? "moon.zzz.fill"
+
+        return Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                if let template = selectedTemplate {
+                    // Assign selected shift type
+                    dayAssignments[day] = template
+                    explicitlyOffDays.remove(day)
+                } else {
+                    // Mark as explicitly off
+                    dayAssignments.removeValue(forKey: day)
+                    explicitlyOffDays.insert(day)
+                }
+            }
+            HapticManager.fire(.impactMedium, enabled: !reduceMotion)
+        } label: {
+            VStack(spacing: 4) {
+                Text("Day \(day + 1)")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(isWorkDay ? .white.opacity(0.8) : (isExplicitlyOff ? ShiftProColors.inkSubtle : ShiftProColors.inkSubtle.opacity(0.6)))
+
+                Text(code)
+                    .font(.system(size: isExplicitlyOff ? 14 : 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(isWorkDay ? .white : (isExplicitlyOff ? ShiftProColors.inkSubtle : ShiftProColors.inkSubtle.opacity(0.5)))
+
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                    .foregroundStyle(isWorkDay ? .white.opacity(0.8) : (isExplicitlyOff ? ShiftProColors.inkSubtle : ShiftProColors.inkSubtle.opacity(0.5)))
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 80)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(isWorkDay ? color : (isExplicitlyOff ? ShiftProColors.surfaceMuted : ShiftProColors.surface))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(isWorkDay ? color : (isExplicitlyOff ? ShiftProColors.inkSubtle.opacity(0.3) : ShiftProColors.divider), lineWidth: 2)
             )
         }
-    }
-
-    private var workDaysSection: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
-            Text("Tap Days You Work")
-                .font(ShiftProTypography.headline)
-                .foregroundStyle(ShiftProColors.ink)
-
-            Text("Tap each day in your cycle that's a work day")
-                .font(ShiftProTypography.caption)
-                .foregroundStyle(ShiftProColors.inkSubtle)
-
-            workDaysGrid
-        }
-    }
-
-    private var shiftTimesSection: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
-            Text("Shift Times")
-                .font(ShiftProTypography.headline)
-                .foregroundStyle(ShiftProColors.ink)
-
-            shiftTimePickers
-        }
-    }
-
-    private var shiftTimePickers: some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading) {
-                Text("Start")
-                    .font(ShiftProTypography.caption)
-                    .foregroundStyle(ShiftProColors.inkSubtle)
-                DatePicker("", selection: $startTime, displayedComponents: .hourAndMinute)
-                    .labelsHidden()
-            }
-
-            Spacer()
-
-            Image(systemName: "arrow.right")
-                .foregroundStyle(ShiftProColors.inkSubtle)
-
-            Spacer()
-
-            VStack(alignment: .trailing) {
-                Text("End")
-                    .font(ShiftProTypography.caption)
-                    .foregroundStyle(ShiftProColors.inkSubtle)
-                DatePicker("", selection: $endTime, displayedComponents: .hourAndMinute)
-                    .labelsHidden()
-            }
-        }
-        .padding(ShiftProSpacing.medium)
-        .background(ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    // MARK: - Shift Label Section
-
-    private var shiftLabelSection: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
-            Text("Calendar Label")
-                .font(ShiftProTypography.headline)
-                .foregroundStyle(ShiftProColors.ink)
-
-            Text("Letter shown on calendar for quick identification")
-                .font(ShiftProTypography.caption)
-                .foregroundStyle(ShiftProColors.inkSubtle)
-
-            shiftLabelPicker
-        }
-    }
-
-    private var shiftLabelPicker: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
-            ForEach(["E", "N", "L", "D", "M", "A", "W"], id: \.self) { code in
-                shiftCodeButton(code)
-            }
-
-            // Custom input cell
-            TextField("?", text: $selectedShiftCode)
-                .textFieldStyle(.plain)
-                .font(.system(size: 16, weight: .bold, design: .rounded))
-                .foregroundStyle(ShiftProColors.ink)
-                .frame(height: 40)
-                .multilineTextAlignment(.center)
-                .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(ShiftProColors.surface)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
-                        )
-                )
-                .onChange(of: selectedShiftCode) { _, new in
-                    selectedShiftCode = String(new.prefix(1)).uppercased()
-                }
-        }
-        .padding(ShiftProSpacing.medium)
-        .background(ShiftProColors.surface.opacity(0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    private func shiftCodeButton(_ code: String) -> some View {
-        let isSelected = selectedShiftCode == code
-        let color = ShiftProColors.shiftCodeColor(for: code)
-
-        return Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                selectedShiftCode = code
-            }
-            HapticManager.fire(.selection, enabled: !reduceMotion)
-        } label: {
-            Text(code)
-                .font(.system(size: 16, weight: .bold, design: .rounded))
-                .foregroundStyle(isSelected ? .white : color)
-                .frame(maxWidth: .infinity)
-                .frame(height: 40)
-                .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(isSelected ? color : color.opacity(0.15))
-                )
-                .scaleEffect(isSelected ? 1.02 : 1.0)
-        }
         .buttonStyle(PlainButtonStyle())
+        .shiftProPressable(scale: 0.96, opacity: 0.94, haptic: nil)
     }
 
-    private var colorPickerSection: some View {
-        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
-            Text("Color")
-                .font(ShiftProTypography.headline)
-                .foregroundStyle(ShiftProColors.ink)
-
-            Text("Choose a color for this pattern in the calendar")
-                .font(ShiftProTypography.caption)
-                .foregroundStyle(ShiftProColors.inkSubtle)
-
-            colorSwatchGrid
-        }
-    }
-
-    private var colorSwatchGrid: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 5), spacing: 12) {
-            ForEach(ShiftProColors.patternColors, id: \.self) { colorHex in
-                colorSwatch(hex: colorHex)
-            }
-        }
-        .padding(ShiftProSpacing.medium)
-        .background(ShiftProColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    private func colorSwatch(hex: String) -> some View {
-        let isSelected = selectedColorHex == hex
-        let color = Color(hex: hex) ?? ShiftProColors.success
-
-        return Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                selectedColorHex = hex
-            }
-            HapticManager.fire(.selection, enabled: !reduceMotion)
-        } label: {
-            Circle()
-                .fill(color)
-                .frame(width: 44, height: 44)
-                .overlay(
-                    Circle()
-                        .strokeBorder(Color.white, lineWidth: isSelected ? 3 : 0)
-                )
-                .overlay(
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(.white)
-                        .opacity(isSelected ? 1 : 0)
-                )
-                .shadow(color: color.opacity(isSelected ? 0.5 : 0.2), radius: isSelected ? 8 : 4, x: 0, y: isSelected ? 4 : 2)
-                .scaleEffect(isSelected ? 1.1 : 1.0)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
+    // MARK: - Preview
 
     private var previewSection: some View {
         VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
@@ -382,191 +366,191 @@ struct SimplePatternBuilderView: View {
                 .font(ShiftProTypography.headline)
                 .foregroundStyle(ShiftProColors.ink)
 
-            patternPreviewCalendar
-        }
-    }
-
-    private var createButtonSection: some View {
-        Button {
-            createPattern()
-        } label: {
-            HStack(spacing: 8) {
-                if isApplying {
-                    ProgressView()
-                        .tint(.white)
-                } else {
-                    Image(systemName: "checkmark.circle.fill")
+            VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+                HStack {
+                    Text("Today is Day \(currentDayInCycle + 1) of your cycle")
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                    Spacer()
+                    Stepper("", value: $currentDayInCycle, in: 0...(max(0, cycleLength - 1)))
+                        .labelsHidden()
                 }
-                Text(createButtonTitle)
-                    .fontWeight(.semibold)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+
+                previewCalendar
+
+                summaryText
             }
-            .frame(maxWidth: .infinity)
             .padding(ShiftProSpacing.medium)
-            .background(canCreate ? ShiftProColors.accent : ShiftProColors.accent.opacity(0.5))
-            .foregroundStyle(.white)
+            .background(ShiftProColors.surface)
             .clipShape(RoundedRectangle(cornerRadius: 16))
         }
-        .disabled(!canCreate || isApplying)
-        .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: nil)
     }
 
-    private var canCreate: Bool {
-        !resolvedPatternName.isEmpty && !workDays.isEmpty
-    }
-
-    private var createButtonTitle: String {
-        guard !workDays.isEmpty else {
-            return "Create Pattern"
-        }
-        let workCount = workDays.count
-        let offCount = cycleLength - workCount
-        return "\(workCount) on, \(offCount) off"
-    }
-
-    private var customLengthLabel: String {
-        let weeks = cycleLength / 7
-        let days = cycleLength % 7
-        if weeks > 0 {
-            return "\(cycleLength) days (\(weeks)w \(days)d)"
-        }
-        return "\(cycleLength) days"
-    }
-
-    private var workDaysGrid: some View {
-        if cycleLength > 14 {
-            let weekCount = Int(ceil(Double(cycleLength) / 7.0))
-            return AnyView(
-                ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: ShiftProSpacing.small) {
-                        ForEach(0..<weekCount, id: \.self) { weekIndex in
-                            VStack(spacing: ShiftProSpacing.extraSmall) {
-                                Text("Week \(weekIndex + 1)")
-                                    .font(ShiftProTypography.caption)
-                                    .foregroundStyle(ShiftProColors.inkSubtle)
-
-                                ForEach(daysInWeek(weekIndex: weekIndex), id: \.self) { day in
-                                    dayToggleCell(for: day)
-                                }
-                            }
-                            .frame(width: 70)
-                        }
-                    }
-                    .padding(.horizontal, ShiftProSpacing.medium)
-                }
-            )
-        }
-
-        let columns = Array(repeating: GridItem(.flexible(), spacing: ShiftProSpacing.small), count: min(cycleLength, 7))
-        return AnyView(
-            LazyVGrid(columns: columns, spacing: ShiftProSpacing.small) {
-                ForEach(0..<cycleLength, id: \.self) { day in
-                    dayToggleCell(for: day)
-                }
-            }
-        )
-    }
-
-    private var patternPreviewCalendar: some View {
+    private var previewCalendar: some View {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        let previewDays = cycleLength <= 14 ? 14 : min(cycleLength + 7, 42)
+        let previewDays = min(21, cycleLength * 2)
 
-        return VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
-            HStack {
-                Text("Cycle starts on Day \(currentDayInCycle + 1)")
-                    .font(ShiftProTypography.caption)
-                    .foregroundStyle(ShiftProColors.inkSubtle)
-                Spacer()
-                Stepper("", value: $currentDayInCycle, in: 0...(max(0, cycleLength - 1)))
-                    .labelsHidden()
-            }
-            ScrollView(previewDays > 14 ? .horizontal : .vertical, showsIndicators: false) {
-                HStack(spacing: 4) {
-                    ForEach(0..<previewDays, id: \.self) { offset in
-                        let date = calendar.date(byAdding: .day, value: offset, to: today) ?? today
-                        let dayInCycle = ((offset - currentDayInCycle) % cycleLength + cycleLength) % cycleLength
-                        let isWorkDay = workDays.contains(dayInCycle)
-                        let isToday = offset == 0
+        return ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 4) {
+                ForEach(0..<previewDays, id: \.self) { offset in
+                    let date = calendar.date(byAdding: .day, value: offset, to: today) ?? today
+                    let dayInCycle = ((offset + currentDayInCycle) % cycleLength + cycleLength) % cycleLength
+                    let assignment = dayAssignments[dayInCycle]
+                    let isExplicitlyOff = explicitlyOffDays.contains(dayInCycle)
+                    let isToday = offset == 0
+                    let code = assignment?.shortCode ?? (isExplicitlyOff ? "—" : "·")
+                    let color = assignment?.color ?? ShiftProColors.inkSubtle
 
-                        VStack(spacing: 2) {
-                            Text(dayAbbreviation(for: date))
-                                .font(.system(size: 9))
-                                .foregroundStyle(ShiftProColors.inkSubtle)
+                    VStack(spacing: 2) {
+                        Text(dayAbbreviation(for: date))
+                            .font(.system(size: 9))
+                            .foregroundStyle(ShiftProColors.inkSubtle)
 
-                            Text("\(calendar.component(.day, from: date))")
-                                .font(.system(size: 11, weight: isToday ? .bold : .regular))
-                                .foregroundStyle(isWorkDay ? .white : ShiftProColors.ink)
-                                .frame(width: 22, height: 22)
-                                .background(isWorkDay ? ShiftProColors.accent : ShiftProColors.surface)
-                                .clipShape(Circle())
-                                .overlay(
-                                    Circle()
-                                        .stroke(isToday ? ShiftProColors.success : .clear, lineWidth: 2)
-                                )
-                        }
+                        Text(code)
+                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .foregroundStyle(assignment != nil ? .white : ShiftProColors.inkSubtle)
+                            .frame(width: 24, height: 24)
+                            .background(assignment != nil ? color : (isExplicitlyOff ? ShiftProColors.surfaceMuted : ShiftProColors.surface.opacity(0.5)))
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(isToday ? ShiftProColors.success : .clear, lineWidth: 2)
+                            )
                     }
                 }
-                .padding(ShiftProSpacing.small)
-                .background(ShiftProColors.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
             }
+        }
+    }
 
-            // Summary text
-            let workCount = workDays.count
-            let offCount = cycleLength - workCount
-            Text("\(workCount) work days, \(offCount) off - repeating every \(cycleLength) days")
+    private var summaryText: some View {
+        let workCount = dayAssignments.count
+        let offCount = cycleLength - workCount
+
+        // Group by shift type
+        var typeCounts: [String: Int] = [:]
+        for (_, template) in dayAssignments {
+            typeCounts[template.name, default: 0] += 1
+        }
+
+        let typeStrings = typeCounts.map { "\($0.value) \($0.key)" }.joined(separator: ", ")
+        let summary = typeStrings.isEmpty ? "\(offCount) off days" : "\(typeStrings), \(offCount) off"
+
+        return Text("\(summary) - repeating every \(cycleLength) days")
+            .font(ShiftProTypography.caption)
+            .foregroundStyle(ShiftProColors.inkSubtle)
+    }
+
+    // MARK: - Generation Duration
+
+    private var generationDurationSection: some View {
+        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+            Text("Generate Ahead")
+                .font(ShiftProTypography.headline)
+                .foregroundStyle(ShiftProColors.ink)
+
+            Text("How far in advance to schedule your shifts")
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(ShiftProColors.inkSubtle)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: ShiftProSpacing.small) {
+                    ForEach([3, 6, 12, 24], id: \.self) { months in
+                        durationButton(months: months)
+                    }
+                }
+            }
         }
+    }
+
+    private func durationButton(months: Int) -> some View {
+        let isSelected = generationMonths == months
+        let label = months == 12 ? "1 Year" : months == 24 ? "2 Years" : "\(months) Months"
+
+        return Button {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                generationMonths = months
+            }
+            HapticManager.fire(.selection, enabled: !reduceMotion)
+        } label: {
+            Text(label)
+                .font(ShiftProTypography.subheadline)
+                .padding(.horizontal, ShiftProSpacing.medium)
+                .frame(height: 44)
+                .background(isSelected ? ShiftProColors.accent : ShiftProColors.surface)
+                .foregroundStyle(isSelected ? .white : ShiftProColors.ink)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .shiftProPressable(scale: 0.97, opacity: 0.94, haptic: nil)
+    }
+
+    // MARK: - Create Button
+
+    private var createButtonSection: some View {
+        VStack(spacing: ShiftProSpacing.small) {
+            // Pattern name
+            TextField("Pattern name (optional)", text: $patternName)
+                .textFieldStyle(.roundedBorder)
+                .foregroundStyle(ShiftProColors.ink)
+
+            Button {
+                createPattern()
+            } label: {
+                HStack(spacing: 8) {
+                    if isApplying {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Image(systemName: "checkmark.circle.fill")
+                    }
+                    Text(isApplying ? "Creating..." : "Create Pattern")
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(ShiftProSpacing.medium)
+                .background(canCreate ? ShiftProColors.accent : ShiftProColors.accent.opacity(0.5))
+                .foregroundStyle(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+            }
+            .disabled(!canCreate || isApplying)
+            .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: nil)
+        }
+    }
+
+    // MARK: - Helpers
+
+    private var canCreate: Bool {
+        !dayAssignments.isEmpty  // At least one work day
+    }
+
+    private var generationDurationLabel: String {
+        switch generationMonths {
+        case 12: return "year"
+        case 24: return "2 years"
+        default: return "\(generationMonths) months"
+        }
+    }
+
+    private var resolvedPatternName: String {
+        let trimmed = patternName.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            return trimmed
+        }
+        // Auto-generate name based on shift types used
+        let typeNames = Set(dayAssignments.values.map { $0.name })
+        if typeNames.count == 1, let name = typeNames.first {
+            let workCount = dayAssignments.count
+            let offCount = cycleLength - workCount
+            return "\(name) \(workCount) on \(offCount) off"
+        }
+        return "\(dayAssignments.count) on \(cycleLength - dayAssignments.count) off"
     }
 
     private func normalizeCycleLength() {
-        workDays = workDays.filter { $0 < cycleLength }
+        // Remove assignments beyond cycle length
+        dayAssignments = dayAssignments.filter { $0.key < cycleLength }
+        explicitlyOffDays = explicitlyOffDays.filter { $0 < cycleLength }
         currentDayInCycle = min(currentDayInCycle, max(0, cycleLength - 1))
-    }
-
-    private func daysInWeek(weekIndex: Int) -> [Int] {
-        let start = weekIndex * 7
-        let end = min(start + 7, cycleLength)
-        return Array(start..<end)
-    }
-
-    private func dayToggleCell(for day: Int) -> some View {
-        let isWorkDay = workDays.contains(day)
-        return Button {
-            let anim: Animation? = reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.7)
-            withAnimation(anim) {
-                if isWorkDay {
-                    workDays.remove(day)
-                } else {
-                    workDays.insert(day)
-                }
-            }
-            HapticManager.fire(.impactMedium, enabled: !reduceMotion)
-        } label: {
-            VStack(spacing: ShiftProSpacing.extraExtraSmall) {
-                Text("Day \(day + 1)")
-                    .font(ShiftProTypography.caption)
-                Text(isWorkDay ? "Work" : "Off")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(isWorkDay ? .white.opacity(0.9) : ShiftProColors.inkSubtle)
-                Image(systemName: isWorkDay ? "briefcase.fill" : "moon.zzz.fill")
-                    .font(.system(size: 22))
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 76)
-            .background(isWorkDay ? ShiftProColors.accent : ShiftProColors.surface)
-            .foregroundStyle(isWorkDay ? .white : ShiftProColors.inkSubtle)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(isWorkDay ? ShiftProColors.accent : ShiftProColors.divider, lineWidth: 2)
-            )
-        }
-        .shiftProPressable(scale: 0.96, opacity: 0.94, haptic: nil)
-        .shiftProHoverLift()
     }
 
     private func dayAbbreviation(for date: Date) -> String {
@@ -575,88 +559,49 @@ struct SimplePatternBuilderView: View {
         return String(formatter.string(from: date).prefix(1))
     }
 
-    private var resolvedPatternName: String {
-        let trimmed = patternName.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !trimmed.isEmpty {
-            return trimmed
-        }
-        return autoGeneratedName
-    }
-
-    private var autoGeneratedName: String {
-        let workCount = workDays.count
-        let offCount = cycleLength - workCount
-        guard workCount > 0, offCount > 0 else {
-            return "Custom (\(cycleLength)-day)"
-        }
-        if isSingleWorkBlock {
-            return "\(workCount) on \(offCount) off"
-        }
-        return "Custom (\(cycleLength)-day)"
-    }
-
-    private var isSingleWorkBlock: Bool {
-        guard workDays.count > 0, workDays.count < cycleLength else { return false }
-        let isWork = (0..<cycleLength).map { workDays.contains($0) }
-        var transitions = 0
-        for index in 0..<cycleLength {
-            let nextIndex = (index + 1) % cycleLength
-            if isWork[index] != isWork[nextIndex] {
-                transitions += 1
-            }
-        }
-        return transitions == 2
-    }
-
-    private func updateAutoName() {
-        guard !isNameCustomized else { return }
-        let generated = autoGeneratedName
-        guard !generated.isEmpty else { return }
-        isSettingAutoName = true
-        patternName = generated
-        isSettingAutoName = false
-    }
-
     private func createPattern() {
         guard canCreate else { return }
         isApplying = true
 
-        // Calculate start time and duration
-        let calendar = Calendar.current
-        let startComponents = calendar.dateComponents([.hour, .minute], from: startTime)
-        let endComponents = calendar.dateComponents([.hour, .minute], from: endTime)
-
-        let startMinutes = (startComponents.hour ?? 9) * 60 + (startComponents.minute ?? 0)
-        var endMinutes = (endComponents.hour ?? 17) * 60 + (endComponents.minute ?? 0)
-        if endMinutes <= startMinutes {
-            endMinutes += 1440  // Next day
-        }
-        let durationMinutes = endMinutes - startMinutes
+        // Get the primary shift template (most used) for pattern defaults
+        let templateCounts = Dictionary(grouping: dayAssignments.values, by: { $0.id }).mapValues { $0.count }
+        let primaryTemplateId = templateCounts.max(by: { $0.value < $1.value })?.key
+        let primaryTemplate = dayAssignments.values.first { $0.id == primaryTemplateId } ?? ShiftTemplate.day
 
         // Create rotation days
         var rotationDays: [PatternDefinition.RotationDayDefinition] = []
         for day in 0..<cycleLength {
-            let isWorkDay = workDays.contains(day)
-            rotationDays.append(PatternDefinition.RotationDayDefinition(
-                index: day,
-                isWorkDay: isWorkDay,
-                shiftName: isWorkDay ? "Work" : "Off",
-                startMinuteOfDay: isWorkDay ? startMinutes : nil,
-                durationMinutes: isWorkDay ? durationMinutes : nil
-            ))
+            if let template = dayAssignments[day] {
+                rotationDays.append(PatternDefinition.RotationDayDefinition(
+                    index: day,
+                    isWorkDay: true,
+                    shiftName: template.name,
+                    startMinuteOfDay: template.startMinuteOfDay,
+                    durationMinutes: template.durationMinutes
+                ))
+            } else {
+                rotationDays.append(PatternDefinition.RotationDayDefinition(
+                    index: day,
+                    isWorkDay: false,
+                    shiftName: "Off",
+                    startMinuteOfDay: nil,
+                    durationMinutes: nil
+                ))
+            }
         }
 
         // Create pattern definition
         let definition = PatternDefinition(
             name: resolvedPatternName,
             kind: .rotating,
-            startMinuteOfDay: startMinutes,
-            durationMinutes: durationMinutes,
+            startMinuteOfDay: primaryTemplate.startMinuteOfDay,
+            durationMinutes: primaryTemplate.durationMinutes,
             rotationDays: rotationDays,
-            notes: "\(workDays.count) on / \(cycleLength - workDays.count) off rotation"
+            notes: nil
         )
 
-        // Calculate the actual start date based on where user is in cycle
+        // Calculate cycle start date
+        let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let cycleStartDate = calendar.date(byAdding: .day, value: -currentDayInCycle, to: today) ?? today
 
@@ -664,16 +609,16 @@ struct SimplePatternBuilderView: View {
         let profile = profiles.first
         let pattern = engine.buildPattern(from: definition, owner: profile)
         pattern.cycleStartDate = cycleStartDate
-        pattern.colorHex = selectedColorHex
-        pattern.shortCode = selectedShiftCode
+        pattern.colorHex = primaryTemplate.colorHex
+        pattern.shortCode = primaryTemplate.shortCode
         modelContext.insert(pattern)
 
         for rotationDay in pattern.rotationDays {
             modelContext.insert(rotationDay)
         }
 
-        // Generate shifts for the next 2 months
-        let endDate = calendar.date(byAdding: .month, value: 2, to: today) ?? today
+        // Generate shifts for the selected duration
+        let endDate = calendar.date(byAdding: .month, value: generationMonths, to: today) ?? today
         let shifts = engine.generateShifts(for: pattern, from: today, to: endDate, owner: profile)
         for shift in shifts {
             modelContext.insert(shift)
@@ -690,6 +635,127 @@ struct SimplePatternBuilderView: View {
             showError = true
             HapticManager.fire(.notificationError, enabled: !reduceMotion)
         }
+    }
+}
+
+// MARK: - Shift Type Editor Sheet
+
+struct ShiftTypeEditorSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let template: ShiftTemplate?
+    let onSave: (ShiftTemplate) -> Void
+
+    @State private var name: String = ""
+    @State private var shortCode: String = ""
+    @State private var startTime: Date = Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date()
+    @State private var endTime: Date = Calendar.current.date(bySettingHour: 17, minute: 0, second: 0, of: Date()) ?? Date()
+    @State private var selectedColorHex: String = ShiftTemplate.availableColors[0]
+    @State private var selectedIcon: String = "briefcase.fill"
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Shift Details") {
+                    TextField("Name (e.g., Early, Night)", text: $name)
+                        .onChange(of: name) { _, new in
+                            if shortCode.isEmpty || shortCode == String(name.prefix(1)).uppercased() {
+                                shortCode = String(new.prefix(1)).uppercased()
+                            }
+                        }
+
+                    TextField("Calendar Label (1 letter)", text: $shortCode)
+                        .onChange(of: shortCode) { _, new in
+                            shortCode = String(new.prefix(1)).uppercased()
+                        }
+                }
+
+                Section("Times") {
+                    DatePicker("Start", selection: $startTime, displayedComponents: .hourAndMinute)
+                    DatePicker("End", selection: $endTime, displayedComponents: .hourAndMinute)
+                }
+
+                Section("Appearance") {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 12) {
+                        ForEach(ShiftTemplate.availableColors, id: \.self) { hex in
+                            let color = Color(hex: hex) ?? .blue
+                            Circle()
+                                .fill(color)
+                                .frame(width: 40, height: 40)
+                                .overlay(
+                                    Circle().strokeBorder(.white, lineWidth: selectedColorHex == hex ? 3 : 0)
+                                )
+                                .onTapGesture { selectedColorHex = hex }
+                        }
+                    }
+
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 12) {
+                        ForEach(ShiftTemplate.availableIcons, id: \.self) { icon in
+                            Image(systemName: icon)
+                                .font(.system(size: 20))
+                                .frame(width: 40, height: 40)
+                                .background(selectedIcon == icon ? Color(hex: selectedColorHex) ?? .blue : ShiftProColors.surface)
+                                .foregroundStyle(selectedIcon == icon ? .white : ShiftProColors.ink)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .onTapGesture { selectedIcon = icon }
+                        }
+                    }
+                }
+            }
+            .navigationTitle(template == nil ? "New Shift Type" : "Edit Shift Type")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        saveTemplate()
+                    }
+                    .disabled(name.isEmpty)
+                }
+            }
+            .onAppear {
+                if let template = template {
+                    name = template.name
+                    shortCode = template.shortCode
+                    selectedColorHex = template.colorHex
+                    selectedIcon = template.icon
+                    // Convert minutes to Date
+                    let calendar = Calendar.current
+                    let today = calendar.startOfDay(for: Date())
+                    startTime = calendar.date(byAdding: .minute, value: template.startMinuteOfDay, to: today) ?? today
+                    endTime = calendar.date(byAdding: .minute, value: template.endMinuteOfDay, to: today) ?? today
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private func saveTemplate() {
+        let calendar = Calendar.current
+        let startComponents = calendar.dateComponents([.hour, .minute], from: startTime)
+        let endComponents = calendar.dateComponents([.hour, .minute], from: endTime)
+
+        let startMinutes = (startComponents.hour ?? 9) * 60 + (startComponents.minute ?? 0)
+        var endMinutes = (endComponents.hour ?? 17) * 60 + (endComponents.minute ?? 0)
+        if endMinutes <= startMinutes {
+            endMinutes += 1440  // Next day
+        }
+        let durationMinutes = endMinutes - startMinutes
+
+        let newTemplate = ShiftTemplate(
+            id: template?.id ?? UUID(),
+            name: name,
+            shortCode: shortCode.isEmpty ? String(name.prefix(1)).uppercased() : shortCode,
+            startMinuteOfDay: startMinutes,
+            durationMinutes: durationMinutes,
+            colorHex: selectedColorHex,
+            icon: selectedIcon
+        )
+
+        onSave(newTemplate)
+        dismiss()
     }
 }
 

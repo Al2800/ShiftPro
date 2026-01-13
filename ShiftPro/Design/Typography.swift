@@ -65,4 +65,22 @@ enum ShiftProSpacing {
 
     /// Maximum spacing: page margins, hero sections (48pt)
     static let extraExtraLarge: CGFloat = 48
+
+    /// Bottom padding to clear the tab bar
+    static let tabBarPadding: CGFloat = 100
+}
+
+// MARK: - Common Options
+enum ShiftProOptions {
+    /// Standard break duration options in minutes
+    static let breakMinutes: [Int] = [0, 15, 30, 45, 60]
+
+    /// Default break duration in minutes
+    static let defaultBreakMinutes: Int = 30
+
+    /// Default shift duration in hours
+    static let defaultShiftDurationHours: Int = 8
+
+    /// Time rounding interval in minutes
+    static let timeRoundingInterval: Int = 15
 }

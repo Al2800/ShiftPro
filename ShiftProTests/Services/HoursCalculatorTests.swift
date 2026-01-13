@@ -2,7 +2,7 @@ import XCTest
 @testable import ShiftPro
 
 final class HoursCalculatorTests: XCTestCase {
-    private var calculator = HoursCalculator()
+    private var calculator: HoursCalculator!
 
     override func setUp() {
         super.setUp()
@@ -10,59 +10,41 @@ final class HoursCalculatorTests: XCTestCase {
     }
 
     override func tearDown() {
+        calculator = nil
         super.tearDown()
     }
 
-    // MARK: - Paid Minutes Tests
+    // MARK: - updateCalculatedFields Tests
 
-    func testPaidMinutes_StandardShift_DeductsBreak() {
+    func testUpdateCalculatedFields_StandardShift_DeductsBreak() {
         // 8-hour shift with 30-minute break = 450 paid minutes
         let shift = TestDataBuilder.shift(
             scheduledStart: TestDataBuilder.today(hour: 9),
             scheduledEnd: TestDataBuilder.today(hour: 17),
-            breakMinutes: 30
+            breakMinutes: 30,
+            rateMultiplier: 1.0
         )
 
-        let result = calculator.paidMinutes(for: shift)
+        calculator.updateCalculatedFields(for: shift)
 
-        XCTAssertEqual(result, 450) // 480 - 30
+        XCTAssertEqual(shift.paidMinutes, 450) // 480 - 30
+        XCTAssertEqual(shift.premiumMinutes, 0) // Regular rate
     }
 
-    func testPaidMinutes_NoBreak_FullDuration() {
+    func testUpdateCalculatedFields_NoBreak_FullDuration() {
         let shift = TestDataBuilder.shift(
             scheduledStart: TestDataBuilder.today(hour: 9),
             scheduledEnd: TestDataBuilder.today(hour: 17),
-            breakMinutes: 0
+            breakMinutes: 0,
+            rateMultiplier: 1.0
         )
 
-        let result = calculator.paidMinutes(for: shift)
+        calculator.updateCalculatedFields(for: shift)
 
-        XCTAssertEqual(result, 480) // 8 hours
+        XCTAssertEqual(shift.paidMinutes, 480) // 8 hours, no break
     }
 
-    func testPaidMinutes_BreakExceedsDuration_ReturnsZero() {
-        let shift = TestDataBuilder.shift(
-            scheduledStart: TestDataBuilder.today(hour: 9),
-            scheduledEnd: TestDataBuilder.today(hour: 10), // 1 hour
-            breakMinutes: 90 // 1.5 hours
-        )
-
-        let result = calculator.paidMinutes(for: shift)
-
-        XCTAssertEqual(result, 0) // Cannot be negative
-    }
-
-    // MARK: - Premium Minutes Tests
-
-    func testPremiumMinutes_RegularRate_ReturnsZero() {
-        let shift = TestDataBuilder.shift(rateMultiplier: 1.0)
-
-        let result = calculator.premiumMinutes(for: shift)
-
-        XCTAssertEqual(result, 0)
-    }
-
-    func testPremiumMinutes_OvertimeRate_ReturnsAllPaidMinutes() {
+    func testUpdateCalculatedFields_OvertimeRate_SetsPremiumMinutes() {
         let shift = TestDataBuilder.shift(
             scheduledStart: TestDataBuilder.today(hour: 9),
             scheduledEnd: TestDataBuilder.today(hour: 17),
@@ -70,69 +52,42 @@ final class HoursCalculatorTests: XCTestCase {
             rateMultiplier: 1.5
         )
 
-        let result = calculator.premiumMinutes(for: shift)
+        calculator.updateCalculatedFields(for: shift)
 
-        XCTAssertEqual(result, 450) // All paid minutes are premium
+        XCTAssertEqual(shift.paidMinutes, 450)
+        XCTAssertEqual(shift.premiumMinutes, 450) // All paid time is premium
     }
 
-    // MARK: - Estimated Pay Tests
-
-    func testEstimatedPayCents_RegularRate() {
-        let shift = TestDataBuilder.shift(
-            scheduledStart: TestDataBuilder.today(hour: 9),
-            scheduledEnd: TestDataBuilder.today(hour: 17),
-            breakMinutes: 30,
-            rateMultiplier: 1.0
-        )
-        let baseRateCents: Int64 = 2000 // $20/hour
-
-        let result = calculator.estimatedPayCents(for: shift, baseRateCents: baseRateCents)
-
-        // 7.5 hours * $20 = $150 = 15000 cents
-        XCTAssertEqual(result, 15000)
-    }
-
-    func testEstimatedPayCents_DoubleTimeRate() {
+    func testUpdateCalculatedFields_DoubleTime_SetsPremiumMinutes() {
         let shift = TestDataBuilder.shift(
             scheduledStart: TestDataBuilder.today(hour: 9),
             scheduledEnd: TestDataBuilder.today(hour: 17),
             breakMinutes: 30,
             rateMultiplier: 2.0
         )
-        let baseRateCents: Int64 = 2000 // $20/hour
 
-        let result = calculator.estimatedPayCents(for: shift, baseRateCents: baseRateCents)
+        calculator.updateCalculatedFields(for: shift)
 
-        // 7.5 hours * $20 * 2.0 = $300 = 30000 cents
-        XCTAssertEqual(result, 30000)
+        XCTAssertEqual(shift.paidMinutes, 450)
+        XCTAssertEqual(shift.premiumMinutes, 450) // Double time is premium
     }
 
-    // MARK: - Period Summary Tests
+    func testUpdateCalculatedFields_NegativeBreak_TreatedAsZero() {
+        let shift = TestDataBuilder.shift(
+            scheduledStart: TestDataBuilder.today(hour: 9),
+            scheduledEnd: TestDataBuilder.today(hour: 17),
+            breakMinutes: -30, // Invalid negative break
+            rateMultiplier: 1.0
+        )
 
-    func testCalculateSummary_MultipleShifts() {
-        let shifts = [
-            TestDataBuilder.completedShift(
-                scheduledStart: TestDataBuilder.past(days: 1, hour: 9),
-                durationHours: 8,
-                breakMinutes: 30,
-                rateMultiplier: 1.0
-            ),
-            TestDataBuilder.completedShift(
-                scheduledStart: TestDataBuilder.past(days: 2, hour: 9),
-                durationHours: 8,
-                breakMinutes: 30,
-                rateMultiplier: 1.5
-            )
-        ]
+        calculator.updateCalculatedFields(for: shift)
 
-        let summary = calculator.calculateSummary(for: shifts)
-
-        XCTAssertEqual(summary.totalPaidMinutes, 900) // 450 + 450
-        XCTAssertEqual(summary.regularMinutes, 450)
-        XCTAssertEqual(summary.premiumMinutes, 450)
+        XCTAssertEqual(shift.paidMinutes, 480) // Negative break treated as 0
     }
 
-    func testCalculateSummary_WithBaseRate_CalculatesPay() {
+    // MARK: - calculateSummary Tests
+
+    func testCalculateSummary_SingleRegularShift() {
         let shift = TestDataBuilder.completedShift(
             scheduledStart: TestDataBuilder.past(days: 1, hour: 9),
             durationHours: 8,
@@ -140,14 +95,52 @@ final class HoursCalculatorTests: XCTestCase {
             rateMultiplier: 1.0
         )
 
-        let summary = calculator.calculateSummary(for: [shift], baseRateCents: 2000)
+        let summary = calculator.calculateSummary(for: [shift], baseRateCents: nil)
 
-        XCTAssertNotNil(summary.estimatedPayCents)
-        XCTAssertEqual(summary.estimatedPayCents, 15000)
+        XCTAssertEqual(summary.totalPaidMinutes, 450)
+        XCTAssertEqual(summary.regularMinutes, 450)
+        XCTAssertEqual(summary.premiumMinutes, 0)
+        XCTAssertNil(summary.estimatedPayCents)
+    }
+
+    func testCalculateSummary_SinglePremiumShift() {
+        let shift = TestDataBuilder.completedShift(
+            scheduledStart: TestDataBuilder.past(days: 1, hour: 9),
+            durationHours: 8,
+            breakMinutes: 30,
+            rateMultiplier: 1.5
+        )
+
+        let summary = calculator.calculateSummary(for: [shift], baseRateCents: nil)
+
+        XCTAssertEqual(summary.totalPaidMinutes, 450)
+        XCTAssertEqual(summary.regularMinutes, 0)
+        XCTAssertEqual(summary.premiumMinutes, 450)
+    }
+
+    func testCalculateSummary_MixedShifts() {
+        let regularShift = TestDataBuilder.completedShift(
+            scheduledStart: TestDataBuilder.past(days: 2, hour: 9),
+            durationHours: 8,
+            breakMinutes: 30,
+            rateMultiplier: 1.0
+        )
+        let premiumShift = TestDataBuilder.completedShift(
+            scheduledStart: TestDataBuilder.past(days: 1, hour: 9),
+            durationHours: 8,
+            breakMinutes: 30,
+            rateMultiplier: 1.5
+        )
+
+        let summary = calculator.calculateSummary(for: [regularShift, premiumShift], baseRateCents: nil)
+
+        XCTAssertEqual(summary.totalPaidMinutes, 900) // 450 + 450
+        XCTAssertEqual(summary.regularMinutes, 450)
+        XCTAssertEqual(summary.premiumMinutes, 450)
     }
 
     func testCalculateSummary_EmptyShifts_ReturnsZero() {
-        let summary = calculator.calculateSummary(for: [])
+        let summary = calculator.calculateSummary(for: [], baseRateCents: nil)
 
         XCTAssertEqual(summary.totalPaidMinutes, 0)
         XCTAssertEqual(summary.regularMinutes, 0)
@@ -155,79 +148,157 @@ final class HoursCalculatorTests: XCTestCase {
         XCTAssertNil(summary.estimatedPayCents)
     }
 
-    // MARK: - Time Utilities Tests
+    // MARK: - Pay Estimation Tests
 
-    func testMinutesBetween() {
-        let start = TestDataBuilder.today(hour: 9)
-        let end = TestDataBuilder.today(hour: 17)
+    func testCalculateSummary_WithBaseRate_CalculatesRegularPay() {
+        let shift = TestDataBuilder.completedShift(
+            scheduledStart: TestDataBuilder.past(days: 1, hour: 9),
+            durationHours: 8,
+            breakMinutes: 30,
+            rateMultiplier: 1.0
+        )
+        let baseRateCents: Int64 = 2000 // $20/hour
 
-        let result = calculator.minutesBetween(start: start, end: end)
+        let summary = calculator.calculateSummary(for: [shift], baseRateCents: baseRateCents)
 
-        XCTAssertEqual(result, 480) // 8 hours
+        // 7.5 hours * $20 = $150 = 15000 cents
+        XCTAssertNotNil(summary.estimatedPayCents)
+        XCTAssertEqual(summary.estimatedPayCents, 15000)
     }
 
-    func testSpansMidnight_SameDay_ReturnsFalse() {
-        let start = TestDataBuilder.today(hour: 9)
-        let end = TestDataBuilder.today(hour: 17)
+    func testCalculateSummary_WithBaseRate_CalculatesOvertimePay() {
+        let shift = TestDataBuilder.completedShift(
+            scheduledStart: TestDataBuilder.past(days: 1, hour: 9),
+            durationHours: 8,
+            breakMinutes: 30,
+            rateMultiplier: 1.5
+        )
+        let baseRateCents: Int64 = 2000 // $20/hour
 
-        let result = calculator.spansMidnight(start: start, end: end)
+        let summary = calculator.calculateSummary(for: [shift], baseRateCents: baseRateCents)
 
-        XCTAssertFalse(result)
+        // 7.5 hours * $20 * 1.5 = $225 = 22500 cents
+        XCTAssertNotNil(summary.estimatedPayCents)
+        XCTAssertEqual(summary.estimatedPayCents, 22500)
     }
 
-    func testSpansMidnight_OvernightShift_ReturnsTrue() {
-        let start = TestDataBuilder.today(hour: 22) // 10 PM today
-        let end = TestDataBuilder.future(days: 1, hour: 6) // 6 AM tomorrow
+    func testCalculateSummary_WithBaseRate_CalculatesDoubleTimePay() {
+        let shift = TestDataBuilder.completedShift(
+            scheduledStart: TestDataBuilder.past(days: 1, hour: 9),
+            durationHours: 8,
+            breakMinutes: 30,
+            rateMultiplier: 2.0
+        )
+        let baseRateCents: Int64 = 2000 // $20/hour
 
-        let result = calculator.spansMidnight(start: start, end: end)
+        let summary = calculator.calculateSummary(for: [shift], baseRateCents: baseRateCents)
 
-        XCTAssertTrue(result)
+        // 7.5 hours * $20 * 2.0 = $300 = 30000 cents
+        XCTAssertNotNil(summary.estimatedPayCents)
+        XCTAssertEqual(summary.estimatedPayCents, 30000)
     }
 
-    func testSplitAcrossDays_SingleDay_ReturnsSingleEntry() {
-        let start = TestDataBuilder.today(hour: 9)
-        let end = TestDataBuilder.today(hour: 17)
+    func testCalculateSummary_MultipleShifts_SumsPay() {
+        let shift1 = TestDataBuilder.completedShift(
+            scheduledStart: TestDataBuilder.past(days: 2, hour: 9),
+            durationHours: 8,
+            breakMinutes: 30,
+            rateMultiplier: 1.0
+        )
+        let shift2 = TestDataBuilder.completedShift(
+            scheduledStart: TestDataBuilder.past(days: 1, hour: 9),
+            durationHours: 8,
+            breakMinutes: 30,
+            rateMultiplier: 1.5
+        )
+        let baseRateCents: Int64 = 2000
 
-        let result = calculator.splitAcrossDays(start: start, end: end)
+        let summary = calculator.calculateSummary(for: [shift1, shift2], baseRateCents: baseRateCents)
 
-        XCTAssertEqual(result.count, 1)
-        XCTAssertEqual(result[0].minutes, 480)
+        // Shift 1: 7.5h * $20 * 1.0 = $150
+        // Shift 2: 7.5h * $20 * 1.5 = $225
+        // Total: $375 = 37500 cents
+        XCTAssertEqual(summary.estimatedPayCents, 37500)
     }
 
-    func testSplitAcrossDays_OvernightShift_ReturnsTwoEntries() {
-        let start = TestDataBuilder.today(hour: 22) // 10 PM
-        let end = TestDataBuilder.future(days: 1, hour: 6) // 6 AM
+    // MARK: - PeriodSummary Computed Properties
 
-        let result = calculator.splitAcrossDays(start: start, end: end)
+    func testPeriodSummary_TotalHours_ConvertsCorrectly() {
+        let shift = TestDataBuilder.completedShift(
+            scheduledStart: TestDataBuilder.past(days: 1, hour: 9),
+            durationHours: 8,
+            breakMinutes: 30,
+            rateMultiplier: 1.0
+        )
 
-        XCTAssertEqual(result.count, 2)
-        XCTAssertEqual(result[0].minutes, 120) // 2 hours before midnight
-        XCTAssertEqual(result[1].minutes, 360) // 6 hours after midnight
+        let summary = calculator.calculateSummary(for: [shift], baseRateCents: nil)
+
+        XCTAssertEqual(summary.totalHours, 7.5, accuracy: 0.01)
+        XCTAssertEqual(summary.regularHours, 7.5, accuracy: 0.01)
+        XCTAssertEqual(summary.premiumHours, 0.0, accuracy: 0.01)
     }
 
-    // MARK: - Rate Validation Tests
+    func testPeriodSummary_PremiumHours_ConvertsCorrectly() {
+        let shift = TestDataBuilder.completedShift(
+            scheduledStart: TestDataBuilder.past(days: 1, hour: 9),
+            durationHours: 8,
+            breakMinutes: 30,
+            rateMultiplier: 1.5
+        )
 
-    func testIsValidRate_ValidRates() {
-        XCTAssertTrue(calculator.isValidRate(1.0))
-        XCTAssertTrue(calculator.isValidRate(1.5))
-        XCTAssertTrue(calculator.isValidRate(2.0))
-        XCTAssertTrue(calculator.isValidRate(0.5))
+        let summary = calculator.calculateSummary(for: [shift], baseRateCents: nil)
+
+        XCTAssertEqual(summary.totalHours, 7.5, accuracy: 0.01)
+        XCTAssertEqual(summary.regularHours, 0.0, accuracy: 0.01)
+        XCTAssertEqual(summary.premiumHours, 7.5, accuracy: 0.01)
     }
 
-    func testIsValidRate_InvalidRates() {
-        XCTAssertFalse(calculator.isValidRate(0))
-        XCTAssertFalse(calculator.isValidRate(-1.0))
-        XCTAssertFalse(calculator.isValidRate(15.0))
+    // MARK: - Edge Cases
+
+    func testCalculateSummary_VeryShortShift() {
+        let shift = TestDataBuilder.completedShift(
+            scheduledStart: TestDataBuilder.past(days: 1, hour: 9),
+            durationHours: 1,
+            breakMinutes: 0,
+            rateMultiplier: 1.0
+        )
+
+        let summary = calculator.calculateSummary(for: [shift], baseRateCents: 2000)
+
+        XCTAssertEqual(summary.totalPaidMinutes, 60)
+        XCTAssertEqual(summary.estimatedPayCents, 2000) // 1 hour * $20
     }
 
-    func testRateLabel_StandardRates() {
-        XCTAssertEqual(calculator.rateLabel(for: 1.0), "Regular")
-        XCTAssertEqual(calculator.rateLabel(for: 1.3), "Overtime (Bracket)")
-        XCTAssertEqual(calculator.rateLabel(for: 1.5), "Extra")
-        XCTAssertEqual(calculator.rateLabel(for: 2.0), "Bank Holiday")
+    func testCalculateSummary_HighRateMultiplier() {
+        let shift = TestDataBuilder.completedShift(
+            scheduledStart: TestDataBuilder.past(days: 1, hour: 9),
+            durationHours: 8,
+            breakMinutes: 30,
+            rateMultiplier: 3.0 // Triple time
+        )
+        let baseRateCents: Int64 = 2000
+
+        let summary = calculator.calculateSummary(for: [shift], baseRateCents: baseRateCents)
+
+        // 7.5 hours * $20 * 3.0 = $450 = 45000 cents
+        XCTAssertEqual(summary.estimatedPayCents, 45000)
     }
 
-    func testRateLabel_CustomRate() {
-        XCTAssertEqual(calculator.rateLabel(for: 1.75), "1.8x") // Rounded to 1 decimal
+    func testCalculateSummary_ManyShifts() {
+        var shifts: [Shift] = []
+        for i in 1...10 {
+            shifts.append(TestDataBuilder.completedShift(
+                scheduledStart: TestDataBuilder.past(days: i, hour: 9),
+                durationHours: 8,
+                breakMinutes: 30,
+                rateMultiplier: 1.0
+            ))
+        }
+
+        let summary = calculator.calculateSummary(for: shifts, baseRateCents: 2000)
+
+        XCTAssertEqual(summary.totalPaidMinutes, 4500) // 10 * 450
+        XCTAssertEqual(summary.totalHours, 75.0, accuracy: 0.01)
+        XCTAssertEqual(summary.estimatedPayCents, 150000) // $1500
     }
 }

@@ -5,6 +5,7 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var context
     @EnvironmentObject private var entitlementManager: EntitlementManager
     @StateObject private var cloudKitManager = CloudKitManager()
+    @AppStorage("appearanceMode") private var appearanceMode: Int = AppearanceMode.dark.rawValue
 
     @Query(sort: [SortDescriptor(\UserProfile.createdAt, order: .forward)])
     private var profiles: [UserProfile]
@@ -46,6 +47,40 @@ struct SettingsView: View {
                         premiumProfileSection(profile: profile)
                     } else {
                         setupProfileCard
+                    }
+
+                    // Appearance section
+                    PremiumSettingsSection(title: "Appearance", icon: "paintbrush") {
+                        VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+                            Text("Theme")
+                                .font(ShiftProTypography.caption)
+                                .foregroundStyle(ShiftProColors.inkSubtle)
+
+                            HStack(spacing: ShiftProSpacing.small) {
+                                ForEach(AppearanceMode.allCases, id: \.rawValue) { mode in
+                                    Button {
+                                        appearanceMode = mode.rawValue
+                                    } label: {
+                                        VStack(spacing: 6) {
+                                            Image(systemName: mode == .system ? "circle.lefthalf.filled" : (mode == .light ? "sun.max.fill" : "moon.fill"))
+                                                .font(.system(size: 20))
+                                            Text(mode.displayName)
+                                                .font(ShiftProTypography.caption)
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, ShiftProSpacing.small)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                .fill(appearanceMode == mode.rawValue ? ShiftProColors.accent : ShiftProColors.surface)
+                                        )
+                                        .foregroundStyle(appearanceMode == mode.rawValue ? .white : ShiftProColors.ink)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                }
+                            }
+                        }
+                        .padding(.horizontal, ShiftProSpacing.medium)
+                        .padding(.vertical, ShiftProSpacing.small)
                     }
 
                     // Setup reminder
@@ -221,7 +256,7 @@ struct SettingsView: View {
                     // App info footer
                     appInfoFooter
                         .padding(.top, ShiftProSpacing.medium)
-                        .padding(.bottom, ShiftProSpacing.extraLarge)
+                        .padding(.bottom, 100) // Extra padding for tab bar
                 }
                 .padding(.horizontal, ShiftProSpacing.medium)
             }
@@ -739,6 +774,14 @@ private struct DefaultPatternPickerView: View {
     @Environment(\.dismiss) private var dismiss
     let patterns: [ShiftPattern]
 
+    @State private var patternToExtend: ShiftPattern?
+    @State private var showingExtendSheet = false
+    @State private var extensionMonths = 12
+    @State private var isExtending = false
+    @State private var showExtendSuccess = false
+
+    private let engine = PatternEngine()
+
     var body: some View {
         ZStack {
             AnimatedMeshBackground()
@@ -751,31 +794,47 @@ private struct DefaultPatternPickerView: View {
                                 SettingsDivider()
                             }
 
-                            Button {
-                                setAsDefault(pattern)
-                            } label: {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(pattern.name)
-                                            .font(ShiftProTypography.body)
-                                            .foregroundStyle(ShiftProColors.ink)
-                                        if let notes = pattern.notes, !notes.isEmpty {
-                                            Text(notes)
-                                                .font(ShiftProTypography.caption)
-                                                .foregroundStyle(ShiftProColors.inkSubtle)
+                            HStack {
+                                Button {
+                                    setAsDefault(pattern)
+                                } label: {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(pattern.name)
+                                                .font(ShiftProTypography.body)
+                                                .foregroundStyle(ShiftProColors.ink)
+                                            if let notes = pattern.notes, !notes.isEmpty {
+                                                Text(notes)
+                                                    .font(ShiftProTypography.caption)
+                                                    .foregroundStyle(ShiftProColors.inkSubtle)
+                                            }
+                                        }
+                                        Spacer()
+                                        if isDefault(pattern) {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .font(.system(size: 20))
+                                                .foregroundStyle(ShiftProColors.accent)
                                         }
                                     }
-                                    Spacer()
-                                    if isDefault(pattern) {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .font(.system(size: 20))
-                                            .foregroundStyle(ShiftProColors.accent)
-                                    }
                                 }
-                                .padding(.horizontal, ShiftProSpacing.medium)
-                                .padding(.vertical, ShiftProSpacing.small)
+                                .buttonStyle(PlainButtonStyle())
+
+                                // Extend button
+                                Button {
+                                    patternToExtend = pattern
+                                    showingExtendSheet = true
+                                } label: {
+                                    Image(systemName: "arrow.forward.to.line")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundStyle(ShiftProColors.accent)
+                                        .padding(10)
+                                        .background(ShiftProColors.accent.opacity(0.1))
+                                        .clipShape(Circle())
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .padding(.horizontal, ShiftProSpacing.medium)
+                            .padding(.vertical, ShiftProSpacing.small)
                         }
                     }
 
@@ -836,6 +895,31 @@ private struct DefaultPatternPickerView: View {
             }
         }
         .navigationTitle("Default Pattern")
+        .sheet(isPresented: $showingExtendSheet) {
+            if let pattern = patternToExtend {
+                ExtendPatternSheet(
+                    pattern: pattern,
+                    months: $extensionMonths,
+                    isExtending: $isExtending,
+                    onExtend: {
+                        extendPattern(pattern)
+                    }
+                )
+            }
+        }
+        .alert("Pattern Extended!", isPresented: $showExtendSuccess) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Shifts have been scheduled for the next \(extensionMonthsLabel).")
+        }
+    }
+
+    private var extensionMonthsLabel: String {
+        switch extensionMonths {
+        case 12: return "year"
+        case 24: return "2 years"
+        default: return "\(extensionMonths) months"
+        }
     }
 
     private func isDefault(_ pattern: ShiftPattern) -> Bool {
@@ -846,6 +930,131 @@ private struct DefaultPatternPickerView: View {
         pattern.createdAt = Date()
         try? context.save()
         dismiss()
+    }
+
+    private func extendPattern(_ pattern: ShiftPattern) {
+        isExtending = true
+
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let endDate = calendar.date(byAdding: .month, value: extensionMonths, to: today) ?? today
+
+        // Generate new shifts from today to the extension date
+        let newShifts = engine.generateShifts(for: pattern, from: today, to: endDate, owner: nil)
+
+        for shift in newShifts {
+            context.insert(shift)
+        }
+
+        do {
+            try context.save()
+            isExtending = false
+            showingExtendSheet = false
+            showExtendSuccess = true
+        } catch {
+            isExtending = false
+        }
+    }
+}
+
+// MARK: - Extend Pattern Sheet
+
+private struct ExtendPatternSheet: View {
+    let pattern: ShiftPattern
+    @Binding var months: Int
+    @Binding var isExtending: Bool
+    let onExtend: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: ShiftProSpacing.large) {
+                // Header
+                VStack(spacing: ShiftProSpacing.small) {
+                    Image(systemName: "calendar.badge.plus")
+                        .font(.system(size: 48))
+                        .foregroundStyle(ShiftProColors.accent)
+
+                    Text("Extend Pattern")
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundStyle(ShiftProColors.ink)
+
+                    Text("Generate more shifts for '\(pattern.name)'")
+                        .font(ShiftProTypography.subheadline)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, ShiftProSpacing.large)
+
+                // Duration picker
+                VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+                    Text("Extend by")
+                        .font(ShiftProTypography.headline)
+                        .foregroundStyle(ShiftProColors.ink)
+
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: ShiftProSpacing.small) {
+                        ForEach([3, 6, 12, 24], id: \.self) { duration in
+                            let isSelected = months == duration
+                            let label = duration == 12 ? "1 Year" : duration == 24 ? "2 Years" : "\(duration) Months"
+
+                            Button {
+                                months = duration
+                            } label: {
+                                Text(label)
+                                    .font(ShiftProTypography.body)
+                                    .fontWeight(.medium)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, ShiftProSpacing.medium)
+                                    .background(isSelected ? ShiftProColors.accent : ShiftProColors.surface)
+                                    .foregroundStyle(isSelected ? .white : ShiftProColors.ink)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .strokeBorder(isSelected ? ShiftProColors.accent : ShiftProColors.divider, lineWidth: 1)
+                                    )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                }
+                .padding(.horizontal, ShiftProSpacing.medium)
+
+                Spacer()
+
+                // Extend button
+                Button {
+                    onExtend()
+                } label: {
+                    HStack(spacing: 8) {
+                        if isExtending {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Image(systemName: "arrow.forward.to.line")
+                        }
+                        Text(isExtending ? "Extending..." : "Extend Pattern")
+                            .fontWeight(.semibold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(ShiftProSpacing.medium)
+                    .background(ShiftProColors.accent)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .disabled(isExtending)
+                .padding(.horizontal, ShiftProSpacing.medium)
+                .padding(.bottom, ShiftProSpacing.large)
+            }
+            .background(ShiftProColors.background.ignoresSafeArea())
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 }
 

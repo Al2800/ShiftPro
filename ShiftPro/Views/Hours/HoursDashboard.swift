@@ -20,61 +20,58 @@ struct HoursDashboard: View {
     private let overtimePredictor = OvertimePredictor()
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
-                if shifts.isEmpty {
-                    emptyState
-                    dataActionsCard
-                } else {
-                    // Primary card - dominant visual hierarchy
-                    heroCard
+        ZStack {
+            // Premium animated background
+            AnimatedMeshBackground()
 
-                    // Secondary section - insights and details
-                    VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
-                        Text("Details")
-                            .font(ShiftProTypography.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundStyle(ShiftProColors.inkSubtle)
-                            .textCase(.uppercase)
-                            .padding(.top, ShiftProSpacing.small)
-
-                        NavigationLink {
-                            PayPeriodDetailView(
-                                period: currentPeriod,
-                                shifts: periodShifts,
-                                baseRateCents: profile?.baseRateCents
-                            )
-                        } label: {
-                            summaryCard
-                        }
-                        .buttonStyle(.plain)
-
-                        chartCard
-
-                        rateBreakdownCard
-
-                        overtimeCard
-                    }
-
-                    // Tertiary section - history and actions
-                    VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
-                        Text("History")
-                            .font(ShiftProTypography.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundStyle(ShiftProColors.inkSubtle)
-                            .textCase(.uppercase)
-                            .padding(.top, ShiftProSpacing.small)
-
-                        recentPeriodsCard
-
+            ScrollView {
+                VStack(alignment: .leading, spacing: ShiftProSpacing.large) {
+                    if shifts.isEmpty {
+                        emptyState
                         dataActionsCard
+                    } else {
+                        // Primary card - dominant visual hierarchy
+                        heroCard
+
+                        // Secondary section - insights and details
+                        VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
+                            SectionHeader.subtle("Details")
+                                .padding(.top, ShiftProSpacing.small)
+
+                            NavigationLink {
+                                PayPeriodDetailView(
+                                    period: currentPeriod,
+                                    shifts: periodShifts,
+                                    baseRateCents: profile?.baseRateCents
+                                )
+                            } label: {
+                                summaryCard
+                            }
+                            .buttonStyle(.plain)
+
+                            chartCard
+
+                            rateBreakdownCard
+
+                            overtimeCard
+                        }
+
+                        // Tertiary section - history and actions
+                        VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
+                            SectionHeader.subtle("History")
+                                .padding(.top, ShiftProSpacing.small)
+
+                            recentPeriodsCard
+
+                            dataActionsCard
+                        }
                     }
                 }
+                .padding(.horizontal, ShiftProSpacing.medium)
+                .padding(.vertical, ShiftProSpacing.large)
+                .padding(.bottom, ShiftProSpacing.tabBarPadding)
             }
-            .padding(.horizontal, ShiftProSpacing.medium)
-            .padding(.vertical, ShiftProSpacing.large)
         }
-        .background(ShiftProColors.background.ignoresSafeArea())
         .navigationTitle("Hours")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

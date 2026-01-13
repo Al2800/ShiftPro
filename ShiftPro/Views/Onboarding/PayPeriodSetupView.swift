@@ -53,10 +53,7 @@ struct PayPeriodSetupView: View {
     }
 
     private var numberFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.maximumFractionDigits = 2
-        return formatter
+        CurrencyFormatter.inputFormatter()
     }
 }
 

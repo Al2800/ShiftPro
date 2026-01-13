@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import SwiftUI
 
 /// An individual shift instance representing actual work time.
 /// Can be generated from a pattern or created as an ad-hoc shift.
@@ -235,6 +236,40 @@ extension Shift {
     /// Whether the shift is in the past
     var isPast: Bool {
         scheduledEnd < Date()
+    }
+
+    /// Derives the short code for calendar display
+    /// For cycling patterns, this looks at the rotation day's shift name
+    /// Falls back to pattern's shortCode or "W" for work
+    var displayCode: String {
+        // For cycling patterns, try to derive from rotation day's shift name
+        if let pattern = pattern,
+           pattern.scheduleType == .cycling,
+           let rotationDay = pattern.rotationDay(for: scheduledStart) {
+            if let shiftName = rotationDay.shiftName?.lowercased() {
+                // Derive code from shift name
+                if shiftName.contains("early") || shiftName.contains("morning") {
+                    return "E"
+                } else if shiftName.contains("night") {
+                    return "N"
+                } else if shiftName.contains("late") || shiftName.contains("afternoon") {
+                    return "L"
+                } else if shiftName.contains("day") {
+                    return "D"
+                } else if shiftName.contains("mid") {
+                    return "M"
+                }
+                // Use first letter of shift name as fallback
+                return String(shiftName.prefix(1)).uppercased()
+            }
+        }
+        // Fall back to pattern's shortCode or "W"
+        return pattern?.shortCode ?? "W"
+    }
+
+    /// Gets the color for this shift's display code
+    var displayColor: Color {
+        ShiftProColors.shiftCodeColor(for: displayCode)
     }
 }
 

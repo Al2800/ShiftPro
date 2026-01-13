@@ -6,6 +6,7 @@ struct DashboardView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var animateIn = false
     @State private var showingAddShift = false
+    @State private var showingPatternBuilder = false
     @State private var showingLogBreak = false
     @State private var breakMinutesToLog: Int = 15
     @State private var isProcessingAction = false
@@ -65,7 +66,7 @@ struct DashboardView: View {
                 }
                 .padding(.horizontal, ShiftProSpacing.medium)
                 .padding(.top, ShiftProSpacing.large)
-                .padding(.bottom, 100) // Extra padding for tab bar
+                .padding(.bottom, ShiftProSpacing.tabBarPadding)
             }
         }
         .navigationBarTitleDisplayMode(.inline)
@@ -100,6 +101,9 @@ struct DashboardView: View {
         }
         .sheet(isPresented: $showingAddShift) {
             ShiftFormView()
+        }
+        .sheet(isPresented: $showingPatternBuilder) {
+            SimplePatternBuilderView()
         }
         .sheet(isPresented: $showingLogBreak) {
             logBreakSheet
@@ -190,29 +194,44 @@ struct DashboardView: View {
             )
             .accessibilityIdentifier(AccessibilityIdentifiers.dashboardHeroCard)
         } else {
-            // Empty state hero
+            // Empty state hero - guide users to create a pattern first
             VStack(spacing: ShiftProSpacing.medium) {
-                Image(systemName: "calendar.badge.plus")
+                Image(systemName: "calendar.badge.clock")
                     .font(.system(size: 48, weight: .light))
                     .foregroundStyle(ShiftProColors.accent.opacity(0.6))
-                    .floatingAnimation()
 
-                Text("No Upcoming Shifts")
+                Text("Welcome to ShiftPro")
                     .font(ShiftProTypography.title)
                     .foregroundStyle(ShiftProColors.ink)
 
-                Text("Add your first shift to get started")
+                Text("Set up your work pattern to automatically schedule your shifts")
                     .font(ShiftProTypography.subheadline)
                     .foregroundStyle(ShiftProColors.inkSubtle)
                     .multilineTextAlignment(.center)
 
-                PremiumButton(
-                    title: "Add Shift",
-                    icon: "plus",
-                    style: .primary,
-                    showShimmer: true
-                ) {
-                    showingAddShift = true
+                VStack(spacing: ShiftProSpacing.small) {
+                    // Primary action - Create pattern
+                    PremiumButton(
+                        title: "Create Work Pattern",
+                        icon: "repeat.circle.fill",
+                        style: .primary
+                    ) {
+                        showingPatternBuilder = true
+                    }
+
+                    // Secondary action - Add single shift
+                    Button {
+                        showingAddShift = true
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "plus.circle")
+                                .font(.system(size: 14, weight: .medium))
+                            Text("Add a single shift instead")
+                                .font(ShiftProTypography.caption)
+                        }
+                        .foregroundStyle(ShiftProColors.accent)
+                    }
+                    .padding(.top, ShiftProSpacing.extraSmall)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -239,7 +258,7 @@ struct DashboardView: View {
     @ViewBuilder
     private var hoursSection: some View {
         VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
-            sectionHeader(title: "This Period", icon: "chart.bar.fill")
+            SectionHeader.withIcon("This Period", icon: "chart.bar.fill")
 
             if periodShifts.isEmpty {
                 EmptyStateView(
@@ -304,7 +323,7 @@ struct DashboardView: View {
     private var upcomingSection: some View {
         VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
             HStack {
-                sectionHeader(title: "Upcoming", icon: "calendar.badge.clock")
+                SectionHeader.withIcon("Upcoming", icon: "calendar.badge.clock")
 
                 Spacer()
 
@@ -351,7 +370,7 @@ struct DashboardView: View {
     private var overtimeSection: some View {
         if !upcomingOvertimeShifts.isEmpty {
             VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
-                sectionHeader(title: "Overtime", icon: "flame.fill")
+                SectionHeader.withIcon("Overtime", icon: "flame.fill")
 
                 ForEach(upcomingOvertimeShifts.prefix(3), id: \.id) { shift in
                     overtimeShiftRow(shift: shift)
@@ -410,7 +429,7 @@ struct DashboardView: View {
 
     private var premiumQuickActions: some View {
         VStack(alignment: .leading, spacing: ShiftProSpacing.medium) {
-            sectionHeader(title: "Quick Actions", icon: "bolt.fill")
+            SectionHeader.withIcon("Quick Actions", icon: "bolt.fill")
 
             HStack(spacing: ShiftProSpacing.small) {
                 PremiumButton(
@@ -445,20 +464,6 @@ struct DashboardView: View {
                 }
                 .accessibilityIdentifier("dashboard.logBreak")
             }
-        }
-    }
-
-    // MARK: - Section Header Helper
-
-    private func sectionHeader(title: String, icon: String) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(ShiftProColors.accent)
-
-            Text(title)
-                .font(ShiftProTypography.headline)
-                .foregroundStyle(ShiftProColors.ink)
         }
     }
 
@@ -701,37 +706,110 @@ struct DashboardView: View {
 
     private var logBreakSheet: some View {
         NavigationStack {
-            Form {
-                Section("Break Duration") {
+            VStack(spacing: ShiftProSpacing.large) {
+                // Quick break buttons
+                VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+                    Text("Quick Add")
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                        .textCase(.uppercase)
+
+                    HStack(spacing: ShiftProSpacing.small) {
+                        ForEach([5, 15, 30, 60], id: \.self) { minutes in
+                            Button {
+                                breakMinutesToLog = minutes
+                                Task { await logBreakMinutes() }
+                            } label: {
+                                VStack(spacing: 4) {
+                                    Text("\(minutes)")
+                                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                                    Text("min")
+                                        .font(.system(size: 11, weight: .medium))
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, ShiftProSpacing.medium)
+                                .background(ShiftProColors.surface)
+                                .foregroundStyle(ShiftProColors.accent)
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            }
+                            .shiftProPressable(scale: 0.96, opacity: 0.9, haptic: .impactMedium)
+                            .disabled(isProcessingAction)
+                        }
+                    }
+                }
+                .padding(.horizontal, ShiftProSpacing.medium)
+
+                Divider()
+                    .padding(.horizontal, ShiftProSpacing.medium)
+
+                // Custom duration picker
+                VStack(alignment: .leading, spacing: ShiftProSpacing.small) {
+                    Text("Custom Duration")
+                        .font(ShiftProTypography.caption)
+                        .foregroundStyle(ShiftProColors.inkSubtle)
+                        .textCase(.uppercase)
+                        .padding(.horizontal, ShiftProSpacing.medium)
+
                     Picker("Minutes", selection: $breakMinutesToLog) {
-                        Text("5 minutes").tag(5)
-                        Text("10 minutes").tag(10)
-                        Text("15 minutes").tag(15)
-                        Text("30 minutes").tag(30)
-                        Text("45 minutes").tag(45)
-                        Text("60 minutes").tag(60)
+                        ForEach([5, 10, 15, 20, 25, 30, 45, 60], id: \.self) { minutes in
+                            Text("\(minutes) minutes").tag(minutes)
+                        }
                     }
                     .pickerStyle(.wheel)
+                    .frame(height: 120)
                 }
 
+                // Current break status
                 if let shift = currentShift {
-                    Section("Current Break") {
-                        HStack {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
                             Text("Already logged")
-                            Spacer()
-                            Text("\(shift.breakMinutes) min")
+                                .font(ShiftProTypography.caption)
                                 .foregroundStyle(ShiftProColors.inkSubtle)
+                            Text("\(shift.breakMinutes) min")
+                                .font(ShiftProTypography.headline)
+                                .foregroundStyle(ShiftProColors.ink)
                         }
-                        HStack {
+                        Spacer()
+                        Image(systemName: "arrow.right")
+                            .foregroundStyle(ShiftProColors.inkSubtle)
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 2) {
                             Text("After logging")
-                            Spacer()
+                                .font(ShiftProTypography.caption)
+                                .foregroundStyle(ShiftProColors.inkSubtle)
                             Text("\(shift.breakMinutes + breakMinutesToLog) min")
+                                .font(ShiftProTypography.headline)
                                 .foregroundStyle(ShiftProColors.accent)
-                                .fontWeight(.medium)
                         }
                     }
+                    .padding(ShiftProSpacing.medium)
+                    .background(ShiftProColors.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .padding(.horizontal, ShiftProSpacing.medium)
                 }
+
+                Spacer()
+
+                // Log button for custom duration
+                Button {
+                    Task { await logBreakMinutes() }
+                } label: {
+                    Text(isProcessingAction ? "Logging..." : "Log \(breakMinutesToLog) Minutes")
+                        .font(ShiftProTypography.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, ShiftProSpacing.medium)
+                        .background(ShiftProColors.accent)
+                        .foregroundStyle(ShiftProColors.midnight)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                }
+                .shiftProPressable(scale: 0.98, opacity: 0.96, haptic: .selection)
+                .disabled(isProcessingAction)
+                .padding(.horizontal, ShiftProSpacing.medium)
+                .padding(.bottom, ShiftProSpacing.medium)
             }
+            .padding(.top, ShiftProSpacing.medium)
+            .background(ShiftProColors.background)
             .navigationTitle("Log Break")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -740,15 +818,9 @@ struct DashboardView: View {
                         showingLogBreak = false
                     }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Log") {
-                        Task { await logBreakMinutes() }
-                    }
-                    .disabled(isProcessingAction)
-                }
             }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
     }
 }
 

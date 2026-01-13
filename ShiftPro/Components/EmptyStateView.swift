@@ -1,9 +1,6 @@
 import SwiftUI
 
 struct EmptyStateView: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var pulseActive = false
-
     let icon: String
     let title: String
     let subtitle: String
@@ -18,7 +15,6 @@ struct EmptyStateView: View {
             Image(systemName: icon)
                 .font(.system(size: 40))
                 .foregroundStyle(ShiftProColors.inkSubtle)
-                .shiftProPulse(isActive: pulseActive)
 
             VStack(spacing: ShiftProSpacing.extraExtraSmall) {
                 Text(title)
@@ -55,12 +51,6 @@ struct EmptyStateView: View {
                     }
                 }
             }
-        }
-        .onAppear {
-            pulseActive = !reduceMotion
-        }
-        .onChange(of: reduceMotion) { _, newValue in
-            pulseActive = !newValue
         }
         .frame(maxWidth: .infinity)
         .shiftProSurface(surfaceLevel)

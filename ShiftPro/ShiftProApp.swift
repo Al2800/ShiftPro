@@ -3,12 +3,36 @@ import SwiftData
 import SwiftUI
 import UIKit
 
+// MARK: - Appearance Mode
+enum AppearanceMode: Int, CaseIterable {
+    case system = 0
+    case light = 1
+    case dark = 2
+
+    var displayName: String {
+        switch self {
+        case .system: return "System"
+        case .light: return "Light"
+        case .dark: return "Dark"
+        }
+    }
+
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
+        }
+    }
+}
+
 @main
 struct ShiftProApp: App {
     private let sharedModelContainer: ModelContainer?
     private let logger = Logger(subsystem: "com.shiftpro", category: "App")
     @State private var notificationManager: NotificationManager?
     @StateObject private var entitlementManager = EntitlementManager()
+    @AppStorage("appearanceMode") private var appearanceMode: Int = AppearanceMode.dark.rawValue
 
     init() {
         let isUITest = ProcessInfo.processInfo.arguments.contains("-ui-testing")
@@ -51,7 +75,7 @@ struct ShiftProApp: App {
                     }
                     .environmentObject(entitlementManager)
                     .modelContainer(sharedModelContainer)
-                    .preferredColorScheme(.dark)
+                    .preferredColorScheme(AppearanceMode(rawValue: appearanceMode)?.colorScheme)
             } else {
                 StorageUnavailableView()
             }

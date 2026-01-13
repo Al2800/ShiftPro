@@ -173,7 +173,7 @@ struct ScheduleView: View {
                 }
                 .padding(.horizontal, ShiftProSpacing.medium)
                 .padding(.top, ShiftProSpacing.large)
-                .padding(.bottom, 100) // Extra padding for tab bar
+                .padding(.bottom, ShiftProSpacing.tabBarPadding)
             }
         }
         .navigationTitle("Schedule")
@@ -480,11 +480,7 @@ struct ScheduleView: View {
     }
 
     private var currencyFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "GBP"
-        formatter.locale = Locale(identifier: "en_GB")
-        return formatter
+        CurrencyFormatter.shared
     }
 
     private struct ShiftProgressBar: View {
@@ -519,7 +515,6 @@ struct ScheduleView: View {
             Image(systemName: "calendar.badge.plus")
                 .font(.system(size: 48, weight: .light))
                 .foregroundStyle(ShiftProColors.accent.opacity(0.6))
-                .floatingAnimation()
 
             Text("No shifts scheduled")
                 .font(ShiftProTypography.headline)
@@ -824,26 +819,32 @@ struct ScheduleView: View {
         let hasShifts = !dayShifts.isEmpty
         let firstShift = dayShifts.first
 
-        // Get shift code and its color
-        let shiftCode = firstShift?.pattern?.shortCode ?? "W"
-        let shiftColor = hasShifts ? ShiftProColors.shiftCodeColor(for: shiftCode) : ShiftProColors.accent
-
-        let dayFormatter = DateFormatter()
-        dayFormatter.dateFormat = "EEE"
-
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "d"
+        // Get shift code and its color (uses rotation day's shift name for cycling patterns)
+        let shiftCode = firstShift?.displayCode ?? "W"
+        let shiftColor = firstShift?.displayColor ?? ShiftProColors.accent
 
         return VStack(spacing: 4) {
-            // Weekday - subtle
-            Text(dayFormatter.string(from: date))
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(ShiftProColors.inkSubtle)
+            // Today label - only show for today when not selected
+            // (weekday header row already provides day-of-week context)
+            if isToday && !isSelected {
+                Text("TODAY")
+                    .font(.system(size: 8, weight: .heavy, design: .rounded))
+                    .foregroundStyle(ShiftProColors.accent)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(
+                        Capsule()
+                            .fill(ShiftProColors.accent.opacity(0.15))
+                    )
+            } else {
+                // Spacer to maintain consistent layout (header provides weekday)
+                Color.clear.frame(height: 16)
+            }
 
             // Date number
-            Text(dateFormatter.string(from: date))
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
-                .foregroundStyle(isSelected ? .white : ShiftProColors.ink)
+            Text(date.dayString)
+                .font(.system(size: 16, weight: isToday ? .bold : .semibold, design: .rounded))
+                .foregroundStyle(isSelected ? .white : (isToday ? ShiftProColors.accent : ShiftProColors.ink))
 
             // Shift code badge - the star
             if hasShifts {
@@ -869,13 +870,13 @@ struct ScheduleView: View {
         .padding(.vertical, 8)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(isSelected ? shiftColor : (isToday ? ShiftProColors.accent.opacity(0.08) : ShiftProColors.surface))
+                .fill(isSelected ? shiftColor : (isToday ? ShiftProColors.accent.opacity(0.12) : ShiftProColors.surface))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(isToday && !isSelected ? ShiftProColors.accent : .clear, lineWidth: 1.5)
+                .strokeBorder(isToday && !isSelected ? ShiftProColors.accent.opacity(0.5) : .clear, lineWidth: 2)
         )
-        .shadow(color: isSelected ? ShiftProColors.accent.opacity(0.3) : Color.black.opacity(0.1), radius: isSelected ? 12 : 4, x: 0, y: isSelected ? 6 : 2)
+        .shadow(color: isSelected ? ShiftProColors.accent.opacity(0.3) : (isToday ? ShiftProColors.accent.opacity(0.15) : Color.black.opacity(0.1)), radius: isSelected ? 12 : (isToday ? 8 : 4), x: 0, y: isSelected ? 6 : (isToday ? 4 : 2))
         .scaleEffect(isSelected ? 1.02 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
         .contentShape(Rectangle())
@@ -938,17 +939,14 @@ struct ScheduleView: View {
         let hasShifts = !dayShifts.isEmpty
         let firstShift = dayShifts.first
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "d"
-
-        // Get shift code and its color
-        let shiftCode = firstShift?.pattern?.shortCode ?? "W"
-        let shiftColor = hasShifts ? ShiftProColors.shiftCodeColor(for: shiftCode) : ShiftProColors.inkSubtle
+        // Get shift code and its color (uses rotation day's shift name for cycling patterns)
+        let shiftCode = firstShift?.displayCode ?? "W"
+        let shiftColor = firstShift?.displayColor ?? ShiftProColors.inkSubtle
 
         return VStack(spacing: 2) {
-            // Date number - subtle, secondary
-            Text(dateFormatter.string(from: date))
-                .font(.system(size: 11, weight: .medium, design: .rounded))
+            // Date number - bold for today
+            Text(date.dayString)
+                .font(.system(size: 11, weight: isToday ? .bold : .medium, design: .rounded))
                 .foregroundStyle(
                     isSelected ? .white.opacity(0.9) :
                     (isToday ? ShiftProColors.accent : ShiftProColors.inkSubtle)
@@ -966,6 +964,11 @@ struct ScheduleView: View {
                         .font(.system(size: 8, weight: .bold))
                         .foregroundStyle(isSelected ? .white.opacity(0.7) : shiftColor.opacity(0.6))
                 }
+            } else if isToday && !isSelected {
+                // Today indicator dot when no shifts
+                Circle()
+                    .fill(ShiftProColors.accent)
+                    .frame(width: 6, height: 6)
             } else {
                 // Empty day - subtle dot
                 Text("·")
@@ -981,7 +984,11 @@ struct ScheduleView: View {
                         .fill(hasShifts ? shiftColor : ShiftProColors.accent)
                 } else if isToday {
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .strokeBorder(ShiftProColors.accent, lineWidth: 1.5)
+                        .fill(ShiftProColors.accent.opacity(0.12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .strokeBorder(ShiftProColors.accent.opacity(0.5), lineWidth: 2)
+                        )
                 }
             }
         )
@@ -1087,17 +1094,11 @@ struct ScheduleView: View {
         let hasShifts = !dayShifts.isEmpty
         let previewShift = dayShifts.first
 
-        let dayFormatter = DateFormatter()
-        dayFormatter.dateFormat = "EEE"
-
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "d"
-
         return VStack(spacing: ShiftProSpacing.extraExtraSmall) {
-            Text(dayFormatter.string(from: date))
+            Text(date.shortWeekdayString)
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(isSelected ? .white : ShiftProColors.inkSubtle)
-            Text(dateFormatter.string(from: date))
+            Text(date.dayString)
                 .font(ShiftProTypography.subheadline)
                 .foregroundStyle(isSelected ? .white : ShiftProColors.ink)
 
@@ -1146,14 +1147,11 @@ struct ScheduleView: View {
         let isToday = calendar.isDateInToday(date)
         let hasShifts = !dayShifts.isEmpty
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "d"
-
         let barColor = isSelected ? Color.white : shiftStatusColor(for: dayShifts)
         let firstShift = dayShifts.first
 
         return VStack(spacing: 2) {
-            Text(dateFormatter.string(from: date))
+            Text(date.dayString)
                 .font(ShiftProTypography.caption)
                 .foregroundStyle(isSelected ? .white : ShiftProColors.ink)
 

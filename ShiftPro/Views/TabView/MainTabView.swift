@@ -88,6 +88,7 @@ private struct PremiumTabBar: View {
     let tabs: [(icon: String, selectedIcon: String, title: String)]
     @Binding var selectedTab: Int
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         HStack(spacing: 0) {
@@ -113,35 +114,15 @@ private struct PremiumTabBar: View {
         .padding(.bottom, 28)
         .background(
             ZStack {
-                // Blurred background
+                // Blurred background - adapts to color scheme
                 Rectangle()
                     .fill(.ultraThinMaterial)
 
-                // Gradient overlay
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.05, green: 0.06, blue: 0.10).opacity(0.9),
-                        Color(red: 0.03, green: 0.04, blue: 0.07).opacity(0.95)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-
-                // Top border highlight
+                // Top border
                 VStack {
                     Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.08),
-                                    Color.white.opacity(0.03),
-                                    Color.clear
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .frame(height: 1)
+                        .fill(ShiftProColors.divider)
+                        .frame(height: 0.5)
                     Spacer()
                 }
             }

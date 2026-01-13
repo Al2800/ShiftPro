@@ -355,85 +355,12 @@ struct NoiseTextureView: View {
 // MARK: - Animated Background
 
 struct AnimatedMeshBackground: View {
-    @State private var gradientOffset: CGFloat = 0
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        if #available(iOS 18.0, *) {
-            meshBackgroundIOS18
-        } else {
-            fallbackBackground
-        }
-    }
-
-    @available(iOS 18.0, *)
-    private var meshBackgroundIOS18: some View {
-        TimelineView(.animation(minimumInterval: 1/30)) { timeline in
-            let time = timeline.date.timeIntervalSinceReferenceDate
-
-            MeshGradient(
-                width: 3,
-                height: 3,
-                points: [
-                    .init(0, 0),
-                    .init(0.5, 0),
-                    .init(1, 0),
-
-                    .init(0, 0.5),
-                    .init(Float(0.5 + 0.1 * sin(time * 0.5)), Float(0.5 + 0.1 * cos(time * 0.3))),
-                    .init(1, 0.5),
-
-                    .init(0, 1),
-                    .init(0.5, 1),
-                    .init(1, 1)
-                ],
-                colors: [
-                    Color(red: 0.03, green: 0.04, blue: 0.06),
-                    Color(red: 0.06, green: 0.05, blue: 0.10),
-                    Color(red: 0.03, green: 0.04, blue: 0.06),
-
-                    Color(red: 0.05, green: 0.06, blue: 0.10),
-                    Color(red: 0.10 + 0.03 * sin(time * 0.4), green: 0.08, blue: 0.16 + 0.02 * cos(time * 0.3)),
-                    Color(red: 0.05, green: 0.06, blue: 0.10),
-
-                    Color(red: 0.03, green: 0.04, blue: 0.06),
-                    Color(red: 0.06, green: 0.05, blue: 0.10),
-                    Color(red: 0.03, green: 0.04, blue: 0.06)
-                ]
-            )
-        }
-        .ignoresSafeArea()
-    }
-
-    private var fallbackBackground: some View {
-        ZStack {
-            // Base dark gradient
-            LinearGradient(
-                colors: [
-                    Color(red: 0.03, green: 0.04, blue: 0.06),
-                    Color(red: 0.05, green: 0.06, blue: 0.10),
-                    Color(red: 0.03, green: 0.04, blue: 0.06)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-
-            // Subtle animated overlay
-            RadialGradient(
-                colors: [
-                    Color(red: 0.12, green: 0.10, blue: 0.20).opacity(0.3),
-                    Color.clear
-                ],
-                center: UnitPoint(x: 0.3 + gradientOffset * 0.4, y: 0.3 + gradientOffset * 0.2),
-                startRadius: 0,
-                endRadius: 300
-            )
-            .onAppear {
-                withAnimation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true)) {
-                    gradientOffset = 1
-                }
-            }
-        }
-        .ignoresSafeArea()
+        // Simple solid background that adapts to light/dark mode
+        ShiftProColors.background
+            .ignoresSafeArea()
     }
 }
 

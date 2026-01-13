@@ -47,8 +47,11 @@ struct ShiftFormView: View {
             start = pattern.startDate(on: baseDate, in: calendar)
             end = pattern.endDate(on: baseDate, in: calendar)
         } else {
-            start = baseDate
-            let defaultEnd = calendar.date(byAdding: .hour, value: 8, to: baseDate) ?? baseDate
+            // For new shifts without a pattern, round to next 15-minute interval
+            // and default to 8 hours duration
+            let roundedStart = baseDate.roundedUp(toNearest: 15)
+            start = roundedStart
+            let defaultEnd = calendar.date(byAdding: .hour, value: 8, to: roundedStart) ?? roundedStart
             end = defaultEnd
         }
 
@@ -90,7 +93,7 @@ struct ShiftFormView: View {
                         .textInputAutocapitalization(.words)
 
                     Picker("Break", selection: $breakMinutes) {
-                        ForEach([0, 15, 30, 45, 60], id: \.self) { minutes in
+                        ForEach(ShiftProOptions.breakMinutes, id: \.self) { minutes in
                             Text("\(minutes) min").tag(minutes)
                         }
                     }
