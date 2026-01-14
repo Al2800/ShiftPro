@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -147,6 +147,7 @@
 		D26125220BE014245DB17F13 /* ShiftManagementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DABD59CCE190791E2BF9301 /* ShiftManagementTests.swift */; };
 		D47895D92F1802C200CEA111 /* Icon-60@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D47895D72F1802C200CEA111 /* Icon-60@2x.png */; };
 		D47895DA2F1802C200CEA111 /* Icon-76@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D47895D82F1802C200CEA111 /* Icon-76@2x.png */; };
+		D47895DC2F18064B00CEA111 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D47895DB2F18064B00CEA111 /* Assets.xcassets */; };
 		D4F5E8A1B3C6F2E9A7D0B4C8 /* OnboardingPersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2E7C9D5B8F4A1E3C6D9F0B2 /* OnboardingPersistenceService.swift */; };
 		D56E97170DBF9A64353731C5 /* ShiftProTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89FCB380733C36F6213EAFFB /* ShiftProTests.swift */; };
 		D6185CD664E4A1AAA5B8FD66 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986C2F45C1680912F7754322 /* HapticManager.swift */; };
@@ -341,6 +342,7 @@
 		D23AA378169E4605AE97DBE6 /* PremiumEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumEffects.swift; sourceTree = "<group>"; };
 		D47895D72F1802C200CEA111 /* Icon-60@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-60@2x.png"; sourceTree = "<group>"; };
 		D47895D82F1802C200CEA111 /* Icon-76@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-76@2x.png"; sourceTree = "<group>"; };
+		D47895DB2F18064B00CEA111 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D687EA399DE781DD0DF25669 /* CacheManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CacheManager.swift; sourceTree = "<group>"; };
 		D6EE95D8765585AD9946DABA /* TestUtilities.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TestUtilities.swift; sourceTree = "<group>"; };
 		D7C5A3603DF24D3D9FE184D9 /* ShiftDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShiftDetailView.swift; sourceTree = "<group>"; };
@@ -664,6 +666,7 @@
 		7E0D27FE39BBEE5D844CE643 = {
 			isa = PBXGroup;
 			children = (
+				D47895DB2F18064B00CEA111 /* Assets.xcassets */,
 				D47895D72F1802C200CEA111 /* Icon-60@2x.png */,
 				D47895D82F1802C200CEA111 /* Icon-76@2x.png */,
 				56887AB5A87177BC0F274385 /* Products */,
@@ -918,8 +921,9 @@
 		B66749F61CA3D44565CCA291 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1600;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					5A8344512D2D5708C34FE8A1 = {
 						ProvisioningStyle = Automatic;
@@ -960,6 +964,7 @@
 			files = (
 				PRIVACY002A2B3C4D5E6F7890 /* PrivacyInfo.xcprivacy in Resources */,
 				D47895D92F1802C200CEA111 /* Icon-60@2x.png in Resources */,
+				D47895DC2F18064B00CEA111 /* Assets.xcassets in Resources */,
 				D47895DA2F1802C200CEA111 /* Icon-76@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1230,7 +1235,10 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 92XJSN32W4;
 				INFOPLIST_FILE = ShiftPro/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.al2800.shiftpro;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "ShiftPro App Store";
@@ -1274,9 +1282,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1295,6 +1305,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1335,9 +1346,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -1349,7 +1362,9 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -1383,7 +1398,10 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 92XJSN32W4;
 				INFOPLIST_FILE = ShiftPro/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.al2800.shiftpro;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "ShiftPro App Store";
