@@ -45,7 +45,7 @@ struct ValuePreviewView: View {
             )
 
             benefitCard(
-                icon: "dollarsign.circle.fill",
+                icon: CurrencyFormatter.currencySymbolIconFillName,
                 title: "Accurate Pay Tracking",
                 description: "See projected earnings with overtime and rate multipliers calculated automatically.",
                 previewContent: payPreview
@@ -124,13 +124,15 @@ struct ValuePreviewView: View {
     }
 
     private var payPreview: AnyView {
-        AnyView(
+        let totalPay = CurrencyFormatter.format(1240) ?? "\(CurrencyFormatter.currencySymbol)1,240"
+        let overtimePay = CurrencyFormatter.format(93) ?? "\(CurrencyFormatter.currencySymbol)93"
+        return AnyView(
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("This Week")
                         .font(.system(size: 10))
                         .foregroundStyle(ShiftProColors.fog)
-                    Text("$1,240")
+                    Text(totalPay)
                         .font(ShiftProTypography.headline)
                         .foregroundStyle(ShiftProColors.accent)
                 }
@@ -148,7 +150,7 @@ struct ValuePreviewView: View {
                     Text("Overtime")
                         .font(.system(size: 10))
                         .foregroundStyle(ShiftProColors.fog)
-                    Text("+$93")
+                    Text("+\(overtimePay)")
                         .font(ShiftProTypography.headline)
                         .foregroundStyle(ShiftProColors.warning)
                 }

@@ -44,9 +44,10 @@ struct AnalyticsDashboard: View {
                 }
             }
             .padding()
+            .padding(.bottom, ShiftProSpacing.tabBarPadding)
         }
         .navigationTitle("Analytics")
-        .background(ShiftProColors.background)
+        .background(ShiftProColors.background.ignoresSafeArea())
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {

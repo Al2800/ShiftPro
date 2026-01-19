@@ -249,6 +249,9 @@ private struct NotificationSettingsForm: View {
                 }
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: ShiftProSpacing.tabBarPadding)
+        }
     }
 
     private func sendTestNotification() {

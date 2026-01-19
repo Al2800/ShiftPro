@@ -174,7 +174,7 @@ final class WidgetSyncService: ObservableObject {
         
         return WidgetShiftData(
             id: shift.id,
-            title: shift.pattern?.name ?? "Shift",
+            title: shift.displayTitle,
             scheduledStart: shift.scheduledStart,
             scheduledEnd: shift.scheduledEnd,
             actualStart: shift.actualStart,

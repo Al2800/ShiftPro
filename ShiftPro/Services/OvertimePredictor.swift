@@ -21,26 +21,10 @@ struct OvertimePredictor {
             period.contains(date: shift.scheduledStart)
         }
 
-        let completedMinutes = inPeriod.reduce(0) { total, shift in
-            guard shift.isCompleted else { return total }
-            return total + minutes(for: shift)
+        let now = Date()
+        let projectedMinutes = inPeriod.reduce(0) { total, shift in
+            total + shift.overtimeMinutes(at: now)
         }
-
-        let inProgressMinutes = inPeriod.reduce(0) { total, shift in
-            guard shift.isInProgress else { return total }
-            if let actualStart = shift.actualStart {
-                let elapsed = Int(Date().timeIntervalSince(actualStart) / 60)
-                return total + max(0, elapsed - shift.breakMinutes)
-            }
-            return total + minutes(for: shift)
-        }
-
-        let futureMinutes = inPeriod.reduce(0) { total, shift in
-            guard shift.status == .scheduled else { return total }
-            return total + minutes(for: shift)
-        }
-
-        let projectedMinutes = completedMinutes + inProgressMinutes + futureMinutes
         let projectedHours = Double(projectedMinutes) / 60.0
         let remaining = max(0, thresholdHours - projectedHours)
 
@@ -56,11 +40,11 @@ struct OvertimePredictor {
         let message: String
         switch status {
         case .safe:
-            message = "On pace to stay within your threshold."
+            message = "Overtime is tracking within your threshold."
         case .approaching:
-            message = String(format: "Approaching overtime. Only %.1f hours remaining.", remaining)
+            message = String(format: "Approaching overtime limit. Only %.1f hours remaining.", remaining)
         case .exceeded:
-            message = "Projected to exceed your overtime threshold."
+            message = "Projected to exceed your overtime limit."
         }
 
         return OvertimeForecast(
@@ -70,12 +54,5 @@ struct OvertimePredictor {
             status: status,
             message: message
         )
-    }
-
-    private func minutes(for shift: Shift) -> Int {
-        if shift.paidMinutes > 0 {
-            return shift.paidMinutes
-        }
-        return max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
     }
 }

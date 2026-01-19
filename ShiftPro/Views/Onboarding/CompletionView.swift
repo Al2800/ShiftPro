@@ -67,9 +67,9 @@ struct CompletionView: View {
                 configuredRow(icon: "calendar", label: "Pay Period", value: data.payPeriod.title)
                 configuredRow(icon: "clock.arrow.2.circlepath", label: "Shift Pattern", value: data.selectedPattern.title)
                 configuredRow(
-                    icon: "dollarsign.circle",
+                    icon: CurrencyFormatter.currencySymbolIconName,
                     label: "Base Rate",
-                    value: String(format: "$%.2f/hr", data.baseRate)
+                    value: "\(baseRateDisplay)/hr"
                 )
                 if data.wantsCalendarSync {
                     configuredRow(icon: "calendar.badge.checkmark", label: "Calendar Sync", value: "Enabled")
@@ -104,6 +104,11 @@ struct CompletionView: View {
                 .foregroundStyle(Color.white)
                 .lineLimit(1)
         }
+    }
+
+    private var baseRateDisplay: String {
+        CurrencyFormatter.format(data.baseRate)
+            ?? "\(CurrencyFormatter.currencySymbol)\(String(format: "%.2f", data.baseRate))"
     }
 
     // MARK: - Skipped Items

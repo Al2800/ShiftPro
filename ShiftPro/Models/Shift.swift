@@ -271,6 +271,59 @@ extension Shift {
     var displayColor: Color {
         ShiftProColors.shiftCodeColor(for: displayCode)
     }
+
+    /// Display title for UI (prefers rotation day shift name when available).
+    var displayTitle: String {
+        if let pattern,
+           pattern.scheduleType == .cycling,
+           let rotationDay = pattern.rotationDay(for: scheduledStart),
+           let shiftName = rotationDay.shiftName?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !shiftName.isEmpty {
+            return shiftName
+        }
+        return pattern?.name ?? "Shift"
+    }
+
+    /// Overtime minutes based on additional shifts, premium minutes, or extra hours beyond schedule.
+    func overtimeMinutes(at date: Date = Date()) -> Int {
+        let paid = paidMinutes > 0 ? paidMinutes : max(0, effectiveDurationMinutes - breakMinutes)
+
+        switch status {
+        case .inProgress:
+            if isAdditionalShift || rateMultiplier > 1.0 {
+                if let actualStart {
+                    let elapsed = Int(date.timeIntervalSince(actualStart) / 60)
+                    return max(0, elapsed - breakMinutes)
+                }
+                return paid
+            }
+            if let actualStart {
+                let elapsed = Int(date.timeIntervalSince(actualStart) / 60)
+                if elapsed > scheduledDurationMinutes {
+                    return elapsed - scheduledDurationMinutes
+                }
+            }
+            return 0
+        case .scheduled:
+            if isAdditionalShift || rateMultiplier > 1.0 {
+                return paid
+            }
+            return 0
+        case .completed:
+            if premiumMinutes > 0 {
+                return min(premiumMinutes, paid)
+            }
+            if isAdditionalShift || rateMultiplier > 1.0 {
+                return paid
+            }
+            if let actual = actualDurationMinutes, actual > scheduledDurationMinutes {
+                return actual - scheduledDurationMinutes
+            }
+            return 0
+        case .cancelled:
+            return 0
+        }
+    }
 }
 
 // MARK: - Convenience Methods

@@ -25,8 +25,10 @@ struct ShiftFormView: View {
     @State private var isAdditionalShift: Bool
 
     @State private var isSaving = false
+    @State private var isDeleting = false
     @State private var showError = false
     @State private var errorMessage: String = ""
+    @State private var showDeleteConfirmation = false
 
     init(shift: Shift? = nil, prefillPattern: ShiftPattern? = nil, prefillDate: Date? = nil) {
         self.shift = shift
@@ -149,6 +151,17 @@ struct ShiftFormView: View {
                             .foregroundStyle(ShiftProColors.inkSubtle)
                     }
                 }
+
+                if shift != nil {
+                    Section {
+                        Button(role: .destructive) {
+                            showDeleteConfirmation = true
+                        } label: {
+                            Text("Delete Shift")
+                        }
+                        .disabled(isDeleting || isSaving)
+                    }
+                }
             }
             .navigationTitle(shift == nil ? "Add Shift" : "Edit Shift")
             .navigationBarTitleDisplayMode(.inline)
@@ -169,6 +182,14 @@ struct ShiftFormView: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(errorMessage)
+            }
+            .alert("Delete Shift?", isPresented: $showDeleteConfirmation) {
+                Button("Delete", role: .destructive) {
+                    deleteShift()
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This will remove the shift from your schedule and reports.")
             }
         }
     }
@@ -262,6 +283,24 @@ struct ShiftFormView: View {
                 dismiss()
             } catch {
                 isSaving = false
+                errorMessage = error.localizedDescription
+                showError = true
+            }
+        }
+    }
+
+    private func deleteShift() {
+        guard let shift else { return }
+        isDeleting = true
+
+        Task { @MainActor in
+            do {
+                let manager = ShiftManager(context: modelContext)
+                try await manager.deleteShift(shift)
+                isDeleting = false
+                dismiss()
+            } catch {
+                isDeleting = false
                 errorMessage = error.localizedDescription
                 showError = true
             }

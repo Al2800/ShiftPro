@@ -28,7 +28,7 @@ struct PayPeriodSetupView: View {
                 HStack {
                     Text("Base Rate")
                     Spacer()
-                    TextField("$0", value: $data.baseRate, formatter: numberFormatter)
+                    TextField(baseRatePlaceholder, value: $data.baseRate, formatter: numberFormatter)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .textFieldStyle(.roundedBorder)
@@ -54,6 +54,10 @@ struct PayPeriodSetupView: View {
 
     private var numberFormatter: NumberFormatter {
         CurrencyFormatter.inputFormatter()
+    }
+
+    private var baseRatePlaceholder: String {
+        "\(CurrencyFormatter.currencySymbol)0"
     }
 }
 

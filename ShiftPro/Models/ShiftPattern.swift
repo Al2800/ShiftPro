@@ -189,6 +189,44 @@ extension ShiftPattern {
     var cycleDays: Int? {
         scheduleType == .cycling ? cycleLengthDays : nil
     }
+
+    /// Summary label for cycling patterns (e.g., "D2 N2 R2").
+    var displaySummary: String {
+        guard scheduleType == .cycling, !rotationDays.isEmpty else { return name }
+
+        let codes = sortedRotationDays.map { day -> String in
+            if day.isWorkDay {
+                if let shiftName = day.shiftName?.trimmingCharacters(in: .whitespacesAndNewlines),
+                   !shiftName.isEmpty {
+                    return String(shiftName.prefix(1)).uppercased()
+                }
+                return shortCode.isEmpty ? "W" : shortCode
+            }
+            return "R"
+        }
+
+        guard let first = codes.first else { return name }
+        var segments: [String] = []
+        var current = first
+        var count = 0
+
+        for code in codes {
+            if code == current {
+                count += 1
+            } else {
+                segments.append(formatSegment(code: current, count: count))
+                current = code
+                count = 1
+            }
+        }
+        segments.append(formatSegment(code: current, count: count))
+
+        return segments.joined(separator: " ")
+    }
+
+    private func formatSegment(code: String, count: Int) -> String {
+        count > 1 ? "\(code)\(count)" : code
+    }
 }
 
 // MARK: - Convenience Methods

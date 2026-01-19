@@ -85,7 +85,7 @@ struct HoursDashboard: View {
                     NavigationLink {
                         RateMultiplierView()
                     } label: {
-                        Label("Rates", systemImage: "dollarsign.circle")
+                        Label("Rates", systemImage: CurrencyFormatter.currencySymbolIconName)
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
@@ -152,16 +152,26 @@ struct HoursDashboard: View {
         guard let nextShift = nextUpcomingShift else { return nil }
 
         let threshold = overtimeForecast.thresholdHours
-        let currentHours = summary.totalHours
-        let shiftHours = Double(max(0, nextShift.scheduledDurationMinutes - nextShift.breakMinutes)) / 60.0
+        let currentHours = currentOvertimeHours
+        let shiftHours = Double(nextShift.overtimeMinutes()) / 60.0
+        guard shiftHours > 0 else { return nil }
         let afterNextShift = currentHours + shiftHours
 
         if afterNextShift > threshold {
             let excess = afterNextShift - threshold
-            return String(format: "Next shift would exceed by %.1f hrs", excess)
+            return String(format: "Next overtime shift would exceed by %.1f hrs", excess)
         } else {
-            return String(format: "After next shift: %.1f hrs", afterNextShift)
+            return String(format: "After next overtime shift: %.1f hrs", afterNextShift)
         }
+    }
+
+    private var currentOvertimeHours: Double {
+        let now = Date()
+        let overtimeMinutes = periodShifts.reduce(0) { total, shift in
+            guard shift.status == .completed || shift.status == .inProgress else { return total }
+            return total + shift.overtimeMinutes(at: now)
+        }
+        return Double(overtimeMinutes) / 60.0
     }
 
     private var emptyState: some View {
@@ -236,7 +246,7 @@ struct HoursDashboard: View {
                     .foregroundStyle(ShiftProColors.inkSubtle)
             }
 
-            Text("Total paid minutes: \(summary.totalPaidMinutes.minutesToHoursFormatted)")
+            Text("Total paid: \(summary.totalPaidMinutes.minutesToHoursFormatted)")
                 .font(ShiftProTypography.body)
                 .foregroundStyle(ShiftProColors.inkSubtle)
 

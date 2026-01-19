@@ -21,6 +21,9 @@ struct PrivacySettingsView: View {
             dataManagementSection
             complianceSection
         }
+        .safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: ShiftProSpacing.tabBarPadding)
+        }
         .navigationTitle("Privacy")
         .sheet(isPresented: $showAuditTrail) {
             AuditTrailView(privacyManager: privacyManager)

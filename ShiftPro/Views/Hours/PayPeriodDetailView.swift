@@ -99,7 +99,7 @@ struct PayPeriodDetailView: View {
             } else {
                 ForEach(shifts.sorted(by: { $0.scheduledStart > $1.scheduledStart }), id: \.id) { shift in
                     ShiftCardView(
-                        title: shift.pattern?.name ?? "Shift",
+                        title: shift.displayTitle,
                         timeRange: "\(shift.dateFormatted) • \(shift.timeRangeFormatted)",
                         location: shift.locationDisplay,
                         status: status(for: shift),

@@ -103,7 +103,7 @@ struct PremiumHeroCard: View {
                 // Estimated pay
                 if let pay = estimatedPay {
                     HStack(spacing: 6) {
-                        Image(systemName: "dollarsign.circle.fill")
+                        Image(systemName: CurrencyFormatter.currencySymbolIconFillName)
                             .font(.system(size: 14))
                         Text("Est. \(pay)")
                             .font(ShiftProTypography.subheadline)

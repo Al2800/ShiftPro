@@ -206,14 +206,17 @@ final class NotificationManager: NSObject, ObservableObject {
 
     private func scheduleOvertimeWarningIfNeeded(settings: NotificationSettings) async {
         guard settings.isEnabled, settings.overtimeWarningEnabled else { return }
+        let overtimeThreshold = settings.overtimeWarningThresholdHours
+        guard overtimeThreshold > 0 else { return }
         guard let profile = try? profileRepository.fetchPrimary() else { return }
-        let regularHours = Double(profile.regularHoursPerPay)
-        guard regularHours > 0 else { return }
 
         let period = try? periodEngine.currentPeriod(type: profile.payPeriodType)
-        let paidHours = period?.paidHours ?? 0
+        let overtimeMinutes = period?.activeShifts.reduce(0) { total, shift in
+            total + shift.overtimeMinutes()
+        } ?? 0
+        let overtimeHours = Double(overtimeMinutes) / 60.0
 
-        if paidHours < regularHours * 0.9 {
+        if overtimeHours < overtimeThreshold * 0.9 {
             center.removePendingNotificationRequests(
                 withIdentifiers: [NotificationScheduler.overtimeWarningIdentifier]
             )
@@ -222,7 +225,7 @@ final class NotificationManager: NSObject, ObservableObject {
 
         let content = UNMutableNotificationContent()
         content.title = "Overtime approaching"
-        content.body = String(format: "You have logged %.1f hours this period.", paidHours)
+        content.body = String(format: "You have logged %.1f overtime hours this period.", overtimeHours)
         content.sound = .default
         content.categoryIdentifier = NotificationCategory.overtimeWarning.rawValue
         content.userInfo = ["type": "overtimeWarning"]

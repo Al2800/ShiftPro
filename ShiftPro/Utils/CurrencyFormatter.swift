@@ -17,6 +17,26 @@ enum CurrencyFormatter {
         shared.currencySymbol ?? Locale.current.currencySymbol ?? "$"
     }
 
+    /// SF Symbols name for the current currency icon (uses circle variants).
+    static var currencySymbolIconName: String {
+        let code = shared.currencyCode ?? Locale.current.currencyCode ?? "USD"
+        switch code {
+        case "GBP":
+            return "sterlingsign.circle"
+        case "EUR":
+            return "eurosign.circle"
+        case "JPY":
+            return "yensign.circle"
+        default:
+            return "dollarsign.circle"
+        }
+    }
+
+    /// Filled SF Symbols name for the current currency icon.
+    static var currencySymbolIconFillName: String {
+        "\(currencySymbolIconName).fill"
+    }
+
     /// Format a value as currency string
     static func format(_ value: Double) -> String? {
         shared.string(from: NSNumber(value: value))

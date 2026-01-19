@@ -197,7 +197,7 @@ struct DayTimelineView: View {
                     HStack(spacing: ShiftProSpacing.extraExtraSmall) {
                         statusDot(for: positioned.shift)
 
-                        Text(positioned.shift.pattern?.name ?? "Shift")
+                        Text(positioned.shift.displayTitle)
                             .font(ShiftProTypography.caption)
                             .fontWeight(.semibold)
                             .foregroundStyle(ShiftProColors.ink)

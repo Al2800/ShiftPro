@@ -503,7 +503,7 @@ struct SettingsView: View {
     }
 
     private var defaultPatternName: String {
-        patterns.first?.name ?? "Not set"
+        patterns.first?.displaySummary ?? "Not set"
     }
 
     private var iCloudStatusDetail: String {
@@ -779,6 +779,8 @@ private struct DefaultPatternPickerView: View {
     @State private var extensionMonths = 12
     @State private var isExtending = false
     @State private var showExtendSuccess = false
+    @State private var patternToDelete: ShiftPattern?
+    @State private var showDeleteConfirmation = false
 
     private let engine = PatternEngine()
 
@@ -795,6 +797,7 @@ private struct DefaultPatternPickerView: View {
                             }
 
                             HStack {
+                                let summary = pattern.displaySummary
                                 Button {
                                     setAsDefault(pattern)
                                 } label: {
@@ -803,6 +806,13 @@ private struct DefaultPatternPickerView: View {
                                             Text(pattern.name)
                                                 .font(ShiftProTypography.body)
                                                 .foregroundStyle(ShiftProColors.ink)
+
+                                            if summary != pattern.name {
+                                                Text(summary)
+                                                    .font(ShiftProTypography.caption)
+                                                    .foregroundStyle(ShiftProColors.inkSubtle)
+                                            }
+
                                             if let notes = pattern.notes, !notes.isEmpty {
                                                 Text(notes)
                                                     .font(ShiftProTypography.caption)
@@ -829,6 +839,19 @@ private struct DefaultPatternPickerView: View {
                                         .foregroundStyle(ShiftProColors.accent)
                                         .padding(10)
                                         .background(ShiftProColors.accent.opacity(0.1))
+                                        .clipShape(Circle())
+                                }
+                                .buttonStyle(PlainButtonStyle())
+
+                                Button(role: .destructive) {
+                                    patternToDelete = pattern
+                                    showDeleteConfirmation = true
+                                } label: {
+                                    Image(systemName: "trash")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundStyle(ShiftProColors.danger)
+                                        .padding(10)
+                                        .background(ShiftProColors.danger.opacity(0.1))
                                         .clipShape(Circle())
                                 }
                                 .buttonStyle(PlainButtonStyle())
@@ -907,6 +930,16 @@ private struct DefaultPatternPickerView: View {
                 )
             }
         }
+        .confirmationDialog("Delete Pattern?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button("Delete Pattern", role: .destructive) {
+                if let pattern = patternToDelete {
+                    deletePattern(pattern)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("The pattern will be removed from your list. Existing shifts will remain unchanged.")
+        }
         .alert("Pattern Extended!", isPresented: $showExtendSuccess) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -953,6 +986,14 @@ private struct DefaultPatternPickerView: View {
             showExtendSuccess = true
         } catch {
             isExtending = false
+        }
+    }
+
+    private func deletePattern(_ pattern: ShiftPattern) {
+        let repository = PatternRepository(context: context)
+        try? repository.softDelete(pattern)
+        if patterns.count <= 1 {
+            dismiss()
         }
     }
 }

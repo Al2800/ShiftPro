@@ -115,7 +115,7 @@ struct ScheduleView: View {
                             ForEach(shiftsForSelectedDate, id: \.id) { shift in
                                 NavigationLink {
                                     ShiftDetailView(
-                                        title: shift.pattern?.name ?? "Shift",
+                                        title: shift.displayTitle,
                                         timeRange: "\(shift.dateFormatted) • \(shift.timeRangeFormatted)",
                                         location: shift.locationDisplay,
                                         status: statusIndicator(for: shift),
@@ -133,6 +133,12 @@ struct ScheduleView: View {
                                 .buttonStyle(.plain)
                                 .contextMenu {
                                     Button {
+                                        addOvertimeHour(to: shift)
+                                    } label: {
+                                        Label("Add 1h Overtime", systemImage: "clock.badge.plus")
+                                    }
+
+                                    Button {
                                         editingShift = shift
                                     } label: {
                                         Label("Edit Shift", systemImage: "pencil")
@@ -143,6 +149,14 @@ struct ScheduleView: View {
                                     } label: {
                                         Label("Delete Shift", systemImage: "trash")
                                     }
+                                }
+                                .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                                    Button {
+                                        addOvertimeHour(to: shift)
+                                    } label: {
+                                        Label("Overtime +1h", systemImage: "clock.badge.plus")
+                                    }
+                                    .tint(ShiftProColors.warning)
                                 }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
@@ -349,6 +363,30 @@ struct ScheduleView: View {
         }
     }
 
+    private func addOvertimeHour(to shift: Shift) {
+        Task { @MainActor in
+            let updatedEnd = calendar.date(byAdding: .hour, value: 1, to: shift.scheduledEnd) ?? shift.scheduledEnd
+            let paidMinutes = shift.paidMinutes > 0
+                ? shift.paidMinutes
+                : max(0, shift.effectiveDurationMinutes - shift.breakMinutes)
+            let currentPremium = shift.premiumMinutes > 0
+                ? shift.premiumMinutes
+                : (shift.rateMultiplier > 1.0 ? paidMinutes : 0)
+            shift.premiumMinutes = max(0, currentPremium + 60)
+
+            let rate = max(shift.rateMultiplier, 1.5)
+            let label = (shift.rateLabel?.isEmpty == false) ? shift.rateLabel : "Overtime"
+
+            let manager = ShiftManager(context: modelContext)
+            try? await manager.updateShift(
+                shift,
+                scheduledEnd: updatedEnd,
+                rateMultiplier: rate,
+                rateLabel: label
+            )
+        }
+    }
+
     @ViewBuilder
     private func activeShiftBanner(shift: Shift) -> some View {
         let isInProgress = shift.status == .inProgress
@@ -358,7 +396,7 @@ struct ScheduleView: View {
 
         NavigationLink {
             ShiftDetailView(
-                title: shift.pattern?.name ?? "Shift",
+                title: shift.displayTitle,
                 timeRange: "\(shift.dateFormatted) • \(shift.timeRangeFormatted)",
                 location: shift.locationDisplay,
                 status: statusIndicator(for: shift),
@@ -388,7 +426,7 @@ struct ScheduleView: View {
                             .foregroundStyle(ShiftProColors.inkSubtle)
                     }
 
-                    Text(shift.pattern?.name ?? "Shift")
+                    Text(shift.displayTitle)
                         .font(ShiftProTypography.title)
                         .foregroundStyle(ShiftProColors.ink)
 
@@ -404,7 +442,7 @@ struct ScheduleView: View {
                         }
 
                         if let estimatedPay {
-                            Label("Est. \(estimatedPay)", systemImage: "dollarsign.circle")
+                            Label("Est. \(estimatedPay)", systemImage: CurrencyFormatter.currencySymbolIconName)
                                 .font(ShiftProTypography.subheadline)
                                 .foregroundStyle(ShiftProColors.inkSubtle)
                         }

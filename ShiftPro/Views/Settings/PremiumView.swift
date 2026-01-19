@@ -34,6 +34,7 @@ struct PremiumView: View {
                 }
             }
             .padding(ShiftProSpacing.large)
+            .padding(.bottom, ShiftProSpacing.tabBarPadding)
         }
         .background(ShiftProColors.background.ignoresSafeArea())
         .navigationTitle("Premium")

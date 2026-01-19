@@ -48,7 +48,7 @@ struct HoursDisplay: View {
 
             if let pay = estimatedPay {
                 HStack(spacing: 4) {
-                    Image(systemName: "dollarsign.circle")
+                    Image(systemName: CurrencyFormatter.currencySymbolIconName)
                         .font(.system(size: 12))
                         .foregroundStyle(ShiftProColors.success)
                     Text("Est. \(formatCurrency(pay))")

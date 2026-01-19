@@ -64,7 +64,7 @@ struct PremiumShiftRow: View {
                 // Shift details
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 8) {
-                        Text(shift.pattern?.name ?? "Shift")
+                        Text(shift.displayTitle)
                             .font(ShiftProTypography.headline)
                             .foregroundStyle(ShiftProColors.ink)
 
@@ -93,7 +93,7 @@ struct PremiumShiftRow: View {
                         }
 
                         if let pay = estimatedPay {
-                            Label(pay, systemImage: "dollarsign.circle")
+                            Label(pay, systemImage: CurrencyFormatter.currencySymbolIconName)
                                 .font(ShiftProTypography.caption)
                                 .foregroundStyle(ShiftProColors.success)
                         }
@@ -280,7 +280,7 @@ struct LiveShiftCard: View {
 
                 Spacer()
 
-                Text(shift.pattern?.name ?? "Shift")
+                Text(shift.displayTitle)
                     .font(ShiftProTypography.subheadline)
                     .foregroundStyle(ShiftProColors.inkSubtle)
             }

@@ -76,7 +76,7 @@ struct ShiftPreviewPill: View {
 
     private var patternName: String? {
         guard !compact else { return nil }
-        return shift.pattern?.name
+        return shift.displayTitle
     }
 
     // MARK: - Accessibility
@@ -84,7 +84,8 @@ struct ShiftPreviewPill: View {
     private var accessibilityDescription: String {
         var description = shift.status.displayName + " shift"
         description += ", " + shift.timeRangeFormatted
-        if let name = shift.pattern?.name {
+        if !shift.displayTitle.isEmpty {
+            let name = shift.displayTitle
             description += ", " + name
         }
         return description

@@ -244,6 +244,9 @@ struct CalendarSettingsView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: ShiftProSpacing.tabBarPadding)
+        }
         .navigationTitle("Calendar")
         .task {
             await permissionManager.refreshStatuses()
