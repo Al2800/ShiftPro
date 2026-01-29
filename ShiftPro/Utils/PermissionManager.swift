@@ -17,6 +17,13 @@ final class PermissionManager: ObservableObject {
     }
 
     func requestCalendarAccess() async {
+        // If permission already determined, open Settings instead
+        let currentStatus = EKEventStore.authorizationStatus(for: .event)
+        if currentStatus != .notDetermined {
+            openSettings()
+            return
+        }
+
         do {
             let granted: Bool
             if #available(iOS 17.0, *) {
@@ -39,6 +46,13 @@ final class PermissionManager: ObservableObject {
     }
 
     func requestNotificationAccess() async {
+        // If permission already determined, open Settings instead
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        if settings.authorizationStatus != .notDetermined {
+            openSettings()
+            return
+        }
+
         do {
             let granted = try await UNUserNotificationCenter.current()
                 .requestAuthorization(options: [.alert, .badge, .sound])
@@ -46,6 +60,11 @@ final class PermissionManager: ObservableObject {
         } catch {
             notificationStatus = .denied
         }
+    }
+
+    private func openSettings() {
+        guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(settingsURL)
     }
 }
 

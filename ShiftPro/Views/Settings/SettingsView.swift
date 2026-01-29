@@ -88,13 +88,6 @@ struct SettingsView: View {
                         setupReminderCard
                     }
 
-                    // Premium upgrade card (for free users)
-                    if entitlementManager.state.tier == .free {
-                        PremiumUpgradeCard(currentPlan: "Free") {
-                            // Navigate to premium
-                        }
-                    }
-
                     // Schedule section
                     PremiumSettingsSection(title: "Schedule", icon: "calendar") {
                         NavigationLink {

@@ -4,6 +4,12 @@ struct CalendarSetupView: View {
     @EnvironmentObject var permissionManager: PermissionManager
     @Binding var wantsCalendarSync: Bool
 
+    private var calendarButtonTitle: String {
+        permissionManager.calendarStatus == .notDetermined
+            ? "Grant Calendar Access"
+            : "Change Calendar Access"
+    }
+
     var body: some View {
         VStack(spacing: 16) {
             Text("Calendar Sync")
@@ -24,7 +30,7 @@ struct CalendarSetupView: View {
             Button(action: {
                 Task { await permissionManager.requestCalendarAccess() }
             }) {
-                Text("Grant Calendar Access")
+                Text(calendarButtonTitle)
                     .font(ShiftProTypography.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)

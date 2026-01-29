@@ -113,7 +113,13 @@ struct ScheduleView: View {
                             .frame(height: 500)
                         } else {
                             ForEach(shiftsForSelectedDate, id: \.id) { shift in
-                                NavigationLink {
+                                SwipeableShiftRow(
+                                    shift: shift,
+                                    profile: profile,
+                                    onEdit: { editingShift = shift },
+                                    onDelete: { softDeleteShift(shift) },
+                                    onOvertime: { addOvertimeHour(to: shift) }
+                                ) {
                                     ShiftDetailView(
                                         title: shift.displayTitle,
                                         timeRange: "\(shift.dateFormatted) • \(shift.timeRangeFormatted)",
@@ -123,57 +129,6 @@ struct ScheduleView: View {
                                         rateLabel: shift.rateLabel,
                                         notes: shift.notes
                                     )
-                                } label: {
-                                    PremiumShiftRow(
-                                        shift: shift,
-                                        profile: profile,
-                                        onTap: nil
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                                .contextMenu {
-                                    Button {
-                                        addOvertimeHour(to: shift)
-                                    } label: {
-                                        Label("Add 1h Overtime", systemImage: "clock.badge.plus")
-                                    }
-
-                                    Button {
-                                        editingShift = shift
-                                    } label: {
-                                        Label("Edit Shift", systemImage: "pencil")
-                                    }
-
-                                    Button(role: .destructive) {
-                                        softDeleteShift(shift)
-                                    } label: {
-                                        Label("Delete Shift", systemImage: "trash")
-                                    }
-                                }
-                                .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                                    Button {
-                                        addOvertimeHour(to: shift)
-                                    } label: {
-                                        Label("Overtime +1h", systemImage: "clock.badge.plus")
-                                    }
-                                    .tint(ShiftProColors.warning)
-                                }
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button(role: .destructive) {
-                                        softDeleteShift(shift)
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
-
-                                    Button {
-                                        editingShift = shift
-                                    } label: {
-                                        Label("Edit", systemImage: "pencil")
-                                    }
-                                    .tint(ShiftProColors.accent)
-                                }
-                                .accessibilityAction(named: "Edit") {
-                                    editingShift = shift
                                 }
                             }
                         }
@@ -862,21 +817,16 @@ struct ScheduleView: View {
         let shiftColor = firstShift?.displayColor ?? ShiftProColors.accent
 
         return VStack(spacing: 4) {
-            // Today label - only show for today when not selected
+            // Today indicator - use a subtle dot above the date number
             // (weekday header row already provides day-of-week context)
             if isToday && !isSelected {
-                Text("TODAY")
-                    .font(.system(size: 8, weight: .heavy, design: .rounded))
-                    .foregroundStyle(ShiftProColors.accent)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(
-                        Capsule()
-                            .fill(ShiftProColors.accent.opacity(0.15))
-                    )
+                Circle()
+                    .fill(ShiftProColors.accent)
+                    .frame(width: 6, height: 6)
+                    .padding(.bottom, 2)
             } else {
                 // Spacer to maintain consistent layout (header provides weekday)
-                Color.clear.frame(height: 16)
+                Color.clear.frame(height: 8)
             }
 
             // Date number
@@ -1362,6 +1312,112 @@ struct ScheduleView: View {
         testShiftID = nil
     }
     #endif
+}
+
+// MARK: - Swipeable Shift Row
+
+private struct SwipeableShiftRow<Destination: View>: View {
+    let shift: Shift
+    let profile: UserProfile?
+    let onEdit: () -> Void
+    let onDelete: () -> Void
+    let onOvertime: () -> Void
+    @ViewBuilder let destination: () -> Destination
+
+    @State private var offset: CGFloat = 0
+    @State private var showingActions = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private let actionWidth: CGFloat = 80
+    private let deleteThreshold: CGFloat = -160
+
+    var body: some View {
+        ZStack(alignment: .trailing) {
+            // Action buttons revealed on swipe
+            HStack(spacing: 0) {
+                Spacer()
+
+                Button(action: onEdit) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 18, weight: .semibold))
+                        Text("Edit")
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(width: actionWidth, height: 80)
+                    .background(ShiftProColors.accent)
+                }
+
+                Button(action: onDelete) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 18, weight: .semibold))
+                        Text("Delete")
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(width: actionWidth, height: 80)
+                    .background(ShiftProColors.danger)
+                }
+            }
+
+            // Main content
+            NavigationLink(destination: destination) {
+                PremiumShiftRow(
+                    shift: shift,
+                    profile: profile,
+                    onTap: nil
+                )
+            }
+            .buttonStyle(.plain)
+            .offset(x: offset)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        let translation = value.translation.width
+                        if translation < 0 {
+                            offset = translation
+                        } else if showingActions {
+                            offset = -actionWidth * 2 + translation
+                        }
+                    }
+                    .onEnded { value in
+                        let animation: Animation = reduceMotion ? .linear(duration: 0.15) : .spring(response: 0.3, dampingFraction: 0.7)
+                        withAnimation(animation) {
+                            if value.translation.width < deleteThreshold {
+                                // Full swipe to delete
+                                onDelete()
+                                offset = 0
+                                showingActions = false
+                            } else if value.translation.width < -actionWidth {
+                                // Show actions
+                                offset = -actionWidth * 2
+                                showingActions = true
+                            } else {
+                                // Reset
+                                offset = 0
+                                showingActions = false
+                            }
+                        }
+                    }
+            )
+            .contextMenu {
+                Button(action: onOvertime) {
+                    Label("Add 1h Overtime", systemImage: "clock.badge.plus")
+                }
+
+                Button(action: onEdit) {
+                    Label("Edit Shift", systemImage: "pencil")
+                }
+
+                Button(role: .destructive, action: onDelete) {
+                    Label("Delete Shift", systemImage: "trash")
+                }
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
 }
 
 #Preview {

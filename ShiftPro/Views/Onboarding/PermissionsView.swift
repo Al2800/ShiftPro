@@ -25,7 +25,7 @@ struct PermissionsView: View {
                 benefit: "See your work schedule alongside personal plans.",
                 status: permissionManager.calendarStatus,
                 toggleOn: $wantsCalendarSync,
-                actionTitle: "Allow Calendar"
+                actionTitle: permissionManager.calendarStatus == .notDetermined ? "Allow Calendar" : "Change Calendar Access"
             ) {
                 Task { await permissionManager.requestCalendarAccess() }
             }
@@ -36,7 +36,7 @@ struct PermissionsView: View {
                 benefit: "Stay on time with alerts you can customize later.",
                 status: permissionManager.notificationStatus,
                 toggleOn: $wantsNotifications,
-                actionTitle: "Allow Notifications"
+                actionTitle: permissionManager.notificationStatus == .notDetermined ? "Allow Notifications" : "Change Notifications"
             ) {
                 Task { await permissionManager.requestNotificationAccess() }
             }
